@@ -1,0 +1,54 @@
+.layout-container {
+  display: flex; /* Use flexbox for layout */
+  height: 100%; /* Make sure the layout takes up full viewport height */
+}
+
+.sidebar {
+  width: 250px; /* Define the width of the sidebar */
+  height: 90vh;
+  background-color: #f6f2eb; /* Example background color for the sidebar */
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Optional shadow for sidebar */
+}
+
+.main-content {
+  flex: 1; /* The main content area will take up the remaining space */
+  padding: 20px; /* Padding inside the main content */
+  overflow-y: auto; /* Add vertical scrolling if content overflows */
+}
+
+.dataset-details-container {
+  display: flex; /* Use flexbox for layout */
+  align-items: flex-start; /* Align items to the top */
+  gap: 20px; /* Add some space between the button and details */
+}
+
+.dataset-details-button {
+  display: flex;
+  align-items: center;
+  color: #b87501;
+  flex-shrink: 0; /* Prevent the button from growing */
+}
+
+.dataset-details-button h3 {
+  margin: 0;
+  cursor: pointer;
+}
+
+.dataset-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex-grow: 1; /* Allow the dataset details to grow */
+}
+
+.dataset-details h2 {
+  margin: 0; /* Remove default margin */
+  margin-bottom: 20px;
+}
+
+.dataset-table {
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px,
+    rgba(17, 17, 26, 0.1) 0px 8px 24px, rgba(17, 17, 26, 0.1) 0px 16px 48px;
+}

@@ -1,0 +1,56 @@
+/* Sidebar styling */
+.sidebar {
+  width: 230px;
+  height: 100%;
+  background-color: #f6f2eb;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.add-dataset-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 1rem;
+  justify-content: center;
+  margin: 10%;
+  font-weight: bold;
+  box-sizing: border-box;
+  width: 75%;
+  padding: 10px;
+  background-color: #ffb93f;
+  color: black;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.add-dataset-btn:hover {
+  background-color: #b77401;
+}
+
+.dataset {
+  text-align: left;
+  padding: 10px;
+  align-items: start;
+  background-color: #ffe7bf;
+  border-bottom: 3px solid orange;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.dataset:hover {
+  background-color: #f3c371;
+}
+
+.dataset-name {
+  margin: 0px;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.dataset-bytes {
+  margin: 0px;
+  font-size: 0.9rem;
+  color: #3f454a;
+}

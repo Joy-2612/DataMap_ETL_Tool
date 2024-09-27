@@ -1,0 +1,93 @@
+/* Modal overlay and content styling */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  position: relative; /* Position relative to contain the absolutely positioned close button */
+  background-color: white;
+  padding: 17px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 500px;
+  height: 400px;
+  text-align: center;
+}
+
+.modal-content h2 {
+  margin: 0;
+  margin-bottom: 20px;
+}
+
+.upload-button {
+  padding: 10px;
+  background-color: #ffb93f;
+  color: black;
+  border: none;
+  width: 100%;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* Close button styling */
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  transition: color 0.3s ease;
+}
+
+/* Drag-and-Drop Area styling */
+.drag-drop-area {
+  border: 2px dashed #232f3e;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 18px 0;
+  border-radius: 8px;
+  height: 250px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  position: relative;
+}
+
+.drag-drop-area.active {
+  background-color: #f0f8ff;
+}
+
+.drag-drop-area p {
+  margin: 0;
+  color: #232f3e;
+  font-weight: bold;
+}
+
+.file-input {
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  cursor: pointer;
+}
+
+.file-icon {
+  font-size: 50px;
+  color: #232f3e;
+}
