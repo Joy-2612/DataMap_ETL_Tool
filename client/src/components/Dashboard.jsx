@@ -18,7 +18,7 @@ const Dashboard = ({ datasets }) => {
   };
 
   return isMapFormOpen ? (
-    <div>
+    <div> 
       <div className="dataset-details-button">
         <MdKeyboardArrowLeft />
         <h3 onClick={handleCloseMapForm}>Back to Dashboard</h3>
