@@ -1,8 +1,28 @@
 .tableContainer {
   width: 100%;
+  max-height: 300px;
+  overflow-y: auto;
   overflow-x: auto;
+
+  /* For Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: black transparent;
 }
 
+/* For WebKit browsers (Chrome, Safari, Edge) */
+.tableContainer::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.tableContainer::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tableContainer::-webkit-scrollbar-thumb {
+  background-color: black;
+  border-radius: 10px;
+}
 .table {
   width: 100%;
   border-collapse: collapse;

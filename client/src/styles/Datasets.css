@@ -1,0 +1,135 @@
+.datasets-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.datasets-title {
+  display: flex;
+  justify-content: space-between;
+  text-align: left;
+  font-size: 1.2rem;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.datasets-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.datasets-table th,
+.datasets-table td {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  color: #333;
+}
+
+.datasets-table th {
+  background-color: #f0f0f0;
+  font-weight: bold;
+}
+
+.datasets-table tbody tr:hover {
+  background-color: #f7f7f7;
+}
+
+.view-button,
+.delete-button {
+  padding: 5px 10px;
+  margin: 5px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.4rem;
+}
+
+.view-button {
+  /* background-color: #007bff; */
+  color: rgb(0, 132, 255);
+}
+
+.delete-button {
+  /* background-color: #dc3545; */
+  color: red;
+}
+
+/* Modal overlay styles with animation */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(8px);
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.modal-overlay.show {
+  opacity: 1;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  width: 70%;
+  max-height: 80%;
+  overflow-y: auto;
+  position: relative;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.modal-content.show {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.csv-content {
+  height: 10px;
+}
+
+.add-dataset-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 1rem;
+  justify-content: center;
+  font-weight: bold;
+  box-sizing: border-box;
+  width: 200px;
+  padding: 10px;
+  background-color: black;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.add-dataset-btn:hover {
+  background-color: #b77401;
+}
+
+.csv-modal-title {
+  display: flex;
+  justify-content: space-between;
+}
+
+.close-modal-button {
+  cursor: pointer;
+}

@@ -65,8 +65,8 @@ const UploadModal = ({ show, onClose, onUpload, userId }) => {
   if (!show) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
+    <div className="upload-modal-overlay">
+      <div className="upload-modal-content">
         {/* Close button with icon */}
         <button className="close-button" onClick={onClose}>
           <AiOutlineClose size={20} />

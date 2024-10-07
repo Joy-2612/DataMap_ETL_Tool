@@ -6,13 +6,13 @@
 .sidebar {
   width: 250px; /* Define the width of the sidebar */
   height: 100vh;
-  background-color: #f6f2eb; /* Example background color for the sidebar */
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Optional shadow for sidebar */
+  background-color: #ffffffe3;
+  border-right: 2px solid #e0e0e070;
 }
 
 .main-content {
+  background-color: #ffffffe3;
   flex: 1; /* The main content area will take up the remaining space */
-  padding: 20px; /* Padding inside the main content */
   overflow-y: auto; /* Add vertical scrolling if content overflows */
 }
 

@@ -1,5 +1,5 @@
 /* Modal overlay and content styling */
-.modal-overlay {
+.upload-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -12,8 +12,8 @@
   z-index: 1000;
 }
 
-.modal-content {
-  position: relative; /* Position relative to contain the absolutely positioned close button */
+.upload-modal-content {
+  position: relative;
   background-color: white;
   padding: 17px;
   border-radius: 8px;
@@ -22,6 +22,8 @@
   height: 400px;
   text-align: center;
 }
+
+/* Rest of your CSS remains the same */
 
 .modal-content h2 {
   margin: 0;

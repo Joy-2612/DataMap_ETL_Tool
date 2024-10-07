@@ -5,6 +5,8 @@ const {
   uploadFile,
   getDatasetsByUserId,
   concatenateColumns,
+  getDatasetResultByUserId,
+  mergeDatasets,
 } = require("../controllers/fileController");
 
 const router = express.Router();
@@ -17,5 +19,7 @@ const upload = multer({ storage });
 router.post("/upload", upload.single("file"), uploadFile);
 router.get("/datasets/:userId", getDatasetsByUserId);
 router.post("/concatenate", concatenateColumns);
+router.get("/results/:userId", getDatasetResultByUserId);
+router.post("/merge", mergeDatasets);
 
 module.exports = router;

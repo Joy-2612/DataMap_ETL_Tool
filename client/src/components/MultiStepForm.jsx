@@ -33,7 +33,11 @@ const ConcatenateStep = ({
   goBack,
   fetchColumn,
 }) => {
-  const availableDatasets = datasets.filter((dataset) => dataset.name !== dataset1);
+  const availableDatasets = datasets.filter(
+    (dataset) => dataset.name !== dataset1
+  );
+
+  const [finalColumnName, setFinalColumnName] = useState("");
 
   const handleColumnSelect = (column) => {
     if (!selectedColumns.includes(column)) {
@@ -43,6 +47,46 @@ const ConcatenateStep = ({
 
   const handleColumnRemove = (column) => {
     setSelectedColumns(selectedColumns.filter((c) => c !== column));
+  };
+
+  const handleSubmit = async () => {
+    try {
+      // Make sure dataset1_id is available from the selected dataset
+      console.log(datasets);
+      // Make a POST request to the concatenation endpoint
+      const response = await fetch(
+        "http://localhost:5000/api/file/concatenate",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json", // Specify the content type
+          },
+          body: JSON.stringify({
+            dataset: dataset1, // Send file ID
+            columns: selectedColumns, // Use selectedColumns instead of columns1
+            finalColumnName,
+            delimiter,
+          }),
+        }
+      );
+
+      // Parse the JSON response
+      const data = await response.json();
+
+      if (response.ok) {
+        // Handle successful response
+        console.log("Columns concatenated successfully:", data);
+        alert(`File created successfully! New file ID: ${data.newFileId}`);
+      } else {
+        // Handle errors
+        console.error("Error concatenating columns:", data.message);
+        alert(`Error: ${data.message}`);
+      }
+    } catch (error) {
+      // Handle any network or unexpected errors
+      console.error("Failed to make the API request:", error);
+      alert("An error occurred while concatenating columns.");
+    }
   };
 
   return (
@@ -55,12 +99,19 @@ const ConcatenateStep = ({
         <div className="table-inputs">
           <div className="table-1-inputs">
             <SelectDataset
-              value={dataset1}
+              value={dataset1} // This should show the selected dataset value
               onChange={(e) => {
-                const selectedDataset = datasets.find((dataset) => dataset.name === e.target.value);
-                setDataset1(e.target.value);
-                fetchColumn(selectedDataset, setColumns1);
-                setSelectedColumns([]); // Reset selected columns when dataset changes
+                const selectedDatasetName = e.target.value;
+                const selectedDataset = datasets.find(
+                  (dataset) => dataset.name === selectedDatasetName
+                );
+
+                setDataset1(selectedDatasetName); // Update state with the selected dataset name
+
+                if (selectedDataset) {
+                  fetchColumn(selectedDataset, setColumns1); // Fetch columns for the selected dataset
+                  setSelectedColumns([]); // Reset selected columns when dataset changes
+                }
               }}
             >
               <option value="">Select Dataset</option>
@@ -108,21 +159,41 @@ const ConcatenateStep = ({
             </div>
           </div>
         </div>
+        <div className="delimeter-finalname">
+          <div className="delimiter-title">Choose a Delimiter:</div>
+          <div className="final-name-title">Final Column Name :</div>
+        </div>
+        <div className="select-input">
+          <div className="delimiter-input">
+            <Select
+              value={delimiter}
+              onChange={(e) => setDelimiter(e.target.value)}
+            >
+              <option value=",">Comma ( , )</option>
+              <option value=";">Semicolon ( ; )</option>
+              <option value="|">Pipe ( | )</option>
+              <option value=" ">Space ( )</option>
+              <option value="-">Hyphen ( - )</option>
+              <option value="_">Underscore ( _ )</option>
+            </Select>
+          </div>
 
-        <div className="delimiter-title">Choose a Delimiter:</div>
-        <div className="delimiter-input">
-          <Select value={delimiter} onChange={(e) => setDelimiter(e.target.value)}>
-            <option value=",">Comma ( , )</option>
-            <option value=";">Semicolon ( ; )</option>
-            <option value="|">Pipe ( | )</option>
-            <option value=" ">Space ( )</option>
-            <option value="-">Hyphen ( - )</option>
-            <option value="_">Underscore ( _ )</option>
-          </Select>
+          <div className="final-name-input">
+            <input
+              type="text"
+              value={finalColumnName}
+              onChange={(e) => setFinalColumnName(e.target.value)}
+              placeholder="Enter Final Column Name"
+            />
+          </div>
         </div>
 
         <div className="button-group">
-          <button className="button operate" disabled={selectedColumns.length === 0}>
+          <button
+            className="button operate"
+            disabled={selectedColumns.length === 0}
+            onClick={handleSubmit}
+          >
             Concatenate
           </button>
         </div>
@@ -149,6 +220,52 @@ const MergeStep = ({
     (dataset) => dataset.name !== dataset1 && dataset.name !== dataset2
   );
 
+  const handleMergeSubmit = async () => {
+    try {
+      // Make sure dataset1 and dataset2 are selected
+      if (
+        !dataset1 ||
+        !dataset2 ||
+        columns1.length === 0 ||
+        columns2.length === 0
+      ) {
+        alert("Please select both datasets and columns to merge.");
+        return;
+      }
+
+      // Make a POST request to the merge datasets endpoint
+      const response = await fetch("http://localhost:5000/api/file/merge", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json", // Specify the content type
+        },
+        body: JSON.stringify({
+          dataset1, // First dataset name or ID
+          dataset2, // Second dataset name or ID
+          column1: columns1[0], // Assuming you're only allowing one column for join
+          column2: columns2[0], // Assuming you're only allowing one column for join
+        }),
+      });
+
+      // Parse the JSON response
+      const data = await response.json();
+
+      if (response.ok) {
+        // Handle successful response
+        console.log("Datasets merged successfully:", data);
+        alert(`Datasets merged successfully! New file ID: ${data.newFileId}`);
+      } else {
+        // Handle errors
+        console.error("Error merging datasets:", data.message);
+        alert(`Error: ${data.message}`);
+      }
+    } catch (error) {
+      // Handle any network or unexpected errors
+      console.error("Failed to make the API request:", error);
+      alert("An error occurred while merging datasets.");
+    }
+  };
+
   return (
     <div className="card">
       <div className="card-header">
@@ -161,7 +278,9 @@ const MergeStep = ({
             <SelectDataset
               value={dataset1}
               onChange={(e) => {
-                const selectedDataset = datasets.find((dataset) => dataset.name === e.target.value);
+                const selectedDataset = datasets.find(
+                  (dataset) => dataset.name === e.target.value
+                );
                 setDataset1(e.target.value);
                 fetchColumn(selectedDataset, setColumns1); // Fetch columns for dataset1
                 setColumns2([]); // Reset columns2 when changing dataset1
@@ -176,7 +295,6 @@ const MergeStep = ({
             </SelectDataset>
 
             {/* Column Selection for Dataset 1 */}
-           
 
             <Select
               value=""
@@ -184,7 +302,7 @@ const MergeStep = ({
                 const column = e.target.value;
                 // Handle column selection for dataset1 if needed
               }}
-              >
+            >
               <option value="">Select Columns for Dataset 1</option>
               {columns1.map((column, index) => (
                 <option key={index} value={column}>
@@ -192,14 +310,15 @@ const MergeStep = ({
                 </option>
               ))}
             </Select>
-             
           </div>
 
           <div className="table-1-inputs">
             <SelectDataset
               value={dataset2}
               onChange={(e) => {
-                const selectedDataset = datasets.find((dataset) => dataset.name === e.target.value);
+                const selectedDataset = datasets.find(
+                  (dataset) => dataset.name === e.target.value
+                );
                 setDataset2(e.target.value);
                 fetchColumn(selectedDataset, setColumns2); // Fetch columns for dataset2
               }}
@@ -213,7 +332,7 @@ const MergeStep = ({
             </SelectDataset>
 
             {/* Column Selection for Dataset 2 */}
-           
+
             <Select
               value=""
               onChange={(e) => {
@@ -228,12 +347,15 @@ const MergeStep = ({
                 </option>
               ))}
             </Select>
-          
           </div>
         </div>
 
         <div className="button-group">
-          <button className="button operate" disabled={!dataset1 || !dataset2}>
+          <button
+            className="button operate"
+            disabled={!dataset1 || !dataset2}
+            onClick={handleMergeSubmit} // Use the merge handleSubmit function
+          >
             Merge
           </button>
         </div>
@@ -285,7 +407,9 @@ const MultiStepForm = () => {
   const fetchDatasets = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/file/datasets/${userId}`);
+      const response = await fetch(
+        `http://localhost:5000/api/file/datasets/${userId}`
+      );
       const data = await response.json();
       setDatasets(data.data);
     } catch (error) {
@@ -316,7 +440,8 @@ const MultiStepForm = () => {
         >
           Concatenate
           <p>
-            This operation is used to concatenate a column from a dataset by a delimiter.
+            This operation is used to concatenate a column from a dataset by a
+            delimiter.
           </p>
         </div>
         <div
@@ -327,9 +452,7 @@ const MultiStepForm = () => {
           }}
         >
           Merge
-          <p>
-            This operation is used to merge two datasets.
-          </p>
+          <p>This operation is used to merge two datasets.</p>
         </div>
       </div>
     </div>

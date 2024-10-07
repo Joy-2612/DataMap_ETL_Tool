@@ -38,7 +38,7 @@ const getDatasetsByUserId = async (req, res) => {
     console.log("userId", userId);
 
     // Fetch datasets for the given userId
-    const datasets = await File.find({ userId });
+    const datasets = await File.find({ userId, result: false });
 
     // If no datasets found, return a 404 response
     if (!datasets || datasets.length === 0) {
@@ -55,6 +55,7 @@ const getDatasetsByUserId = async (req, res) => {
         type: dataset.contentType, // Rename contentType to type
         file: dataset.data, // Binary data remains the same
         size: dataset.data.length, // Calculate size from binary data length
+        createdAt: dataset.createdAt, // Calculate size from binary data length
       };
     });
 
@@ -68,75 +69,124 @@ const getDatasetsByUserId = async (req, res) => {
   }
 };
 
-// Controller to concatenate columns in a CSV file
+const getDatasetResultByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const datasets = await File.find({ userId, result: true });
+    if (!datasets || datasets.length === 0) {
+      console.warn(`No datasets found for userId: ${userId}`);
+      return res
+        .status(404)
+        .json({ message: "No datasets found for this user." });
+    }
+
+    // Format the response to match the required structure
+    const formattedDatasets = datasets.map((dataset) => {
+      return {
+        name: dataset.originalName, // Rename originalName to name
+        type: dataset.contentType, // Rename contentType to type
+        file: dataset.data, // Binary data remains the same
+        size: dataset.data.length,
+        createdAt: dataset.createdAt, // Calculate size from binary data length
+      };
+    });
+
+    console.log("Formatted datasets:", formattedDatasets);
+
+    // Send the formatted response
+    res.status(200).json({ data: formattedDatasets });
+  } catch (error) {
+    console.error("Error fetching datasets:", error);
+    res.status(500).json({ message: "Failed to fetch datasets" });
+  }
+};
+
 const concatenateColumns = async (req, res) => {
   try {
-    const { fileId, columns, finalColumnName, delimiter } = req.body;
+    const { dataset, columns, finalColumnName, delimiter } = req.body;
+
+    // Log the request body for debugging purposes
+    console.log(req.body);
 
     // Validate input
-    if (!fileId || !columns || !finalColumnName || !delimiter) {
+    if (!dataset || !columns || !finalColumnName || !delimiter) {
       return res.status(400).json({
-        message: "fileId, columns, finalColumnName, and delimiter are required",
+        message:
+          "dataset, columns, finalColumnName, and delimiter are required",
       });
     }
 
-    // Fetch the file from MongoDB
-    const file = await File.findById(fileId);
+    // Find the file by the originalName matching the dataset
+    const file = await File.findOne({ originalName: dataset });
+
     if (!file) {
       return res.status(404).json({ message: "File not found" });
     }
 
-    // Convert the file buffer into a readable stream
-    const csvContent = file.data.toString("utf-8");
+    const fileId = file._id;
 
+    // Decode the Base64 data stored in the file
+    const csvContent = Buffer.from(file.data, "base64").toString("utf-8");
+
+    // Convert the decoded CSV content into a readable stream
     const stream = Readable.from(csvContent);
 
-    // Parse the CSV file
+    // Array to store rows after processing
     const rows = [];
+
+    // Parse the CSV file
     stream
       .pipe(csvParser())
       .on("data", (row) => {
         // Concatenate the specified columns with the delimiter
         const concatenatedValue = columns
-          .map((col) => row[col])
+          .map((col) => row[col] || "") // Handle missing columns by using an empty string
           .join(delimiter);
 
-        // Replace the columns with the new concatenated value under the finalColumnName
+        // Assign the concatenated value to the new column
         row[finalColumnName] = concatenatedValue;
 
-        // Remove the old columns
+        // Optionally, remove the old columns
         columns.forEach((col) => delete row[col]);
 
         rows.push(row);
       })
       .on("end", async () => {
+        if (rows.length === 0) {
+          return res.status(400).json({
+            message: "The file is empty or in an invalid format",
+          });
+        }
+
         // Convert the modified data back to CSV
         const json2csvParser = new Parser({ fields: Object.keys(rows[0]) });
         const updatedCsv = json2csvParser.parse(rows);
 
-        // Create a new file with a meaningful name
-        const newFileName = `${
-          file.originalName
-        }_concatenated_${Date.now()}.csv`;
+        // Convert the CSV data to a Buffer instead of Uint8Array
+        const csvBuffer = Buffer.from(updatedCsv, "utf-8");
 
-        // Save the new file in the database, base64-encoded
+        // Create a new file with a meaningful name
+        const newFileName = `${file.originalName}_concatenated.csv`;
+
+        // Save the new file in the database, storing it as a Buffer
         const newFile = new File({
           originalName: newFileName,
-          data: Buffer.from(updatedCsv).toString("base64"), // Store as base64
-          contentType: file.contentType, // Use the same content type
-          userId: file.userId, // Same user ID reference
+          data: csvBuffer, // Store as a Buffer
+          contentType: file.contentType, // Use the same content type as original
+          userId: file.userId, // Maintain user ownership
         });
 
         await newFile.save();
 
+        // Return a success response with the new file ID
         res.status(200).json({
           message: "Columns concatenated and new file created successfully!",
-          newFileId: newFile._id, // Return the new file ID
+          newFileId: newFile._id,
         });
       })
       .on("error", (error) => {
         console.error("Error parsing CSV file:", error);
-        res.status(500).json({ message: "Failed to process file" });
+        res.status(500).json({ message: "Failed to process the file" });
       });
   } catch (error) {
     console.error("Error concatenating columns:", error);
@@ -144,4 +194,138 @@ const concatenateColumns = async (req, res) => {
   }
 };
 
-module.exports = { uploadFile, getDatasetsByUserId, concatenateColumns };
+const naturalJoin = (dataset1, dataset2, key1, key2) => {
+  const joinedData = [];
+
+  // Create a map for quick lookup of rows in dataset2 by key2
+  const map2 = new Map();
+  dataset2.forEach((row) => {
+    const key = row[key2];
+    if (!map2.has(key)) {
+      map2.set(key, []);
+    }
+    map2.get(key).push(row);
+  });
+
+  // Iterate over dataset1 and match with dataset2 based on key1 and key2
+  dataset1.forEach((row1) => {
+    const key = row1[key1];
+    const matchingRows = map2.get(key);
+
+    if (matchingRows) {
+      matchingRows.forEach((row2) => {
+        const mergedRow = { ...row1, ...row2 }; // Merge the two rows
+        joinedData.push(mergedRow);
+      });
+    }
+  });
+
+  return joinedData;
+};
+
+// Controller to merge two datasets based on given columns
+const mergeDatasets = async (req, res) => {
+  try {
+    const { dataset1, dataset2, column1, column2 } = req.body;
+
+    // Validate input
+    if (!dataset1 || !dataset2 || !column1 || !column2) {
+      return res.status(400).json({
+        message: "dataset1, dataset2, column1, and column2 are required",
+      });
+    }
+
+    // Find the datasets by the originalName
+    const file1 = await File.findOne({ originalName: dataset1 });
+    const file2 = await File.findOne({ originalName: dataset2 });
+
+    if (!file1 || !file2) {
+      return res
+        .status(404)
+        .json({ message: "One or both datasets not found" });
+    }
+
+    // Decode Base64 data stored in the files
+    const csvContent1 = Buffer.from(file1.data, "base64").toString("utf-8");
+    const csvContent2 = Buffer.from(file2.data, "base64").toString("utf-8");
+
+    // Convert the decoded CSV content into a readable stream
+    const stream1 = Readable.from(csvContent1);
+    const stream2 = Readable.from(csvContent2);
+
+    const dataset1Rows = [];
+    const dataset2Rows = [];
+
+    // Parse the first CSV file
+    const dataset1Promise = new Promise((resolve, reject) => {
+      stream1
+        .pipe(csvParser())
+        .on("data", (row) => dataset1Rows.push(row))
+        .on("end", () => resolve())
+        .on("error", (error) => reject(error));
+    });
+
+    // Parse the second CSV file
+    const dataset2Promise = new Promise((resolve, reject) => {
+      stream2
+        .pipe(csvParser())
+        .on("data", (row) => dataset2Rows.push(row))
+        .on("end", () => resolve())
+        .on("error", (error) => reject(error));
+    });
+
+    // Wait for both datasets to finish parsing
+    await Promise.all([dataset1Promise, dataset2Promise]);
+
+    // Perform natural join on the datasets based on the given keys
+    const joinedData = naturalJoin(
+      dataset1Rows,
+      dataset2Rows,
+      column1,
+      column2
+    );
+
+    if (joinedData.length === 0) {
+      return res.status(400).json({
+        message: "No matching rows found between the two datasets",
+      });
+    }
+
+    // Convert the merged data back to CSV
+    const json2csvParser = new Parser({ fields: Object.keys(joinedData[0]) });
+    const updatedCsv = json2csvParser.parse(joinedData);
+
+    // Convert the CSV data to a Buffer
+    const csvBuffer = Buffer.from(updatedCsv, "utf-8");
+
+    // Create a new file with a meaningful name
+    const newFileName = `merge_result.csv`;
+
+    // Save the new merged file to the database
+    const newFile = new File({
+      originalName: newFileName,
+      data: csvBuffer,
+      contentType: file1.contentType, // Use the same content type as original
+      userId: file1.userId, // Maintain user ownership (assuming it's the same user)
+    });
+
+    await newFile.save();
+
+    // Return a success response with the new file ID
+    res.status(200).json({
+      message: "Datasets merged and new file created successfully!",
+      newFileId: newFile._id,
+    });
+  } catch (error) {
+    console.error("Error merging datasets:", error);
+    res.status(500).json({ message: "Failed to merge datasets" });
+  }
+};
+
+module.exports = {
+  uploadFile,
+  getDatasetsByUserId,
+  concatenateColumns,
+  mergeDatasets,
+  getDatasetResultByUserId,
+};

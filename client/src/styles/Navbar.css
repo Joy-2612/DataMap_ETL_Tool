@@ -9,25 +9,9 @@
   height: 55px;
   padding: 1rem;
   box-sizing: border-box;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
-  background-color: #232f3e;
   color: black;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.navbar-logo {
-  font-family: "Gruppo", sans-serif;
-  font-size: 2rem;
-  font-weight: bold;
-}
-
-.navbar-logo a {
-  display: flex;
-  gap: 10px;
-  color: white;
-  text-align: center;
-  text-decoration: none;
 }
 
 .navbar-buttons {
@@ -37,10 +21,10 @@
 
 .navbar-signin-button,
 .navbar-signout-button {
-  color: black;
+  color: white;
   text-decoration: none;
   padding: 0.5rem 1rem;
-  background-color: #ffb93f;
+  background-color: black;
   border: none;
   font-weight: bold;
   border-radius: 4px;

@@ -1,4 +1,3 @@
-// Layout.js
 import React, { useEffect, useState } from "react";
 import Papa from "papaparse";
 import Dashboard from "./Dashboard";
@@ -7,6 +6,10 @@ import UploadModal from "./UploadModal";
 import DataTable from "../components/DataTable/DataTable";
 import { MdKeyboardArrowLeft } from "react-icons/md";
 import "../styles/Layout.css";
+import Navbar from "./Navbar";
+import Datasets from "./Datasets";
+import { Route, Routes } from "react-router-dom";
+import History from "./History";
 
 const Layout = () => {
   const [datasets, setDatasets] = useState([]);
@@ -19,10 +22,6 @@ const Layout = () => {
   useEffect(() => {
     fetchDatasets();
   }, []);
-
-  const handleAddDataset = () => {
-    setModalOpen(true);
-  };
 
   const handleCloseModal = () => {
     fetchDatasets();
@@ -61,7 +60,9 @@ const Layout = () => {
   };
 
   const parseCsvFile = async (file) => {
+    console.log("File : ", file);
     const uint8Array = new Uint8Array(file.data);
+    console.log("Uint8Array : ", uint8Array);
     const text = new TextDecoder("utf-8").decode(uint8Array);
     console.log("Parsing CSV file:", text);
     Papa.parse(text, {
@@ -85,57 +86,66 @@ const Layout = () => {
   return (
     <div className="layout-container">
       <Sidebar
-        onAddDataset={handleAddDataset}
         datasets={datasets}
         onSelectDataset={handleSelectDataset}
         isLoading={isLoading}
       />
       <div className="main-content">
-        {selectedDataset ? (
-          <div className="dataset-details-container">
-            <div className="dataset-details">
-              <div className="dataset-details-button">
-                <MdKeyboardArrowLeft />
-                <h3 onClick={handleClearSelection}>Back to Dashboard</h3>
-              </div>
-              {selectedDataset.type === "text/csv" ? (
-                <>
-                  <h2>CSV Dataset Details</h2>
-                  <div className="dataset-table">
-                    {Array.isArray(csvData) && csvData.length > 0 ? (
-                      <DataTable
-                        title="CSV Data"
-                        columns={Object.keys(csvData[0]).map((key) => ({
-                          label: key,
-                          key: key,
-                        }))}
-                        data={csvData}
-                        getRowId={(row, index) => index}
-                      />
+        <Navbar />
+        <Routes>
+          <Route path="/datasets" element={<Datasets />} />
+          <Route path="/history" element={<History />} />
+          <Route
+            path="/"
+            element={
+              selectedDataset ? (
+                <div className="dataset-details-container">
+                  <div className="dataset-details">
+                    <div className="dataset-details-button">
+                      <MdKeyboardArrowLeft />
+                      <h3 onClick={handleClearSelection}>Back to Dashboard</h3>
+                    </div>
+                    {selectedDataset.type === "text/csv" ? (
+                      <>
+                        <h2>CSV Dataset Details</h2>
+                        <div className="dataset-table">
+                          {Array.isArray(csvData) && csvData.length > 0 ? (
+                            <DataTable
+                              title="CSV Data"
+                              columns={Object.keys(csvData[0]).map((key) => ({
+                                label: key,
+                                key: key,
+                              }))}
+                              data={csvData}
+                              getRowId={(row, index) => index}
+                            />
+                          ) : (
+                            <p>No data available in the CSV.</p>
+                          )}
+                        </div>
+                      </>
                     ) : (
-                      <p>No data available in the CSV.</p>
+                      <>
+                        <h2>Dataset Details</h2>
+                        <p>
+                          <strong>Name:</strong> {selectedDataset.name}
+                        </p>
+                        <p>
+                          <strong>Size:</strong> {selectedDataset.size} bytes
+                        </p>
+                        <p>
+                          <strong>Type:</strong> {selectedDataset.type}
+                        </p>
+                      </>
                     )}
                   </div>
-                </>
+                </div>
               ) : (
-                <>
-                  <h2>Dataset Details</h2>
-                  <p>
-                    <strong>Name:</strong> {selectedDataset.name}
-                  </p>
-                  <p>
-                    <strong>Size:</strong> {selectedDataset.size} bytes
-                  </p>
-                  <p>
-                    <strong>Type:</strong> {selectedDataset.type}
-                  </p>
-                </>
-              )}
-            </div>
-          </div>
-        ) : (
-          <Dashboard datasets={datasets} />
-        )}
+                <Dashboard datasets={datasets} />
+              )
+            }
+          />
+        </Routes>
       </div>
       <UploadModal
         show={isModalOpen}

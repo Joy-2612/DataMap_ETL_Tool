@@ -1,5 +1,6 @@
 /* Dashboard container styling */
 .dashboard-container {
+  padding: 1rem;
   display: flex;
   flex-direction: column;
 }
@@ -60,4 +61,8 @@
 .action-details p {
   font-size: 1em;
   margin: 0;
+}
+
+.dashboard {
+  padding: 1rem;
 }

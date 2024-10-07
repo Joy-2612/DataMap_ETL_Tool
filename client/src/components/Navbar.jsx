@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles/Navbar.css";
-import { SiGoogledataproc } from "react-icons/si";
 
 const Navbar = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -21,12 +20,6 @@ const Navbar = () => {
 
   return (
     <nav className="navbar">
-      <div className="navbar-logo">
-        <Link to="/">
-          <SiGoogledataproc />
-          DataSync
-        </Link>
-      </div>
       <div className="navbar-buttons">
         {isAuthenticated ? (
           <button onClick={handleLogout} className="navbar-signout-button">
