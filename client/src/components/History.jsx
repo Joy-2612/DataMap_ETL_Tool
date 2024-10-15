@@ -5,6 +5,8 @@ import DataTable from "../components/DataTable/DataTable";
 import { FaEye } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { IoMdClose } from "react-icons/io";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 const History = () => {
   const [datasets, setDatasets] = useState([]);
@@ -86,6 +88,32 @@ const History = () => {
     }, 300); // Match this duration with the CSS transition time (0.3s)
   };
 
+  const exportAsCsv = async (dataset) => {
+    await parseCsvFile(dataset.file);
+    const csvData = Papa.unparse(selectedCsvData);
+    const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `${dataset.name}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportAsPdf = async (dataset) => {
+    const doc = new jsPDF();
+    console.log("dataset : ", dataset);
+    await parseCsvFile(dataset.file);
+
+    doc.text(dataset.name, 10, 10);
+    doc.autoTable({
+      head: [Object.keys(selectedCsvData[0] || {})],
+      body: selectedCsvData.map((row) => Object.values(row)),
+    });
+    doc.save(`${dataset.name}.pdf`);
+  };
+
   return (
     <div className="datasets-container">
       <h2 className="datasets-title">Your Datasets</h2>
@@ -100,6 +128,7 @@ const History = () => {
               <th>Type</th>
               <th>Date Created</th>
               <th>Actions</th>
+              <th>Export</th>
             </tr>
           </thead>
           <tbody>
@@ -119,6 +148,20 @@ const History = () => {
                       className="delete-button"
                       onClick={() => handleDelete(dataset.id)}
                     />
+                  </td>
+                  <td>
+                    <button
+                      className="export-csv-btn"
+                      onClick={() => exportAsCsv(dataset)}
+                    >
+                      CSV
+                    </button>
+                    <button
+                      className="export-pdf-btn"
+                      onClick={() => exportAsPdf(dataset)}
+                    >
+                      PDF
+                    </button>
                   </td>
                 </tr>
               ))

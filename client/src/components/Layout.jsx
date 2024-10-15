@@ -96,7 +96,7 @@ const Layout = () => {
           <Route path="/datasets" element={<Datasets />} />
           <Route path="/history" element={<History />} />
           <Route
-            path="/"
+            path="/dashboard"
             element={
               selectedDataset ? (
                 <div className="dataset-details-container">

@@ -22,7 +22,7 @@ const Sidebar = ({ onAddDataset, datasets, onSelectDataset, isLoading }) => {
       <p>Main Menu</p>
       <div className="menu-list">
         {/* Update the menu items below with actual paths and icons */}
-        <Link to="home/dashboard" className="menu-item">
+        <Link to="dashboard" className="menu-item">
           <MdOutlineSpaceDashboard /> Dashboard
         </Link>
         <Link to="datasets" className="menu-item">

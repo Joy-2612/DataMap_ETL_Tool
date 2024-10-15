@@ -41,7 +41,7 @@
 
 .view-button,
 .delete-button {
-  padding: 5px 10px;
+  padding: 10px 7px;
   margin: 5px;
   border: none;
   border-radius: 5px;
@@ -132,4 +132,27 @@
 
 .close-modal-button {
   cursor: pointer;
+}
+
+.export-csv-btn,
+.export-pdf-btn {
+  margin: 5px;
+  padding: 5px 10px;
+  border: none;
+  cursor: pointer;
+  background-color: #4caf50;
+  color: white;
+  border-radius: 4px;
+}
+
+.export-csv-btn:hover {
+  background-color: #45a049;
+}
+
+.export-pdf-btn {
+  background-color: #f44336;
+}
+
+.export-pdf-btn:hover {
+  background-color: #e53935;
 }

@@ -6,13 +6,16 @@ import UploadModal from "./UploadModal";
 import { FaEye } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { IoMdClose } from "react-icons/io";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+
 const Datasets = () => {
   const [datasets, setDatasets] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Modal states
-  const [isModalOpen, setIsModalOpen] = useState(false); // For CSV viewing modal
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false); // For UploadModal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedCsvData, setSelectedCsvData] = useState([]);
@@ -30,8 +33,6 @@ const Datasets = () => {
         `http://localhost:5000/api/file/datasets/${userId}`
       );
       const data = await response.json();
-
-      console.log("Fetched datasets:", data);
       setDatasets(data.data);
     } catch (error) {
       console.error("Error fetching datasets: ", error);
@@ -40,17 +41,14 @@ const Datasets = () => {
     }
   };
 
-  // Handle viewing CSV data
   const handleView = async (dataset) => {
     setSelectedDataset(dataset);
     if (dataset.type === "text/csv") {
-      // Fetch and parse the CSV file
       await parseCsvFile(dataset.file);
     }
     setIsModalOpen(true);
     setModalVisible(false);
 
-    // Delay adding 'show' class to start animation
     setTimeout(() => {
       setModalVisible(true);
     }, 10);
@@ -64,6 +62,7 @@ const Datasets = () => {
       dynamicTyping: true,
       complete: (result) => {
         setSelectedCsvData(result.data);
+        console.log("Parsed CSV data:", result.data);
       },
       error: (error) => {
         console.error("Error parsing CSV: ", error);
@@ -76,36 +75,57 @@ const Datasets = () => {
       await fetch(`http://localhost:5000/api/file/dataset/${datasetId}`, {
         method: "DELETE",
       });
-      fetchDatasets(); // Refresh datasets after deletion
+      fetchDatasets();
     } catch (error) {
       console.error("Error deleting dataset: ", error);
     }
   };
 
-  // Handle closing the CSV viewing modal
   const handleCloseModal = () => {
     setModalVisible(false);
-    // Wait for the animation to finish before hiding the modal
     setTimeout(() => {
       setIsModalOpen(false);
       setSelectedCsvData([]);
-    }, 300); // Match this duration with the CSS transition time (0.3s)
+    }, 300);
   };
 
-  // Handle opening the UploadModal
   const handleUploadModalOpen = () => {
     setIsUploadModalOpen(true);
   };
 
-  // Handle closing the UploadModal
   const handleUploadModalClose = () => {
     setIsUploadModalOpen(false);
   };
 
-  // Handle successful upload
   const handleUploadSuccess = () => {
-    fetchDatasets(); // Refresh datasets after upload
+    fetchDatasets();
     setIsUploadModalOpen(false);
+  };
+
+  const exportAsCsv = async (dataset) => {
+    await parseCsvFile(dataset.file);
+    const csvData = Papa.unparse(selectedCsvData);
+    const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `${dataset.name}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportAsPdf = async (dataset) => {
+    const doc = new jsPDF();
+    console.log("dataset : ", dataset);
+    await parseCsvFile(dataset.file);
+
+    doc.text(dataset.name, 10, 10);
+    doc.autoTable({
+      head: [Object.keys(selectedCsvData[0] || {})],
+      body: selectedCsvData.map((row) => Object.values(row)),
+    });
+    doc.save(`${dataset.name}.pdf`);
   };
 
   return (
@@ -116,13 +136,14 @@ const Datasets = () => {
           + Add Dataset
         </button>
       </div>
-      {/* UploadModal */}
+
       <UploadModal
         show={isUploadModalOpen}
         onClose={handleUploadModalClose}
         onUpload={handleUploadSuccess}
         userId={userId}
       />
+
       {isLoading ? (
         <p>Loading datasets...</p>
       ) : (
@@ -134,6 +155,7 @@ const Datasets = () => {
               <th>Type</th>
               <th>Date Created</th>
               <th>Actions</th>
+              <th>Export</th>
             </tr>
           </thead>
           <tbody>
@@ -154,6 +176,20 @@ const Datasets = () => {
                       onClick={() => handleDelete(dataset.id)}
                     />
                   </td>
+                  <td>
+                    <button
+                      className="export-csv-btn"
+                      onClick={() => exportAsCsv(dataset)}
+                    >
+                      CSV
+                    </button>
+                    <button
+                      className="export-pdf-btn"
+                      onClick={() => exportAsPdf(dataset)}
+                    >
+                      PDF
+                    </button>
+                  </td>
                 </tr>
               ))
             ) : (
@@ -164,7 +200,7 @@ const Datasets = () => {
           </tbody>
         </table>
       )}
-      {/* Modal for viewing CSV */}
+
       {isModalOpen && (
         <div
           className={`modal-overlay ${modalVisible ? "show" : ""}`}
