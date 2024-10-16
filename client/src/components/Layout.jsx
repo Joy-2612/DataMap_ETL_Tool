@@ -12,6 +12,8 @@ import { Route, Routes } from "react-router-dom";
 import History from "./History";
 import Standardize from "./Standardize";
 import Concatenate from "./Concatenate";
+import Convert from "./Convert";
+import Merge from "./Merge";
 
 const Layout = () => {
   const [datasets, setDatasets] = useState([]);
@@ -99,6 +101,8 @@ const Layout = () => {
           <Route path="/history" element={<History />} />
           <Route path="/standardize" element={<Standardize />} />
           <Route path="/concatenate" element={<Concatenate />} />
+          <Route path="/convert" element={<Convert />} />
+          <Route path="/merge" element={<Merge />} />
           <Route
             path="/dashboard"
             element={

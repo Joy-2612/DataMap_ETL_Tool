@@ -9,6 +9,7 @@ const {
   mergeDatasets,
   standardizeColumn,
   deleteDatasetById,
+  convertFile
 } = require("../controllers/fileController");
 
 const router = express.Router();
@@ -25,5 +26,6 @@ router.get("/results/:userId", getDatasetResultByUserId);
 router.post("/merge", mergeDatasets);
 router.post("/standardize", standardizeColumn);
 router.delete("/dataset/:datasetId", deleteDatasetById);
+router.post('/convert', convertFile);
 
 module.exports = router;

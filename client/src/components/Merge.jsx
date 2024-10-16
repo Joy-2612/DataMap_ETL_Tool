@@ -47,7 +47,7 @@ const Merge = ({ datasets, fetchColumn }) => {
           }}
         >
           <option value="">Select Dataset 1</option>
-          {datasets.map((dataset, index) => (
+          {datasets?.map((dataset, index) => (
             <option key={index} value={dataset.name}>
               {dataset.name}
             </option>
@@ -62,7 +62,7 @@ const Merge = ({ datasets, fetchColumn }) => {
           }}
         >
           <option value="">Select Dataset 2</option>
-          {datasets.map((dataset, index) => (
+          {datasets?.map((dataset, index) => (
             <option key={index} value={dataset.name}>
               {dataset.name}
             </option>
