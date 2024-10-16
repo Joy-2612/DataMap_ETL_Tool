@@ -7,6 +7,8 @@ const {
   concatenateColumns,
   getDatasetResultByUserId,
   mergeDatasets,
+  standardizeColumn,
+  deleteDatasetById,
 } = require("../controllers/fileController");
 
 const router = express.Router();
@@ -21,5 +23,7 @@ router.get("/datasets/:userId", getDatasetsByUserId);
 router.post("/concatenate", concatenateColumns);
 router.get("/results/:userId", getDatasetResultByUserId);
 router.post("/merge", mergeDatasets);
+router.post("/standardize", standardizeColumn);
+router.delete("/dataset/:datasetId", deleteDatasetById);
 
 module.exports = router;

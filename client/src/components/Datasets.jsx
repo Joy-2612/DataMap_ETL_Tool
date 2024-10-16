@@ -71,13 +71,23 @@ const Datasets = () => {
   };
 
   const handleDelete = async (datasetId) => {
+    console.log("Deleting dataset with ID:", datasetId);
     try {
-      await fetch(`http://localhost:5000/api/file/dataset/${datasetId}`, {
-        method: "DELETE",
-      });
-      fetchDatasets();
+      const response = await fetch(
+        `http://localhost:5000/api/file/dataset/${datasetId}`,
+        { method: "DELETE" }
+      );
+
+      if (response.ok) {
+        alert("Dataset deleted successfully!");
+        fetchDatasets(); // Refresh the dataset list
+      } else {
+        const result = await response.json();
+        alert(`Error: ${result.message}`);
+      }
     } catch (error) {
       console.error("Error deleting dataset: ", error);
+      alert("Failed to delete dataset.");
     }
   };
 
@@ -173,7 +183,7 @@ const Datasets = () => {
                     />
                     <MdDelete
                       className="delete-button"
-                      onClick={() => handleDelete(dataset.id)}
+                      onClick={() => handleDelete(dataset._id)}
                     />
                   </td>
                   <td>

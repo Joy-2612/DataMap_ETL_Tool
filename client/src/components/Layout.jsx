@@ -10,6 +10,8 @@ import Navbar from "./Navbar";
 import Datasets from "./Datasets";
 import { Route, Routes } from "react-router-dom";
 import History from "./History";
+import Standardize from "./Standardize";
+import Concatenate from "./Concatenate";
 
 const Layout = () => {
   const [datasets, setDatasets] = useState([]);
@@ -95,6 +97,8 @@ const Layout = () => {
         <Routes>
           <Route path="/datasets" element={<Datasets />} />
           <Route path="/history" element={<History />} />
+          <Route path="/standardize" element={<Standardize />} />
+          <Route path="/concatenate" element={<Concatenate />} />
           <Route
             path="/dashboard"
             element={

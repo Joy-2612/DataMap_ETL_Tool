@@ -51,6 +51,7 @@ const getDatasetsByUserId = async (req, res) => {
     // Format the response to match the required structure
     const formattedDatasets = datasets.map((dataset) => {
       return {
+        _id: dataset._id, // Include the ID for each dataset
         name: dataset.originalName, // Rename originalName to name
         type: dataset.contentType, // Rename contentType to type
         file: dataset.data, // Binary data remains the same
@@ -174,6 +175,7 @@ const concatenateColumns = async (req, res) => {
           data: csvBuffer, // Store as a Buffer
           contentType: file.contentType, // Use the same content type as original
           userId: file.userId, // Maintain user ownership
+          result: true, // Mark the file as a result
         });
 
         await newFile.save();
@@ -307,6 +309,7 @@ const mergeDatasets = async (req, res) => {
       data: csvBuffer,
       contentType: file1.contentType, // Use the same content type as original
       userId: file1.userId, // Maintain user ownership (assuming it's the same user)
+      result: true, // Mark the file as a result
     });
 
     await newFile.save();
@@ -322,10 +325,115 @@ const mergeDatasets = async (req, res) => {
   }
 };
 
+const standardizeColumn = async (req, res) => {
+  try {
+    const { dataset, column, mappings } = req.body;
+
+    // Validate input
+    if (!dataset || !column || !mappings || !Array.isArray(mappings)) {
+      return res.status(400).json({
+        message:
+          "dataset, column, and mappings are required and mappings must be an array",
+      });
+    }
+
+    // Find the dataset by its name
+    const file = await File.findOne({ originalName: dataset });
+
+    if (!file) {
+      return res.status(404).json({ message: "Dataset not found" });
+    }
+
+    // Decode Base64 data stored in the file
+    const csvContent = Buffer.from(file.data, "base64").toString("utf-8");
+
+    // Convert the CSV content into a readable stream
+    const stream = Readable.from(csvContent);
+
+    // Array to store rows after processing
+    const rows = [];
+
+    // Parse the CSV file
+    stream
+      .pipe(csvParser())
+      .on("data", (row) => {
+        const value = row[column];
+
+        // Apply mappings
+        const mappedValue =
+          mappings.find((m) => m.before === value)?.after || value;
+        row[column] = mappedValue;
+
+        rows.push(row);
+      })
+      .on("end", async () => {
+        if (rows.length === 0) {
+          return res.status(400).json({
+            message: "The file is empty or in an invalid format",
+          });
+        }
+
+        // Convert the modified data back to CSV
+        const json2csvParser = new Parser({ fields: Object.keys(rows[0]) });
+        const updatedCsv = json2csvParser.parse(rows);
+
+        // Convert the CSV data to a Buffer
+        const csvBuffer = Buffer.from(updatedCsv, "utf-8");
+
+        // Create a new file with a meaningful name
+        const newFileName = `${file.originalName}_standardized.csv`;
+
+        // Save the new file in the database
+        const newFile = new File({
+          originalName: newFileName,
+          data: csvBuffer,
+          contentType: file.contentType, // Use the same content type as original
+          userId: file.userId, // Maintain user ownership
+          result: true, // Mark the file as a result
+        });
+
+        await newFile.save();
+
+        // Return a success response with the new file ID
+        res.status(200).json({
+          message: "Column standardized and new file created successfully!",
+          newFileId: newFile._id,
+        });
+      })
+      .on("error", (error) => {
+        console.error("Error processing file:", error);
+        res.status(500).json({ message: "Failed to process the file" });
+      });
+  } catch (error) {
+    console.error("Error standardizing column:", error);
+    res.status(500).json({ message: "Failed to standardize column" });
+  }
+};
+
+// Controller to delete a dataset by ID
+const deleteDatasetById = async (req, res) => {
+  try {
+    const { datasetId } = req.params;
+
+    const deletedFile = await File.findByIdAndDelete(datasetId);
+
+    if (!deletedFile) {
+      return res.status(404).json({ message: "Dataset not found" });
+    }
+
+    res.status(200).json({ message: "Dataset deleted successfully!" });
+  } catch (error) {
+    console.error("Error deleting dataset:", error);
+    res.status(500).json({ message: "Failed to delete dataset" });
+  }
+};
+
 module.exports = {
   uploadFile,
   getDatasetsByUserId,
   concatenateColumns,
   mergeDatasets,
   getDatasetResultByUserId,
+  standardizeColumn,
+  deleteDatasetById,
 };

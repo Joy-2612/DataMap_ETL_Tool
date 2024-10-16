@@ -1,0 +1,102 @@
+/* Standardize.css */
+
+.standardize-container {
+  backdrop-filter: blur(4px);
+  width: auto;
+  margin: 2rem;
+  background-color: #232f3e0d;
+  border-radius: 10px;
+  padding: 2rem;
+  box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #ffffff;
+}
+
+.title {
+  text-align: left;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: black;
+  font-size: 2rem;
+}
+
+.form-group {
+  margin-bottom: 0.5rem;
+}
+
+.form-group label {
+  display: block;
+  text-align: left;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: black;
+}
+
+.form-group select {
+  width: 100%;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  background-color: white;
+  color: black;
+}
+
+.mappings-container {
+  margin-top: 2rem;
+}
+
+.mappings-container h2 {
+  text-align: left;
+  color: black;
+}
+
+.mapping-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.mapping-row input {
+  flex: 1 1;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  background-color: white;
+  color: gray;
+}
+
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+}
+
+.add-button,
+.submit-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  color: #ffffff;
+}
+
+.add-button {
+  background-color: #6c63ff; /* Purple accent */
+}
+
+.add-button:hover {
+  background-color: #5a54d1;
+}
+
+.submit-button {
+  background-color: #ff6584; /* Pink accent */
+}
+
+.submit-button:hover {
+  background-color: #d1546e;
+}
