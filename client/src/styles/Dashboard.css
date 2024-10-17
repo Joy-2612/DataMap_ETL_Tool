@@ -91,11 +91,10 @@
 }
 
 /* New Convert Dataset Card - Yellow Gradient Outline */
-.card-yellow {
-  color: #ffdd00;
-  background-color: #ffdd0007;
-  border: 3px solid;
-  border-image: linear-gradient(90deg, #ffdd00, #ffcc33) 1;
+.card-purple {
+  color: #9b00ff;
+  border: 3px solid #9b00ff;
+  background-color: #9b00ff07;
 }
 
 .feature-card {

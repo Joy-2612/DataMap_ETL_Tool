@@ -63,16 +63,16 @@ const Dashboard = ({ datasets }) => {
 
       {/* Feature cards */}
       <div className="feature-cards-container">
-        <div
-          className="feature-card card-blue"
-          onClick={handleNavigateToMerge}
-        >
+        <div className="feature-card card-blue" onClick={handleNavigateToMerge}>
           <div className="feature-icon">
             <FaCodeMerge />
           </div>
           <div className="feature-details">
             <h2>Merge</h2>
-            <p>Merge two datasets based on a common column to create a new dataset</p>
+            <p>
+              Merge two datasets based on a common column to create a new
+              dataset
+            </p>
           </div>
           <div className="continue">
             <h3>Continue</h3>
@@ -89,7 +89,10 @@ const Dashboard = ({ datasets }) => {
           </div>
           <div className="feature-details">
             <h2>Concatenate</h2>
-            <p>Concatenate the columns of a dataset based on a delimiter to create a new column</p>
+            <p>
+              Concatenate the columns of a dataset based on a delimiter to
+              create a new column
+            </p>
           </div>
           <div className="continue">
             <h3>Continue</h3>
@@ -106,7 +109,10 @@ const Dashboard = ({ datasets }) => {
           </div>
           <div className="feature-details">
             <h2>Standardize</h2>
-            <p>Standardize the columns of a dataset based on a set of rules and mappings to ensure consistency</p>
+            <p>
+              Standardize the columns of a dataset based on a set of rules and
+              mappings to ensure consistency
+            </p>
           </div>
           <div className="continue">
             <h3>Continue</h3>
@@ -116,7 +122,7 @@ const Dashboard = ({ datasets }) => {
 
         {/* New Convert Dataset Feature Card */}
         <div
-          className="feature-card card-yellow"
+          className="feature-card card-purple"
           onClick={handleNavigateToConvert}
         >
           <div className="feature-icon">
@@ -124,7 +130,9 @@ const Dashboard = ({ datasets }) => {
           </div>
           <div className="feature-details">
             <h2>Convert Dataset</h2>
-            <p>Easily transform datasets from formats like XML and JSON into CSV</p>
+            <p>
+              Easily transform datasets from formats like XML and JSON into CSV
+            </p>
           </div>
           <div className="continue">
             <h3>Continue</h3>

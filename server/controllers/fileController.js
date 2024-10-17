@@ -3,8 +3,7 @@ const File = require("../models/File");
 const { Readable } = require("stream");
 const csvParser = require("csv-parser");
 const { Parser } = require("json2csv");
-const fs = require('fs');
-
+const fs = require("fs");
 
 // Controller to handle file upload
 const uploadFile = async (req, res) => {
@@ -86,6 +85,7 @@ const getDatasetResultByUserId = async (req, res) => {
     // Format the response to match the required structure
     const formattedDatasets = datasets.map((dataset) => {
       return {
+        _id: dataset._id, // Include the ID for each dataset
         name: dataset.originalName, // Rename originalName to name
         type: dataset.contentType, // Rename contentType to type
         file: dataset.data, // Binary data remains the same
@@ -430,58 +430,70 @@ const deleteDatasetById = async (req, res) => {
   }
 };
 
-
-
 // Assuming you have the jsonToCSV and xmlToCSV conversion functions defined
 const jsonToCSV = (jsonData) => {
   const headers = Object.keys(jsonData[0]);
   const csvRows = [];
-  csvRows.push(headers.join(','));
-  jsonData.forEach(obj => {
-    const values = headers.map(header => {
-      const escapedValue = ('' + obj[header]).replace(/"/g, '\\"');
+  csvRows.push(headers.join(","));
+  jsonData.forEach((obj) => {
+    const values = headers.map((header) => {
+      const escapedValue = ("" + obj[header]).replace(/"/g, '\\"');
       return `"${escapedValue}"`;
     });
-    csvRows.push(values.join(','));
+    csvRows.push(values.join(","));
   });
-  return csvRows.join('\n');
+  return csvRows.join("\n");
 };
 
 const xmlToCSV = (xmlData) => {
   const parser = new DOMParser();
-  const xml = parser.parseFromString(xmlData, 'application/xml');
-  const rows = [...xml.getElementsByTagName('row')];
-  const headers = [...rows[0].children].map(node => node.nodeName);
+  const xml = parser.parseFromString(xmlData, "application/xml");
+  const rows = [...xml.getElementsByTagName("row")];
+  const headers = [...rows[0].children].map((node) => node.nodeName);
   const csvRows = [];
-  csvRows.push(headers.join(','));
-  rows.forEach(row => {
-    const values = [...row.children].map(node => `"${node.textContent.replace(/"/g, '\\"')}"`);
-    csvRows.push(values.join(','));
+  csvRows.push(headers.join(","));
+  rows.forEach((row) => {
+    const values = [...row.children].map(
+      (node) => `"${node.textContent.replace(/"/g, '\\"')}"`
+    );
+    csvRows.push(values.join(","));
   });
-  return csvRows.join('\n');
+  return csvRows.join("\n");
 };
 
 // Controller function to handle file conversion
 const convertFile = async (req, res) => {
-  const { fileType, fileData } = req.body; // Assuming fileType is either 'json' or 'xml'
+  const { fileType, fileData, userId, originalFileName } = req.body; // Assuming fileType is either 'json' or 'xml'
 
   try {
     let csvResult;
 
-    if (fileType === 'json') {
+    if (fileType === "json") {
       const jsonData = JSON.parse(fileData);
       csvResult = jsonToCSV(jsonData);
-    } else if (fileType === 'xml') {
+    } else if (fileType === "xml") {
       csvResult = xmlToCSV(fileData);
     } else {
-      return res.status(400).json({ message: 'Unsupported file type' });
+      return res.status(400).json({ message: "Unsupported file type" });
     }
 
-    res.set('Content-Type', 'text/csv');
-    res.attachment('converted-file.csv');
+    // save the csv in the database
+    const csvBuffer = Buffer.from(csvResult, "utf-8");
+    const newFile = new File({
+      originalName: originalFileName + ".csv",
+      data: csvBuffer,
+      contentType: "text/csv",
+      userId: userId,
+      result: true,
+    });
+
+    await newFile.save();
+
+    res.set("Content-Type", "text/csv");
+    res.attachment("converted-file.csv");
     res.send(csvResult);
   } catch (error) {
-    res.status(500).json({ message: 'Error converting file', error });
+    res.status(500).json({ message: "Error converting file", error });
   }
 };
 module.exports = {
@@ -492,5 +504,5 @@ module.exports = {
   getDatasetResultByUserId,
   standardizeColumn,
   deleteDatasetById,
-  convertFile
+  convertFile,
 };

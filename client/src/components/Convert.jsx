@@ -1,49 +1,88 @@
-import React, { useState } from 'react';
-import { toast, ToastContainer } from "react-toastify"; 
+import React, { useState } from "react";
 import "react-toastify/dist/ReactToastify.css";
-import { FaDownload } from 'react-icons/fa'; 
+import Papa from "papaparse";
+import DataTable from "../components/DataTable/DataTable";
+import { FaDownload } from "react-icons/fa";
+import { toast } from "sonner";
+import "../styles/Convert.css";
 
 const Convert = () => {
-  const [file, setFile] = useState(null); 
-  const [convertedFile, setConvertedFile] = useState(null); 
-  const [fileName, setFileName] = useState(""); 
+  const [file, setFile] = useState(null);
+  const [convertedFile, setConvertedFile] = useState(null);
+  const [csvData, setCsvData] = useState([]);
+  const [fileName, setFileName] = useState("");
+  const userId = localStorage.getItem("userId");
+  const [isDragging, setIsDragging] = useState(false);
 
-  // Handler for file input change
-  const handleFileChange = (event) => {
-    setFile(event.target.files[0]);
+  // Handler for drag and drop
+  const handleDragOver = (event) => {
+    event.preventDefault();
+    setIsDragging(true);
   };
 
-  // Function to convert the file
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+    setIsDragging(false);
+    const droppedFile = event.dataTransfer.files[0];
+    if (droppedFile) {
+      setFile(droppedFile);
+    } else {
+      toast.warn("Please drop a valid file.");
+    }
+  };
+
   const handleConvert = async () => {
     if (file) {
       const reader = new FileReader();
       reader.onload = async (event) => {
         const fileContent = event.target.result;
         const fileType = file.type === "application/json" ? "json" : "xml";
-
+        const originalFileName = file.name.split(".").slice(0, -1).join(".");
         try {
-          const response = await fetch('http://localhost:5000/api/file/convert', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ fileType, fileData: fileContent }),
-          });
+          const response = await fetch(
+            "http://localhost:5000/api/file/convert",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                fileType,
+                fileData: fileContent,
+                userId,
+                originalFileName,
+              }),
+            }
+          );
 
           if (!response.ok) {
-            throw new Error('Failed to convert file');
+            const errorText = await response.text();
+            throw new Error(errorText || "Failed to convert file");
           }
 
-          const csvBlob = await response.blob();  // Convert the response to blob
-          const url = window.URL.createObjectURL(csvBlob);  // Create a URL for the blob
-          const originalFileName = file.name.split('.').slice(0, -1).join('.');  // Remove extension from original name
+          const csvBlob = await response.blob();
+
+          const text = await csvBlob.text();
+          Papa.parse(text, {
+            header: true,
+            dynamicTyping: true,
+            complete: (result) => {
+              setCsvData(result.data);
+            },
+            error: (error) => {
+              toast.error("Error parsing the converted CSV.");
+            },
+          });
+
+          const url = window.URL.createObjectURL(csvBlob);
           const newFileName = `${originalFileName}_converted.csv`;
 
-          // Set convertedFile and fileName in local state for display and download
-          setConvertedFile(url); 
-          setFileName(newFileName); 
-
-         
+          setConvertedFile(url);
+          setFileName(newFileName);
 
           toast.success("File converted successfully!");
         } catch (error) {
@@ -56,39 +95,71 @@ const Convert = () => {
     }
   };
 
+  const handleback = () => {
+    setCsvData([]);
+  };
 
-  // Function to handle file download
   const handleDownload = () => {
     if (convertedFile) {
-      const a = document.createElement('a'); 
-      a.href = convertedFile; 
-      a.download = fileName; 
+      const a = document.createElement("a");
+      a.href = convertedFile;
+      a.download = fileName;
       document.body.appendChild(a);
-      a.click(); 
-      a.remove(); 
+      a.click();
+      a.remove();
+    } else {
+      toast.warn("No converted file available for download.");
     }
   };
 
   return (
-    <div>
-      { <h2>Convert JSON or XML to CSV</h2>}
-      
-      {(
+    <div className="convert-container">
+      {!csvData.length > 0 && (
         <>
-          <input type="file" accept=".json, .xml" onChange={handleFileChange} />
-          <button onClick={handleConvert}>Convert</button>
+          <div className="title">Convert JSON or XML to CSV</div>
+          <div
+            className={`dropzone ${isDragging ? "dragging" : ""}`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => document.getElementById("fileInput").click()} // Trigger input click
+          >
+            <p>Drag and drop a file here, or click to select one</p>
+            <input
+              type="file"
+              accept=".json, .xml"
+              onChange={(e) => setFile(e.target.files[0])}
+              style={{ display: "none" }}
+              id="fileInput"
+            />
+          </div>
+          <button className="convert-button" onClick={handleConvert}>
+            Convert
+          </button>
         </>
       )}
-      
-      <ToastContainer />
 
-      {/* View Converted Files Section */}
-      {convertedFile && (
-        <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3>Converted File: {fileName}</h3>
-          <button onClick={handleDownload} style={{ marginLeft: 'auto' }}>
-            <FaDownload /> Download
-          </button>
+      {csvData.length > 0 && (
+        <div className="csv-data-container">
+          <div className="csv-data-header">
+            <div className="back" onClick={handleback}>
+              Back
+            </div>
+            <div>Preview of Converted CSV</div>
+            <button onClick={handleDownload}>
+              <FaDownload /> Download
+            </button>
+          </div>
+          <DataTable
+            className="csv-data-table"
+            title="Converted CSV Data"
+            columns={Object.keys(csvData[0] || {}).map((key) => ({
+              label: key,
+              key: key,
+            }))}
+            data={csvData}
+            getRowId={(row, index) => index}
+          />
         </div>
       )}
     </div>

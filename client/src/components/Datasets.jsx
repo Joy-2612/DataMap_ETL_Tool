@@ -38,12 +38,6 @@ const Datasets = () => {
     }
   };
 
-
-
-  
-
-
-
   const handleView = async (dataset) => {
     setSelectedDataset(dataset);
     if (dataset.type === "text/csv") {
