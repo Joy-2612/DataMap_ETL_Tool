@@ -114,7 +114,7 @@ const Concatenate = () => {
 
   return (
     <div className="concatenate-container">
-      <h2>Concatenate Columns</h2>
+      <div className="title">Concatenate Columns</div>
       <div className="form-group">
         <select value={dataset1} onChange={handleDatasetChange}>
           <option value="">Select Dataset</option>

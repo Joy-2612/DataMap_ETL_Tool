@@ -44,7 +44,6 @@ const Dashboard = ({ datasets }) => {
     </div>
   ) : (
     <div className="dashboard-container">
-      <h1>Welcome to the Dashboard</h1>
       {/* Add Map Dataset button */}
       <div className="actions-container" onClick={handleOpenMapForm}>
         <div className="action">
