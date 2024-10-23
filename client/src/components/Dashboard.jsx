@@ -38,30 +38,8 @@ const Dashboard = ({ datasets }) => {
     navigate("/home/convert");
   };
 
-  return isMapFormOpen ? (
-    <div className="dashboard">
-      <div className="dataset-details-button">
-        <MdKeyboardArrowLeft />
-        <h3 onClick={handleCloseMapForm}>Back to Dashboard</h3>
-      </div>
-      <MultiStepForm datasets={datasets} onClose={handleCloseMapForm} />
-    </div>
-  ) : (
+  return (
     <div className="dashboard-container">
-      {/* Add Map Dataset button */}
-      <div className="actions-container" onClick={handleOpenMapForm}>
-        <div className="action">
-          <div className="action-icon">
-            <FaCodeMerge />
-          </div>
-          <div className="action-details">
-            <h2>Map Dataset</h2>
-            <p>Combine two datasets based on a common column</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Feature cards */}
       <div className="feature-cards-container">
         <div className="feature-card card-blue" onClick={handleNavigateToMerge}>
           <div className="feature-icon">

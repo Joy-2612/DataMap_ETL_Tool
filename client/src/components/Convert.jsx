@@ -125,6 +125,8 @@ const Convert = () => {
             onClick={() => document.getElementById("fileInput").click()} // Trigger input click
           >
             <p>Drag and drop a file here, or click to select one</p>
+            {/*Also show the name of the selected file here.. */}
+            {file && <p className="file-name">Selected {file.name}</p>}
             <input
               type="file"
               accept=".json, .xml"

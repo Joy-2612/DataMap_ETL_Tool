@@ -6,6 +6,7 @@ import UploadModal from "./UploadModal";
 import { FaEye } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { IoMdClose } from "react-icons/io";
+import { toast } from "sonner";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
@@ -76,7 +77,7 @@ const Datasets = () => {
       );
 
       if (response.ok) {
-        alert("Dataset deleted successfully!");
+        toast.success("Dataset deleted successfully!");
         fetchDatasets(); // Refresh the dataset list
       } else {
         const result = await response.json();
@@ -166,8 +167,8 @@ const Datasets = () => {
             </tr>
           </thead>
           <tbody>
-            {datasets.length > 0 ? (
-              datasets.map((dataset, index) => (
+            {datasets?.length > 0 ? (
+              datasets?.map((dataset, index) => (
                 <tr key={index}>
                   <td>{dataset.name}</td>
                   <td>{dataset.size}</td>

@@ -1,49 +1,90 @@
 import React, { useState, useEffect } from "react";
-import { toast } from "sonner";
 import "../styles/Merge.css";
+import Papa from "papaparse";
 
-const Merge = ({ fetchColumn }) => {
-  const [datasets, setDatasets] = useState([]); // Store datasets
-  const [dataset1, setDataset1] = useState("");
-  const [dataset2, setDataset2] = useState("");
+const Merge = () => {
+  const [datasets, setDatasets] = useState([]);
+  const [dataset1, setDataset1] = useState(null);
+  const [dataset2, setDataset2] = useState(null);
   const [columns1, setColumns1] = useState([]);
   const [columns2, setColumns2] = useState([]);
+  const [selectedColumn1, setSelectedColumn1] = useState("");
+  const [selectedColumn2, setSelectedColumn2] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isFetching, setIsFetching] = useState(true); // Track API fetching status
 
-  // Fetch datasets from the API when the component mounts
+  const userId = localStorage.getItem("userId");
+
+  // Fetch datasets when the component mounts
   useEffect(() => {
     const fetchDatasets = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/file/datasets");
+        const response = await fetch(
+          `http://localhost:5000/api/file/datasets/${userId}`
+        );
         const data = await response.json();
-
-        if (response.ok) {
-          setDatasets(data.data); // Assuming `data.data` contains the list of datasets
-        } else {
-          alert(`Error fetching datasets: ${data.message}`);
-        }
+        setDatasets(data.data);
       } catch (error) {
-        console.error("Error fetching datasets:", error);
-        toast.error("An error occurred while fetching datasets.");
-      } finally {
-        setIsFetching(false); // Stop fetching indicator
+        console.error("Error fetching datasets: ", error);
       }
     };
 
     fetchDatasets();
   }, []);
 
-  // Reset columns when datasets change
-  useEffect(() => {
-    if (!dataset1) setColumns1([]);
-    if (!dataset2) setColumns2([]);
-  }, [dataset1, dataset2]);
+  const parseCsvFile = (file) => {
+    return new Promise((resolve, reject) => {
+      const uint8Array = new Uint8Array(file.data);
+      const text = new TextDecoder("utf-8").decode(uint8Array);
+
+      Papa.parse(text, {
+        header: true,
+        dynamicTyping: true,
+        complete: (result) => {
+          resolve(result.data);
+        },
+        error: (error) => {
+          console.error("Error parsing CSV: ", error);
+          reject(error);
+        },
+      });
+    });
+  };
+
+  const fetchColumns = async (dataset, setColumns) => {
+    try {
+      const selectedDataset = datasets.find((d) => d.name === dataset);
+      if (selectedDataset) {
+        const csvData = await parseCsvFile(selectedDataset.file);
+        const columns = Object.keys(csvData[0]);
+        setColumns(columns);
+      }
+    } catch (error) {
+      console.error("Error fetching columns: ", error);
+    }
+  };
+
+  const handleDataset1Change = (e) => {
+    const selectedDataset = e.target.value;
+    setDataset1(selectedDataset);
+    setColumns1([]); // Reset columns on dataset change
+    fetchColumns(selectedDataset, setColumns1);
+  };
+
+  const handleDataset2Change = (e) => {
+    const selectedDataset = e.target.value;
+    setDataset2(selectedDataset);
+    setColumns2([]); // Reset columns on dataset change
+    fetchColumns(selectedDataset, setColumns2);
+  };
 
   const handleSubmit = async () => {
-    try {
-      setIsLoading(true); // Start loading indicator
+    if (!selectedColumn1 || !selectedColumn2) {
+      alert("Please select columns from both datasets.");
+      return;
+    }
 
+    try {
+      setIsLoading(true);
       const response = await fetch("http://localhost:5000/api/file/merge", {
         method: "POST",
         headers: {
@@ -52,82 +93,91 @@ const Merge = ({ fetchColumn }) => {
         body: JSON.stringify({
           dataset1,
           dataset2,
-          column1: columns1[0], // Assuming only one column is selected for now
-          column2: columns2[0],
+          column1: selectedColumn1,
+          column2: selectedColumn2,
         }),
       });
 
       const data = await response.json();
-      setIsLoading(false); // Stop loading
+      setIsLoading(false);
 
       if (response.ok) {
         alert(`Datasets merged successfully! New file ID: ${data.newFileId}`);
-        // Reset state after successful merge
-        setDataset1("");
-        setDataset2("");
+        setDataset1(null);
+        setDataset2(null);
         setColumns1([]);
         setColumns2([]);
       } else {
         alert(`Error: ${data.message}`);
       }
     } catch (error) {
-      setIsLoading(false); // Stop loading on error
+      setIsLoading(false);
       alert("An error occurred while merging datasets.");
     }
   };
-
-  // Filter out already selected datasets
-  const availableDatasets = datasets.filter(
-    (dataset) => dataset.name !== dataset1 && dataset.name !== dataset2
-  );
-
-  if (isFetching) {
-    return <div>Loading datasets...</div>; // Show a loading indicator while fetching datasets
-  }
 
   return (
     <div className="merge-container">
       <h2>Merge Datasets</h2>
       <div className="form-group">
-        <select
-          value={dataset1}
-          onChange={(e) => {
-            const selectedDataset = e.target.value;
-            setDataset1(selectedDataset);
-            fetchColumn(selectedDataset, setColumns1); // Fetch columns for dataset 1
-          }}
-        >
-          <option value="">Select Dataset 1</option>
-          {datasets.map((dataset, index) => (
-            <option key={index} value={dataset.name}>
-              {dataset.name}
-            </option>
-          ))}
-        </select>
+        <div className="merge-input">
+          <select value={dataset1 || ""} onChange={handleDataset1Change}>
+            <option value="">Select Dataset 1</option>
+            {datasets.map((dataset, index) => (
+              <option key={index} value={dataset.name}>
+                {dataset.name}
+              </option>
+            ))}
+          </select>
 
-        <select
-          value={dataset2}
-          onChange={(e) => {
-            const selectedDataset = e.target.value;
-            setDataset2(selectedDataset);
-            fetchColumn(selectedDataset, setColumns2); // Fetch columns for dataset 2
-          }}
-        >
-          <option value="">Select Dataset 2</option>
-          {availableDatasets.map((dataset, index) => (
-            <option key={index} value={dataset.name}>
-              {dataset.name}
-            </option>
-          ))}
-        </select>
+          {columns1.length > 0 && (
+            <select
+              value={selectedColumn1}
+              onChange={(e) => setSelectedColumn1(e.target.value)}
+            >
+              <option value="">Select Column from Dataset 1</option>
+              {columns1.map((col, index) => (
+                <option key={index} value={col}>
+                  {col}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+        <div className="merge-input">
+          <select value={dataset2 || ""} onChange={handleDataset2Change}>
+            <option value="">Select Dataset 2</option>
+            {datasets
+              .filter((dataset) => dataset.name !== dataset1)
+              .map((dataset, index) => (
+                <option key={index} value={dataset.name}>
+                  {dataset.name}
+                </option>
+              ))}
+          </select>
+
+          {columns2.length > 0 && (
+            <select
+              value={selectedColumn2}
+              onChange={(e) => setSelectedColumn2(e.target.value)}
+            >
+              <option value="">Select Column from Dataset 2</option>
+              {columns2.map((col, index) => (
+                <option key={index} value={col}>
+                  {col}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
 
         <button
           onClick={handleSubmit}
           disabled={
             !dataset1 ||
             !dataset2 ||
-            columns1.length === 0 ||
-            columns2.length === 0 ||
+            !selectedColumn1 ||
+            !selectedColumn2 ||
             isLoading
           }
         >
