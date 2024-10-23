@@ -5,12 +5,14 @@ import { FaCodeMerge } from "react-icons/fa6";
 import { IoMdAddCircleOutline } from "react-icons/io";
 import { PiApproximateEqualsBold } from "react-icons/pi";
 import { MdKeyboardArrowLeft } from "react-icons/md";
-import { Link, useNavigate } from "react-router-dom";
-import { FaArrowRightLong } from "react-icons/fa6";
-import { BiTransfer } from "react-icons/bi"; // Import an icon for Convert Dataset
+import {FaArrowRightLong} from "react-icons/fa6";
+import {BiTransfer} from "react-icons/bi";
+import { useNavigate } from 'react-router-dom';
+
 
 const Dashboard = ({ datasets }) => {
   const navigate = useNavigate();
+
 
   // Accept datasets as a prop
   const [isMapFormOpen, setMapFormOpen] = useState(false); // State for MultiStepForm
@@ -49,7 +51,7 @@ const Dashboard = ({ datasets }) => {
   ) : (
     <div className="dashboard-container">
       {/* Add Map Dataset button */}
-      <div className="actions-container" onClick={handleOpenMapForm}>
+      {/* <div className="actions-container" onClick={handleOpenMapForm}>
         <div className="action">
           <div className="action-icon">
             <FaCodeMerge />
@@ -59,7 +61,7 @@ const Dashboard = ({ datasets }) => {
             <p>Combine two datasets based on a common column</p>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Feature cards */}
       <div className="feature-cards-container">
