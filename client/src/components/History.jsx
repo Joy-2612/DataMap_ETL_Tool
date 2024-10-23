@@ -5,6 +5,7 @@ import DataTable from "../components/DataTable/DataTable";
 import { FaEye } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { IoMdClose } from "react-icons/io";
+import { toast } from "sonner";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
@@ -77,7 +78,7 @@ const History = () => {
       );
 
       if (response.ok) {
-        alert("Dataset deleted successfully!");
+        toast.success("Dataset deleted successfully!");
         fetchDatasets(); // Refresh the dataset list
       } else {
         const result = await response.json();

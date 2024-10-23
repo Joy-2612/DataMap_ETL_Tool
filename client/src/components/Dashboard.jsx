@@ -40,16 +40,9 @@ const Dashboard = ({ datasets }) => {
     navigate("/home/convert");
   };
 
-  return isMapFormOpen ? (
-    <div className="dashboard">
-      <div className="dataset-details-button">
-        <MdKeyboardArrowLeft />
-        <h3 onClick={handleCloseMapForm}>Back to Dashboard</h3>
-      </div>
-      <MultiStepForm datasets={datasets} onClose={handleCloseMapForm} />
-    </div>
-  ) : (
+  return (
     <div className="dashboard-container">
+<<<<<<< HEAD
       {/* Add Map Dataset button */}
       {/* <div className="actions-container" onClick={handleOpenMapForm}>
         <div className="action">
@@ -64,6 +57,8 @@ const Dashboard = ({ datasets }) => {
       </div> */}
 
       {/* Feature cards */}
+=======
+>>>>>>> 6e74056ff27e908d8566351e978db93907d5af60
       <div className="feature-cards-container">
         <div className="feature-card card-blue" onClick={handleNavigateToMerge}>
           <div className="feature-icon">
