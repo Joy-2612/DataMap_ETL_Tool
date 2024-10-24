@@ -11,6 +11,7 @@ const Convert = () => {
   const [convertedFile, setConvertedFile] = useState(null);
   const [csvData, setCsvData] = useState([]);
   const [fileName, setFileName] = useState("");
+  const [customFileName, setCustomFileName] = useState(""); // For custom file name input
   const userId = localStorage.getItem("userId");
   const [isDragging, setIsDragging] = useState(false);
 
@@ -42,6 +43,7 @@ const Convert = () => {
         const fileContent = event.target.result;
         const fileType = file.type === "application/json" ? "json" : "xml";
         const originalFileName = file.name.split(".").slice(0, -1).join(".");
+
         try {
           const response = await fetch(
             "http://localhost:5000/api/file/convert",
@@ -65,21 +67,25 @@ const Convert = () => {
           }
 
           const csvBlob = await response.blob();
-
           const text = await csvBlob.text();
+
           Papa.parse(text, {
             header: true,
             dynamicTyping: true,
             complete: (result) => {
               setCsvData(result.data);
             },
-            error: (error) => {
+            error: () => {
               toast.error("Error parsing the converted CSV.");
             },
           });
 
           const url = window.URL.createObjectURL(csvBlob);
-          const newFileName = `${originalFileName}_converted.csv`;
+
+          // Use the custom file name if provided, otherwise use default
+          const newFileName = customFileName
+            ? `${customFileName}.csv`
+            : `${originalFileName}_converted.csv`;
 
           setConvertedFile(url);
           setFileName(newFileName);
@@ -95,7 +101,7 @@ const Convert = () => {
     }
   };
 
-  const handleback = () => {
+  const handleBack = () => {
     setCsvData([]);
   };
 
@@ -125,7 +131,7 @@ const Convert = () => {
             onClick={() => document.getElementById("fileInput").click()} // Trigger input click
           >
             <p>Drag and drop a file here, or click to select one</p>
-            {/*Also show the name of the selected file here.. */}
+            {/* Show the name of the selected file */}
             {file && <p className="file-name">Selected {file.name}</p>}
             <input
               type="file"
@@ -135,6 +141,21 @@ const Convert = () => {
               id="fileInput"
             />
           </div>
+          {/* Input field for custom file name */}
+          {file && (
+            <div className="file-name-input">
+              <label htmlFor="customFileName">
+                Enter a custom name for the converted file:
+              </label>
+              <input
+                type="text"
+                id="customFileName"
+                placeholder={`${file.name.split(".")[0]}_converted`}
+                value={customFileName}
+                onChange={(e) => setCustomFileName(e.target.value)}
+              />
+            </div>
+          )}
           <button className="convert-button" onClick={handleConvert}>
             Convert
           </button>
@@ -144,10 +165,11 @@ const Convert = () => {
       {csvData.length > 0 && (
         <div className="csv-data-container">
           <div className="csv-data-header">
-            <div className="back" onClick={handleback}>
+            <div className="back" onClick={handleBack}>
               Back
             </div>
-            <div>Preview of Converted CSV</div>
+            <div>Preview of Converted CSV - <span id="file-name"><i>{fileName}</i></span></div>
+            
             <button onClick={handleDownload}>
               <FaDownload /> Download
             </button>

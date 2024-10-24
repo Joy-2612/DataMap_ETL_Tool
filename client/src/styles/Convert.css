@@ -81,3 +81,26 @@
 .back {
   cursor: pointer;
 }
+
+/* Style for the custom file name input */
+#customFileName {
+  width: 20%;
+  padding: 10px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+  transition: border-color 0.3s ease-in-out;
+  margin-top: 10px; /* Add margin to separate it from other elements */
+  margin-left:5px;
+}
+
+/* When the input is focused, change the border color */
+#customFileName:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+#file-name{
+  font-size: medium;
+  color:rgba(14, 1, 1, 0.801);
+}

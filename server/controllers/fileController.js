@@ -3,7 +3,10 @@ const File = require("../models/File");
 const { Readable } = require("stream");
 const csvParser = require("csv-parser");
 const { Parser } = require("json2csv");
+const xml2js = require('xml2js');
 const fs = require("fs");
+const { Builder } = require('xml2js');
+
 
 // Controller to handle file upload
 const uploadFile = async (req, res) => {
@@ -441,8 +444,12 @@ const deleteDatasetById = async (req, res) => {
   }
 };
 
-// Assuming you have the jsonToCSV and xmlToCSV conversion functions defined
 const jsonToCSV = (jsonData) => {
+  // Check if jsonData is an array and not empty
+  if (!Array.isArray(jsonData) || jsonData.length === 0) {
+    throw new Error("Invalid JSON data: should be a non-empty array.");
+  }
+
   const headers = Object.keys(jsonData[0]);
   const csvRows = [];
   csvRows.push(headers.join(","));
@@ -457,24 +464,55 @@ const jsonToCSV = (jsonData) => {
 };
 
 const xmlToCSV = (xmlData) => {
-  const parser = new DOMParser();
-  const xml = parser.parseFromString(xmlData, "application/xml");
-  const rows = [...xml.getElementsByTagName("row")];
-  const headers = [...rows[0].children].map((node) => node.nodeName);
-  const csvRows = [];
-  csvRows.push(headers.join(","));
-  rows.forEach((row) => {
-    const values = [...row.children].map(
-      (node) => `"${node.textContent.replace(/"/g, '\\"')}"`
-    );
-    csvRows.push(values.join(","));
+  return new Promise((resolve, reject) => {
+    xml2js.parseString(xmlData, { explicitArray: false }, (err, result) => {
+      if (err) {
+        return reject(err);
+      }
+
+      // Find the root tag dynamically (assumes there's only one root element)
+      const rootTag = Object.keys(result)[0];
+      const rootElement = result[rootTag];
+
+      // Check if the root has child elements (items)
+      const items = rootElement[Object.keys(rootElement)[0]];
+
+      // Normalize the items to an array in case there is only one
+      const itemArray = Array.isArray(items) ? items : [items];
+
+      // Recursive function to flatten the XML object into key-value pairs
+      const flattenObject = (obj, parent = "", res = {}) => {
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            const propName = parent ? `${parent}.${key}` : key;
+
+            // If it's an object, recursively flatten
+            if (typeof obj[key] === "object" && !Array.isArray(obj[key])) {
+              flattenObject(obj[key], propName, res);
+            } else {
+              res[propName] = Array.isArray(obj[key]) ? obj[key].join(", ") : obj[key];
+            }
+          }
+        }
+        return res;
+      };
+
+      // Flatten all the objects in the array
+      const flattenedData = itemArray.map(item => flattenObject(item));
+
+      // Log the extracted JSON data for debugging
+      console.log("Extracted JSON Data:", flattenedData);
+
+      // Convert the extracted JSON data to CSV
+      const csvResult = jsonToCSV(flattenedData);
+      resolve(csvResult);
+    });
   });
-  return csvRows.join("\n");
 };
 
 // Controller function to handle file conversion
 const convertFile = async (req, res) => {
-  const { fileType, fileData, userId, originalFileName } = req.body; // Assuming fileType is either 'json' or 'xml'
+  const { fileType, fileData, userId, originalFileName } = req.body;
 
   try {
     let csvResult;
@@ -483,12 +521,15 @@ const convertFile = async (req, res) => {
       const jsonData = JSON.parse(fileData);
       csvResult = jsonToCSV(jsonData);
     } else if (fileType === "xml") {
-      csvResult = xmlToCSV(fileData);
+      console.log("Converting XML to CSV...");
+      console.log('Before conversion:');
+      console.log(fileData);
+      csvResult = await xmlToCSV(fileData); // Await the promise returned from xmlToCSV
     } else {
       return res.status(400).json({ message: "Unsupported file type" });
     }
 
-    // save the csv in the database
+    // Save the CSV in the database
     const csvBuffer = Buffer.from(csvResult, "utf-8");
     const newFile = new File({
       originalName: originalFileName + ".csv",
@@ -504,9 +545,125 @@ const convertFile = async (req, res) => {
     res.attachment("converted-file.csv");
     res.send(csvResult);
   } catch (error) {
+    console.error("Error during file conversion:", error);
     res.status(500).json({ message: "Error converting file", error });
   }
 };
+
+const jsonToXML = (jsonData) => {
+  const builder = new xml2js.Builder({
+    renderOpts: { pretty: true },
+    xmldec: { version: "1.0", encoding: "UTF-8" },
+  });
+
+  const xmlData = jsonData.map(item => {
+    // Convert the keys to valid XML names (replace spaces with underscores)
+    const formattedItem = {};
+    for (const key in item) {
+      if (item.hasOwnProperty(key)) {
+        // Replace spaces in keys with underscores
+        const newKey = key.replace(/ /g, "_"); // Replace spaces with underscores
+        formattedItem[newKey] = item[key];
+      }
+    }
+    return formattedItem;
+  });
+
+  return builder.buildObject({ rows: { row: xmlData } });
+};
+
+
+
+const csvToJson = (csvString) => {
+  const rows = csvString.trim().split("\n");
+  const headers = rows[0].split(",").map(header => header.trim().replace(/ /g, "_")); // Replace spaces with underscores
+
+  const jsonData = rows.slice(1).map((row) => {
+    const values = row.split(",");
+    const jsonRow = {};
+    headers.forEach((header, index) => {
+      jsonRow[header] = values[index].trim();
+    });
+    return jsonRow;
+  });
+
+  return jsonData;
+};
+
+const convertBack = async (req, res) => {
+  try {
+    const { convertTo, fileData } = req.body;
+
+    // Convert CSV to JSON
+    const jsonData = csvToJson(fileData);
+    if (convertTo === "json") {
+      return res.status(200).send(JSON.stringify(jsonData, null, 2));
+    } else if (convertTo === "xml") {
+      const xmlData = jsonToXML(jsonData);
+      return res.status(200).send(xmlData);
+    } else {
+      throw new Error("Unsupported file format");
+    }
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+const splitCols = async (req, res) => {
+  const { data, splits } = req.body;
+
+  console.log("Data received:", data);
+  console.log("Splits received:", splits);
+
+  try {
+    const splitData = data.map(row => {
+      let newRow = {}; // Create a new object for the modified row
+
+      splits.forEach(split => {
+        const { col, delimiter, numDelimiters, columnNames } = split;
+
+        if (col && delimiter) {
+          if (row[col] === undefined || row[col] === null) {
+            console.warn(`Column "${col}" not found in the row:`, row);
+            return; // Skip this split if the column doesn't exist
+          }
+
+          // Proceed with splitting
+          const values = row[col].split(delimiter);
+          const splitParts = values.slice(0, numDelimiters + 1);
+          const remainingPart = values.slice(numDelimiters + 1).join(delimiter);
+
+          // Add the original columns that are not being split to the newRow
+          Object.keys(row).forEach(key => {
+            if (key !== col) {
+              newRow[key] = row[key]; // Copy existing columns to the new row
+            }
+          });
+
+          // Rename the new columns based on provided names and insert them into the new row
+          splitParts.forEach((value, index) => {
+            if (index < columnNames.length) {
+              newRow[columnNames[index]] = value; // Insert new column
+            }
+          });
+
+          // Optionally, keep the remaining part in the original column if needed
+          // newRow[col] = remainingPart; // Remove this line to not keep the original column
+        }
+      });
+
+      return newRow; // Return the modified row
+    });
+
+    res.status(200).json(splitData); // Send back the modified data
+  } catch (error) {
+    console.error("Error splitting columns: ", error);
+    res.status(500).json({ error: "Error splitting columns" });
+  }
+};
+
+
+
+
 module.exports = {
   uploadFile,
   getDatasetsByUserId,
@@ -516,4 +673,6 @@ module.exports = {
   standardizeColumn,
   deleteDatasetById,
   convertFile,
+  convertBack,
+  splitCols
 };

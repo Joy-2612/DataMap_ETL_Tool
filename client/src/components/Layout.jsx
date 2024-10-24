@@ -13,7 +13,9 @@ import History from "./History";
 import Standardize from "./Standardize";
 import Concatenate from "./Concatenate";
 import Convert from "./Convert";
+import ConvertBack from "./ConvertBack";
 import Merge from "./Merge";
+import Split from "./Split";
 
 const Layout = () => {
   const [datasets, setDatasets] = useState([]);
@@ -102,6 +104,8 @@ const Layout = () => {
           <Route path="/standardize" element={<Standardize />} />
           <Route path="/concatenate" element={<Concatenate />} />
           <Route path="/convert" element={<Convert />} />
+          <Route path="/convertback" element={<ConvertBack />} />
+          <Route path="/split" element={<Split/>} />
           <Route path="/merge" element={<Merge />} />
           <Route
             path="/dashboard"

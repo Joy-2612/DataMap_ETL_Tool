@@ -143,7 +143,7 @@ const History = () => {
             </tr>
           </thead>
           <tbody>
-            {datasets.length > 0 ? (
+            {datasets?.length > 0 ? (
               datasets.map((dataset, index) => (
                 <tr key={index}>
                   <td>

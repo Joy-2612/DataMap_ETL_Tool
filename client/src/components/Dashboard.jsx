@@ -5,12 +5,15 @@ import { FaCodeMerge } from "react-icons/fa6";
 import { IoMdAddCircleOutline } from "react-icons/io";
 import { PiApproximateEqualsBold } from "react-icons/pi";
 import { MdKeyboardArrowLeft } from "react-icons/md";
-import { Link, useNavigate } from "react-router-dom";
-import { FaArrowRightLong } from "react-icons/fa6";
-import { BiTransfer } from "react-icons/bi"; // Import an icon for Convert Dataset
+import {FaArrowRightLong} from "react-icons/fa6";
+import {BiTransfer,BiTransferAlt} from "react-icons/bi";
+import { useNavigate } from 'react-router-dom';
+import { MdOutlineVerticalSplit } from 'react-icons/md';
+
 
 const Dashboard = ({ datasets }) => {
   const navigate = useNavigate();
+
 
   // Accept datasets as a prop
   const [isMapFormOpen, setMapFormOpen] = useState(false); // State for MultiStepForm
@@ -36,6 +39,12 @@ const Dashboard = ({ datasets }) => {
 
   const handleNavigateToConvert = () => {
     navigate("/home/convert");
+  };
+  const handleNavigateToConvertBack = () => {
+    navigate("/home/convertback");
+  };
+  const handleNavigateToSplit = () => {
+    navigate("/home/split");
   };
 
   return (
@@ -107,7 +116,7 @@ const Dashboard = ({ datasets }) => {
             <BiTransfer />
           </div>
           <div className="feature-details">
-            <h2>Convert Dataset</h2>
+            <h2>Convert To CSV</h2>
             <p>
               Easily transform datasets from formats like XML and JSON into CSV
             </p>
@@ -117,6 +126,49 @@ const Dashboard = ({ datasets }) => {
             <FaArrowRightLong />
           </div>
         </div>
+
+      {/* // 5th convert back to xml or JSON */}
+      <div
+          className="feature-card card-red"
+          onClick={handleNavigateToConvertBack}
+        >
+          <div className="feature-icon">
+            <BiTransferAlt />
+          </div>
+          <div className="feature-details">
+            <h2>Convert to XML or JSON</h2>
+            <p>
+              Easily transform datasets from CSV to XML or JSON            </p>
+          </div>
+          <div className="continue">
+            <h3>Continue</h3>
+            <FaArrowRightLong />
+          </div>
+        </div>
+
+
+        {/* // 6th convert back to xml or JSON */}
+      <div
+          className="feature-card card-pink"
+          onClick={handleNavigateToSplit}
+        >
+          <div className="feature-icon">
+            <MdOutlineVerticalSplit/>
+          </div>
+          <div className="feature-details">
+            <h2>Split</h2>
+            <p>
+            Easily transform datasets from CSV to XML or JSON </p>
+          </div>
+          <div className="continue">
+            <h3>Continue</h3>
+            <FaArrowRightLong />
+          </div>
+        </div>
+
+
+
+
       </div>
     </div>
   );
