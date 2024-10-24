@@ -56,6 +56,7 @@ const getDatasetsByUserId = async (req, res) => {
         name: dataset.originalName, // Rename originalName to name
         type: dataset.contentType, // Rename contentType to type
         file: dataset.data, // Binary data remains the same
+        description: dataset.description || "", // Include description if available
         size: dataset.data.length, // Calculate size from binary data length
         createdAt: dataset.createdAt, // Calculate size from binary data length
       };
@@ -89,6 +90,7 @@ const getDatasetResultByUserId = async (req, res) => {
         name: dataset.originalName, // Rename originalName to name
         type: dataset.contentType, // Rename contentType to type
         file: dataset.data, // Binary data remains the same
+        description: dataset.description || "",
         size: dataset.data.length,
         createdAt: dataset.createdAt, // Calculate size from binary data length
       };
@@ -329,13 +331,19 @@ const mergeDatasets = async (req, res) => {
 
 const standardizeColumn = async (req, res) => {
   try {
-    const { dataset, column, mappings } = req.body;
+    const { dataset, column, mappings, outputFileName, description } = req.body;
 
     // Validate input
-    if (!dataset || !column || !mappings || !Array.isArray(mappings)) {
+    if (
+      !dataset ||
+      !column ||
+      !mappings ||
+      !Array.isArray(mappings) ||
+      !outputFileName
+    ) {
       return res.status(400).json({
         message:
-          "dataset, column, and mappings are required and mappings must be an array",
+          "dataset, column, mappings, and outputFileName are required and mappings must be an array",
       });
     }
 
@@ -376,19 +384,22 @@ const standardizeColumn = async (req, res) => {
         }
 
         // Convert the modified data back to CSV
-        const json2csvParser = new Parser({ fields: Object.keys(rows[0]) });
+        const json2csvParser = new Parser({
+          fields: Object.keys(rows[0]),
+        });
         const updatedCsv = json2csvParser.parse(rows);
 
         // Convert the CSV data to a Buffer
         const csvBuffer = Buffer.from(updatedCsv, "utf-8");
 
-        // Create a new file with a meaningful name
-        const newFileName = `${file.originalName}_standardized.csv`;
+        // Use the provided outputFileName
+        const newFileName = outputFileName;
 
         // Save the new file in the database
         const newFile = new File({
           originalName: newFileName,
           data: csvBuffer,
+          description: description || "", // Save the description if provided
           contentType: file.contentType, // Use the same content type as original
           userId: file.userId, // Maintain user ownership
           result: true, // Mark the file as a result

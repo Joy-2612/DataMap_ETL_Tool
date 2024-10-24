@@ -3,11 +3,17 @@ import "../styles/Standardize.css"; // Modern CSS styling
 import Papa from "papaparse"; // Import the PapaParse library
 
 const Standardize = () => {
+  // State variables
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [outputFileName, setOutputFileName] = useState("");
+  const [description, setDescription] = useState("");
   const [datasets, setDatasets] = useState([]);
   const [selectedDataset, setSelectedDataset] = useState("");
   const [columns, setColumns] = useState([]);
   const [selectedColumn, setSelectedColumn] = useState("");
   const [mappings, setMappings] = useState([{ before: "", after: "" }]);
+  const [csvData, setCsvData] = useState([]);
+  const [uniqueValues, setUniqueValues] = useState([]);
 
   const userId = localStorage.getItem("userId");
 
@@ -46,6 +52,7 @@ const Standardize = () => {
   // Fetch columns for the selected dataset
   const fetchColumns = async (dataset) => {
     const csv = await parseCsvFile(dataset.file);
+    setCsvData(csv);
     const columns = Object.keys(csv[0]);
     setColumns(columns);
   };
@@ -53,6 +60,16 @@ const Standardize = () => {
   useEffect(() => {
     fetchDatasets();
   }, []);
+
+  useEffect(() => {
+    if (selectedColumn && csvData.length > 0) {
+      const values = csvData.map((row) => row[selectedColumn]);
+      const uniqueVals = [...new Set(values)];
+      setUniqueValues(uniqueVals);
+    } else {
+      setUniqueValues([]);
+    }
+  }, [selectedColumn, csvData]);
 
   const handleAddMapping = () => {
     setMappings([...mappings, { before: "", after: "" }]);
@@ -77,6 +94,8 @@ const Standardize = () => {
             dataset: selectedDataset,
             column: selectedColumn,
             mappings: mappings,
+            outputFileName: outputFileName,
+            description: description,
           }),
         }
       );
@@ -95,79 +114,133 @@ const Standardize = () => {
   };
 
   return (
-    <div className="standardize-container">
-      <h1 className="title">Standardize Data</h1>
+    <div>
+      {/* Modal for Output File Name and Description */}
+      {isModalOpen && (
+        <div className="modal">
+          <div className="modal-content-standardize">
+            <h2>Enter Output File Details</h2>
+            <div className="form-group">
+              <label>Output File Name</label>
+              <input
+                type="text"
+                value={outputFileName}
+                onChange={(e) => setOutputFileName(e.target.value)}
+              />
+            </div>
+            <div className="form-group">
+              <label>Description</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
+            <div className="button-group modal-buttons">
+              <button
+                className="submit-button"
+                onClick={() => {
+                  handleSubmit();
+                  setIsModalOpen(false);
+                  setOutputFileName("");
+                  setDescription("");
+                }}
+              >
+                Submit
+              </button>
+              <button
+                className="cancel-button"
+                onClick={() => setIsModalOpen(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <div className="form-group">
-        <label>Select Dataset</label>
-        <select
-          value={selectedDataset}
-          onChange={(e) => {
-            const datasetName = e.target.value;
-            setSelectedDataset(datasetName);
-            const selectedDataset = datasets.find(
-              (ds) => ds.name === datasetName
-            );
-            if (selectedDataset) fetchColumns(selectedDataset);
-          }}
-        >
-          <option value="">Choose a Dataset</option>
-          {datasets.map((dataset, index) => (
-            <option key={index} value={dataset.name}>
-              {dataset.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      {/* Main Container */}
+      <div className="standardize-container">
+        <h1 className="title">Standardize Data</h1>
 
-      {columns.length > 0 && (
         <div className="form-group">
-          <label>Select Column</label>
+          <label>Select Dataset</label>
           <select
-            value={selectedColumn}
-            onChange={(e) => setSelectedColumn(e.target.value)}
+            value={selectedDataset}
+            onChange={(e) => {
+              const datasetName = e.target.value;
+              setSelectedDataset(datasetName);
+              const selectedDataset = datasets.find(
+                (ds) => ds.name === datasetName
+              );
+              if (selectedDataset) fetchColumns(selectedDataset);
+            }}
           >
-            <option value="">Choose a Column</option>
-            {columns.map((column, index) => (
-              <option key={index} value={column}>
-                {column}
+            <option value="">Choose a Dataset</option>
+            {datasets.map((dataset, index) => (
+              <option key={index} value={dataset.name}>
+                {dataset.name}
               </option>
             ))}
           </select>
         </div>
-      )}
 
-      <div className="mappings-container">
-        <h2>Mappings</h2>
-        {mappings.map((mapping, index) => (
-          <div key={index} className="mapping-row">
-            <input
-              type="text"
-              placeholder="Before"
-              value={mapping.before}
-              onChange={(e) =>
-                handleMappingChange(index, "before", e.target.value)
-              }
-            />
-            <input
-              type="text"
-              placeholder="After"
-              value={mapping.after}
-              onChange={(e) =>
-                handleMappingChange(index, "after", e.target.value)
-              }
-            />
+        {columns.length > 0 && (
+          <div className="form-group">
+            <label>Select Column</label>
+            <select
+              value={selectedColumn}
+              onChange={(e) => setSelectedColumn(e.target.value)}
+            >
+              <option value="">Choose a Column</option>
+              {columns.map((column, index) => (
+                <option key={index} value={column}>
+                  {column}
+                </option>
+              ))}
+            </select>
           </div>
-        ))}
-      </div>
+        )}
 
-      <div className="button-group">
-        <button className="add-button" onClick={handleAddMapping}>
-          + Add More
-        </button>
-        <button className="submit-button" onClick={handleSubmit}>
-          Submit
-        </button>
+        <div className="mappings-container">
+          <h2>Mappings</h2>
+          {mappings.map((mapping, index) => (
+            <div key={index} className="mapping-row">
+              <select
+                value={mapping.before}
+                onChange={(e) =>
+                  handleMappingChange(index, "before", e.target.value)
+                }
+              >
+                <option value="">Select a value</option>
+                {uniqueValues.map((value, idx) => (
+                  <option key={idx} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="text"
+                placeholder="After"
+                value={mapping.after}
+                onChange={(e) =>
+                  handleMappingChange(index, "after", e.target.value)
+                }
+              />
+            </div>
+          ))}
+        </div>
+
+        <div className="button-group">
+          <button className="add-button" onClick={handleAddMapping}>
+            + Add More
+          </button>
+          <button
+            className="submit-button"
+            onClick={() => setIsModalOpen(true)}
+          >
+            Submit
+          </button>
+        </div>
       </div>
     </div>
   );

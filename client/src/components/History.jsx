@@ -146,7 +146,12 @@ const History = () => {
             {datasets.length > 0 ? (
               datasets.map((dataset, index) => (
                 <tr key={index}>
-                  <td>{dataset.name}</td>
+                  <td>
+                    {dataset.name}
+                    <div className="dataset-description">
+                      {dataset.description}
+                    </div>
+                  </td>
                   <td>{dataset.size}</td>
                   <td>{dataset.type}</td>
                   <td>{new Date(dataset.createdAt).toLocaleString()}</td>
