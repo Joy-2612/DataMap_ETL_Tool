@@ -168,11 +168,7 @@ const Datasets = () => {
           </thead>
           <tbody>
             {datasets?.length > 0 ? (
-<<<<<<< HEAD
-              datasets.map((dataset, index) => (
-=======
               datasets?.map((dataset, index) => (
->>>>>>> 6e74056ff27e908d8566351e978db93907d5af60
                 <tr key={index}>
                   <td>{dataset.name}</td>
                   <td>{dataset.size}</td>
