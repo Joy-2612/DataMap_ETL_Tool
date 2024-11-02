@@ -14,6 +14,7 @@ const Standardize = () => {
   const [mappings, setMappings] = useState([{ before: [], after: "" }]);
   const [csvData, setCsvData] = useState([]);
   const [uniqueValues, setUniqueValues] = useState([]);
+  const [globalSelectedValues, setGlobalSelectedValues] = useState([]);
 
   const userId = localStorage.getItem("userId");
 
@@ -85,10 +86,16 @@ const Standardize = () => {
 
     if (!currentMapping.before.includes(selectedValue)) {
       currentMapping.before.push(selectedValue);
+      const updatedGlobalSelectedValues = new Set(globalSelectedValues);
+      updatedMappings.forEach((mapping) =>
+        mapping.before.forEach((value) =>
+          updatedGlobalSelectedValues.add(value)
+        )
+      );
+      setGlobalSelectedValues([...updatedGlobalSelectedValues]);
     }
 
     setMappings(updatedMappings);
-    setUniqueValues(uniqueValues.filter((value) => value !== selectedValue));
   };
 
   const handleRemoveSelection = (index, valueToRemove) => {
@@ -97,8 +104,21 @@ const Standardize = () => {
     currentMapping.before = currentMapping.before.filter(
       (value) => value !== valueToRemove
     );
+
+    const updatedGlobalSelectedValues = new Set();
+    updatedMappings.forEach((mapping) =>
+      mapping.before.forEach((value) => updatedGlobalSelectedValues.add(value))
+    );
+    setGlobalSelectedValues([...updatedGlobalSelectedValues]);
+
     setMappings(updatedMappings);
-    setUniqueValues([...uniqueValues, valueToRemove]);
+  };
+
+  const getFilteredValues = () => {
+    // Return only values that are not selected in any mapping
+    return uniqueValues.filter(
+      (value) => !globalSelectedValues.includes(value)
+    );
   };
 
   const handleModalClose = () => {
@@ -234,9 +254,10 @@ const Standardize = () => {
                         onChange={(e) =>
                           handleSelectChange(index, e.target.value)
                         }
+                        value=""
                       >
                         <option value="">Select a value</option>
-                        {uniqueValues.map((value, idx) => (
+                        {getFilteredValues().map((value, idx) => (
                           <option key={idx} value={value}>
                             {value}
                           </option>
