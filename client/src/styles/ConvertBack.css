@@ -1,56 +1,55 @@
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000; /* Ensure it appears on top */
-  }
-  
-  .modal-content {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    width: 80%; /* Adjust width as needed */
-    max-width: 600px; /* Max width for larger screens */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  }
-  
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .modal-body {
-    margin-top: 10px;
-  }
+/* .modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+} */
 
-  .button-container {
-    display: flex;
-    justify-content:space-between;
-    align-items: center; /* Center items vertically */
-    gap: 10px; /* Space between buttons */
-  }
+/* .modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 80%;
+  max-width: 600px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
 
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-.preview{
-  margin-left:50px;
+.modal-body {
+  margin-top: 10px;
+}
+
+.button-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.preview {
+  margin-left: 50px;
   text-align: left;
 }
-  
-.dropdown-container{
-  margin-top:5px;
-}
- 
-  /* ConvertBack.css */
+
+.dropdown-container {
+  margin-top: 5px;
+} */
+
+/* ConvertBack.css */
 
 /* Custom file name input style */
-#customFileName {
+/* #customFileName {
   width: 20%;
   padding: 10px;
   border: 2px solid #ddd;
@@ -66,7 +65,7 @@
   outline: none;
 }
 
-#file-name{
+#file-name {
   font-size: medium;
-  color:rgba(14, 1, 1, 0.801);
-}
+  color: rgba(14, 1, 1, 0.801);
+} */

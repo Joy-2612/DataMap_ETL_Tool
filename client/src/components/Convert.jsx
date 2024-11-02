@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import "react-toastify/dist/ReactToastify.css";
 import Papa from "papaparse";
 import DataTable from "../components/DataTable/DataTable";
 import { FaDownload } from "react-icons/fa";
@@ -168,8 +167,13 @@ const Convert = () => {
             <div className="back" onClick={handleBack}>
               Back
             </div>
-            <div>Preview of Converted CSV - <span id="file-name"><i>{fileName}</i></span></div>
-            
+            <div>
+              Preview of Converted CSV -{" "}
+              <span id="file-name">
+                <i>{fileName}</i>
+              </span>
+            </div>
+
             <button onClick={handleDownload}>
               <FaDownload /> Download
             </button>

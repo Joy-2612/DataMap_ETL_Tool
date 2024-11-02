@@ -3,15 +3,15 @@ const File = require("../models/File");
 const { Readable } = require("stream");
 const csvParser = require("csv-parser");
 const { Parser } = require("json2csv");
-const xml2js = require('xml2js');
+const xml2js = require("xml2js");
 const fs = require("fs");
-const { Builder } = require('xml2js');
-
+const axios = require("axios");
+const { Builder } = require("xml2js");
 
 // Controller to handle file upload
 const uploadFile = async (req, res) => {
   try {
-    const { originalname, mimetype, buffer } = req.file;
+    const { originalname, mimetype, buffer, description } = req.file;
     const { userId } = req.body; // Get userId from request body
 
     if (!userId) {
@@ -22,6 +22,7 @@ const uploadFile = async (req, res) => {
     const file = new File({
       originalName: originalname,
       data: buffer,
+      description: description || "",
       contentType: mimetype,
       userId, // Associate file with the user
     });
@@ -35,11 +36,38 @@ const uploadFile = async (req, res) => {
   }
 };
 
+const getDatasetByDatasetId = async (req, res) => {
+  const { datasetId } = req.params;
+  console.log("Hello : ", datasetId);
+
+  try {
+    const dataset = await File.findById(datasetId);
+
+    if (!dataset) {
+      return res.status(404).json({ message: "Dataset not found" });
+    }
+
+    const formattedDataset = {
+      _id: dataset._id,
+      name: dataset.originalName,
+      type: dataset.contentType,
+      file: dataset.data,
+      description: dataset.description || "",
+      size: dataset.data.length,
+      createdAt: dataset.createdAt,
+    };
+
+    res.status(200).json({ data: formattedDataset });
+  } catch (error) {
+    console.error("Error fetching dataset:", error);
+    res.status(500).json({ message: "Failed to fetch dataset" });
+  }
+};
+
 // Controller to get all datasets by userID
 const getDatasetsByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
-    console.log("userId", userId);
 
     // Fetch datasets for the given userId
     const datasets = await File.find({ userId, result: false });
@@ -64,8 +92,6 @@ const getDatasetsByUserId = async (req, res) => {
         createdAt: dataset.createdAt, // Calculate size from binary data length
       };
     });
-
-    console.log("Formatted datasets:", formattedDatasets);
 
     // Send the formatted response
     res.status(200).json({ data: formattedDatasets });
@@ -111,10 +137,8 @@ const getDatasetResultByUserId = async (req, res) => {
 
 const concatenateColumns = async (req, res) => {
   try {
-    const { dataset, columns, finalColumnName, delimiter } = req.body;
-
-    // Log the request body for debugging purposes
-    console.log(req.body);
+    const { dataset, columns, finalColumnName, delimiter, description } =
+      req.body;
 
     // Validate input
     if (!dataset || !columns || !finalColumnName || !delimiter) {
@@ -180,6 +204,7 @@ const concatenateColumns = async (req, res) => {
         const newFile = new File({
           originalName: newFileName,
           data: csvBuffer, // Store as a Buffer
+          description: description || "", // Save the description if provided
           contentType: file.contentType, // Use the same content type as original
           userId: file.userId, // Maintain user ownership
           result: true, // Mark the file as a result
@@ -235,7 +260,7 @@ const naturalJoin = (dataset1, dataset2, key1, key2) => {
 // Controller to merge two datasets based on given columns
 const mergeDatasets = async (req, res) => {
   try {
-    const { dataset1, dataset2, column1, column2 } = req.body;
+    const { dataset1, dataset2, column1, column2, description } = req.body;
 
     // Validate input
     if (!dataset1 || !dataset2 || !column1 || !column2) {
@@ -314,6 +339,7 @@ const mergeDatasets = async (req, res) => {
     const newFile = new File({
       originalName: newFileName,
       data: csvBuffer,
+      description: description || "", // Save the description if provided
       contentType: file1.contentType, // Use the same content type as original
       userId: file1.userId, // Maintain user ownership (assuming it's the same user)
       result: true, // Mark the file as a result
@@ -337,13 +363,7 @@ const standardizeColumn = async (req, res) => {
     const { dataset, column, mappings, outputFileName, description } = req.body;
 
     // Validate input
-    if (
-      !dataset ||
-      !column ||
-      !mappings ||
-      !Array.isArray(mappings) ||
-      !outputFileName
-    ) {
+    if (!dataset || !column || !Array.isArray(mappings) || !outputFileName) {
       return res.status(400).json({
         message:
           "dataset, column, mappings, and outputFileName are required and mappings must be an array",
@@ -372,10 +392,12 @@ const standardizeColumn = async (req, res) => {
       .on("data", (row) => {
         const value = row[column];
 
-        // Apply mappings
-        const mappedValue =
-          mappings.find((m) => m.before === value)?.after || value;
-        row[column] = mappedValue;
+        // Iterate through mappings to check if any `before` array contains the current value
+        mappings.forEach((mapping) => {
+          if (mapping.before.includes(value)) {
+            row[column] = mapping.after; // Replace with `after` value
+          }
+        });
 
         rows.push(row);
       })
@@ -490,7 +512,9 @@ const xmlToCSV = (xmlData) => {
             if (typeof obj[key] === "object" && !Array.isArray(obj[key])) {
               flattenObject(obj[key], propName, res);
             } else {
-              res[propName] = Array.isArray(obj[key]) ? obj[key].join(", ") : obj[key];
+              res[propName] = Array.isArray(obj[key])
+                ? obj[key].join(", ")
+                : obj[key];
             }
           }
         }
@@ -498,10 +522,7 @@ const xmlToCSV = (xmlData) => {
       };
 
       // Flatten all the objects in the array
-      const flattenedData = itemArray.map(item => flattenObject(item));
-
-      // Log the extracted JSON data for debugging
-      console.log("Extracted JSON Data:", flattenedData);
+      const flattenedData = itemArray.map((item) => flattenObject(item));
 
       // Convert the extracted JSON data to CSV
       const csvResult = jsonToCSV(flattenedData);
@@ -521,9 +542,6 @@ const convertFile = async (req, res) => {
       const jsonData = JSON.parse(fileData);
       csvResult = jsonToCSV(jsonData);
     } else if (fileType === "xml") {
-      console.log("Converting XML to CSV...");
-      console.log('Before conversion:');
-      console.log(fileData);
       csvResult = await xmlToCSV(fileData); // Await the promise returned from xmlToCSV
     } else {
       return res.status(400).json({ message: "Unsupported file type" });
@@ -556,7 +574,7 @@ const jsonToXML = (jsonData) => {
     xmldec: { version: "1.0", encoding: "UTF-8" },
   });
 
-  const xmlData = jsonData.map(item => {
+  const xmlData = jsonData.map((item) => {
     // Convert the keys to valid XML names (replace spaces with underscores)
     const formattedItem = {};
     for (const key in item) {
@@ -572,11 +590,11 @@ const jsonToXML = (jsonData) => {
   return builder.buildObject({ rows: { row: xmlData } });
 };
 
-
-
 const csvToJson = (csvString) => {
   const rows = csvString.trim().split("\n");
-  const headers = rows[0].split(",").map(header => header.trim().replace(/ /g, "_")); // Replace spaces with underscores
+  const headers = rows[0]
+    .split(",")
+    .map((header) => header.trim().replace(/ /g, "_")); // Replace spaces with underscores
 
   const jsonData = rows.slice(1).map((row) => {
     const values = row.split(",");
@@ -608,17 +626,33 @@ const convertBack = async (req, res) => {
     res.status(500).send(error.message);
   }
 };
-const splitCols = async (req, res) => {
-  const { data, splits } = req.body;
 
-  console.log("Data received:", data);
-  console.log("Splits received:", splits);
+const splitCols = async (req, res) => {
+  const { fileId, splits, description = "", outputFileName } = req.body;
 
   try {
-    const splitData = data.map(row => {
-      let newRow = {}; // Create a new object for the modified row
+    // Find the file by its ID
+    const file = await File.findById(fileId);
+    if (!file) {
+      return res.status(404).json({ error: "File not found" });
+    }
 
-      splits.forEach(split => {
+    // Parse the CSV content
+    const csvContent = Buffer.from(file.data, "base64").toString("utf-8");
+    const rows = await new Promise((resolve, reject) => {
+      const result = [];
+      Readable.from(csvContent)
+        .pipe(csvParser())
+        .on("data", (row) => result.push(row))
+        .on("end", () => resolve(result))
+        .on("error", (error) => reject(error));
+    });
+
+    // Apply the split logic to the rows
+    const splitData = rows.map((row) => {
+      let newRow = { ...row }; // Copy the row to a new object
+
+      splits.forEach((split) => {
         const { col, delimiter, numDelimiters, columnNames } = split;
 
         if (col && delimiter) {
@@ -630,40 +664,141 @@ const splitCols = async (req, res) => {
           // Proceed with splitting
           const values = row[col].split(delimiter);
           const splitParts = values.slice(0, numDelimiters + 1);
-          const remainingPart = values.slice(numDelimiters + 1).join(delimiter);
 
-          // Add the original columns that are not being split to the newRow
-          Object.keys(row).forEach(key => {
-            if (key !== col) {
-              newRow[key] = row[key]; // Copy existing columns to the new row
-            }
-          });
-
-          // Rename the new columns based on provided names and insert them into the new row
+          // Rename and insert the new columns based on provided names
           splitParts.forEach((value, index) => {
             if (index < columnNames.length) {
-              newRow[columnNames[index]] = value; // Insert new column
+              newRow[columnNames[index]] = value;
             }
           });
 
-          // Optionally, keep the remaining part in the original column if needed
-          // newRow[col] = remainingPart; // Remove this line to not keep the original column
+          // Optionally, remove the original column
+          // delete newRow[col]; // Uncomment this line to remove the original column
         }
       });
 
       return newRow; // Return the modified row
     });
 
-    res.status(200).json(splitData); // Send back the modified data
+    // Convert the modified data back to CSV
+    const json2csvParser = new Parser({ fields: Object.keys(splitData[0]) });
+    const updatedCsv = json2csvParser.parse(splitData);
+
+    // Convert the CSV data to a Buffer
+    const csvBuffer = Buffer.from(updatedCsv, "utf-8");
+
+    // Create and save the new file in the database
+    const newFile = new File({
+      originalName: outputFileName || `${file.originalName}_split.csv`,
+      data: csvBuffer,
+      contentType: "text/csv",
+      description, // Save the description if provided
+      userId: file.userId, // Maintain user ownership
+      result: true, // Mark as a result file
+    });
+
+    await newFile.save();
+
+    // Return a success response with the new file ID
+    res.status(201).json({
+      message: "Columns split and new file created successfully!",
+      newFileId: newFile._id,
+    });
   } catch (error) {
-    console.error("Error splitting columns: ", error);
+    console.error("Error splitting columns:", error);
     res.status(500).json({ error: "Error splitting columns" });
   }
 };
 
+const splitAddress = async (req, res) => {
+  const { fileId, addressName, description = "", outputFileName } = req.body;
 
+  try {
+    // Find the file by its ID
+    const file = await File.findById(fileId);
+    if (!file) {
+      return res.status(404).json({ error: "File not found" });
+    }
 
+    // Parse the CSV content
+    const csvContent = Buffer.from(file.data, "base64").toString("utf-8");
+    const rows = await new Promise((resolve, reject) => {
+      const result = [];
+      Readable.from(csvContent)
+        .pipe(csvParser())
+        .on("data", (row) => result.push(row))
+        .on("end", () => resolve(result))
+        .on("error", (error) => reject(error));
+    });
 
+    // Split the address into components
+    const splitData = rows.map((row) => {
+      const addressParts = (row[addressName] || "")
+        .split(",")
+        .map((part) => part.trim());
+
+      // Use a regex to find the pincode as the last numeric part after a hyphen
+      const pincodeMatch = (row[addressName] || "").match(/-\s*(\d{6})$/);
+      const pincode = pincodeMatch ? pincodeMatch[1] : "";
+
+      return { ...row, pincode };
+    });
+
+    // Fetch additional location data based on pincode
+    const enrichedData = await Promise.all(
+      splitData.map(async (item) => {
+        try {
+          const response = await axios.get(
+            `https://api.postalpincode.in/pincode/${item.pincode}`
+          );
+          const locationData = response.data[0]?.PostOffice?.[0] || {};
+
+          return {
+            ...item,
+            post_office: locationData.Name || "Unknown",
+            district: locationData.District || "Unknown",
+            state: locationData.State || "Unknown",
+            country: locationData.Country || "India",
+          };
+        } catch (error) {
+          console.error(
+            `Error fetching data for pincode ${item.pincode}:`,
+            error
+          );
+          return { ...item, post_office: "Unknown" };
+        }
+      })
+    );
+
+    // Convert enriched data back to CSV
+    const json2csvParser = new Parser({ fields: Object.keys(enrichedData[0]) });
+    const updatedCsv = json2csvParser.parse(enrichedData);
+
+    // Save the CSV data as a Buffer
+    const csvBuffer = Buffer.from(updatedCsv, "utf-8");
+
+    // Create and save the new file in the database
+    const newFile = new File({
+      originalName: outputFileName,
+      data: csvBuffer,
+      contentType: "text/csv",
+      description, // Save the description if provided
+      userId: file.userId, // Maintain user ownership
+      result: true, // Mark as a result file
+    });
+
+    await newFile.save();
+
+    // Send a success response with the new file's ID
+    res.status(201).json({
+      message: "Address split and saved successfully!",
+      newFileId: newFile._id,
+    });
+  } catch (error) {
+    console.error("Error splitting address:", error);
+    res.status(500).json({ error: "Error splitting address" });
+  }
+};
 module.exports = {
   uploadFile,
   getDatasetsByUserId,
@@ -674,5 +809,7 @@ module.exports = {
   deleteDatasetById,
   convertFile,
   convertBack,
-  splitCols
+  splitCols,
+  splitAddress,
+  getDatasetByDatasetId,
 };

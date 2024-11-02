@@ -5,15 +5,13 @@ import { FaCodeMerge } from "react-icons/fa6";
 import { IoMdAddCircleOutline } from "react-icons/io";
 import { PiApproximateEqualsBold } from "react-icons/pi";
 import { MdKeyboardArrowLeft } from "react-icons/md";
-import {FaArrowRightLong} from "react-icons/fa6";
-import {BiTransfer,BiTransferAlt} from "react-icons/bi";
-import { useNavigate } from 'react-router-dom';
-import { MdOutlineVerticalSplit } from 'react-icons/md';
-
+import { FaArrowRightLong } from "react-icons/fa6";
+import { BiTransfer, BiTransferAlt } from "react-icons/bi";
+import { useNavigate } from "react-router-dom";
+import { MdOutlineVerticalSplit } from "react-icons/md";
 
 const Dashboard = ({ datasets }) => {
   const navigate = useNavigate();
-
 
   // Accept datasets as a prop
   const [isMapFormOpen, setMapFormOpen] = useState(false); // State for MultiStepForm
@@ -127,8 +125,8 @@ const Dashboard = ({ datasets }) => {
           </div>
         </div>
 
-      {/* // 5th convert back to xml or JSON */}
-      <div
+        {/* // 5th convert back to xml or JSON */}
+        <div
           className="feature-card card-red"
           onClick={handleNavigateToConvertBack}
         >
@@ -137,8 +135,7 @@ const Dashboard = ({ datasets }) => {
           </div>
           <div className="feature-details">
             <h2>Convert to XML or JSON</h2>
-            <p>
-              Easily transform datasets from CSV to XML or JSON            </p>
+            <p>Easily transform datasets from CSV to XML or JSON </p>
           </div>
           <div className="continue">
             <h3>Continue</h3>
@@ -146,29 +143,20 @@ const Dashboard = ({ datasets }) => {
           </div>
         </div>
 
-
         {/* // 6th convert back to xml or JSON */}
-      <div
-          className="feature-card card-pink"
-          onClick={handleNavigateToSplit}
-        >
+        <div className="feature-card card-pink" onClick={handleNavigateToSplit}>
           <div className="feature-icon">
-            <MdOutlineVerticalSplit/>
+            <MdOutlineVerticalSplit />
           </div>
           <div className="feature-details">
             <h2>Split</h2>
-            <p>
-            Easily transform datasets from CSV to XML or JSON </p>
+            <p>Split the columns of a dataset based on a delimiter</p>
           </div>
           <div className="continue">
             <h3>Continue</h3>
             <FaArrowRightLong />
           </div>
         </div>
-
-
-
-
       </div>
     </div>
   );

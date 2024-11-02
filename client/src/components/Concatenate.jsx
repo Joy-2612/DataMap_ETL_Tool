@@ -5,6 +5,9 @@ import "../styles/Concatenate.css";
 import Papa from "papaparse";
 
 const Concatenate = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [outputFileName, setOutputFileName] = useState("");
+  const [description, setDescription] = useState("");
   const [datasets, setDatasets] = useState([]);
   const [dataset1, setDataset1] = useState("");
   const [columns1, setColumns1] = useState([]);
@@ -113,58 +116,104 @@ const Concatenate = () => {
   };
 
   return (
-    <div className="concatenate-container">
-      <div className="title">Concatenate Columns</div>
-      <div className="form-group">
-        <select value={dataset1} onChange={handleDatasetChange}>
-          <option value="">Select Dataset</option>
-          {datasets.map((dataset, index) => (
-            <option key={index} value={dataset.name}>
-              {dataset.name}
-            </option>
-          ))}
-        </select>
-
-        <select onChange={(e) => handleColumnSelect(e.target.value)}>
-          <option value="">Select Columns</option>
-          {columns1
-            .filter((col) => !selectedColumns.includes(col))
-            .map((col, index) => (
-              <option key={index} value={col}>
-                {col}
+    <div>
+      {isModalOpen && (
+        <div className="modal">
+          <div className="desc-modal-content">
+            <h2>Enter Output File Details</h2>
+            <div className="form-group">
+              <label>Output File Name</label>
+              <input
+                type="text"
+                value={outputFileName}
+                onChange={(e) => setOutputFileName(e.target.value)}
+              />
+            </div>
+            <div className="form-group">
+              <label>Description</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
+            <div className="button-group modal-buttons">
+              <button
+                className="submit-button"
+                onClick={() => {
+                  handleSubmit();
+                  setIsModalOpen(false);
+                  setOutputFileName("");
+                  setDescription("");
+                }}
+              >
+                Submit
+              </button>
+              <button
+                className="cancel-button"
+                onClick={() => setIsModalOpen(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="concatenate-container">
+        <div className="title">Concatenate Columns</div>
+        <div className="form-group">
+          <select value={dataset1} onChange={handleDatasetChange}>
+            <option value="">Select Dataset</option>
+            {datasets.map((dataset, index) => (
+              <option key={index} value={dataset.name}>
+                {dataset.name}
               </option>
             ))}
-        </select>
+          </select>
 
-        <div className="selected-columns">
-          {selectedColumns.map((column, index) => (
-            <div key={index} className="selected-column">
-              {column}
-              <FaTimes onClick={() => handleColumnRemove(column)} />
-            </div>
-          ))}
+          <select onChange={(e) => handleColumnSelect(e.target.value)}>
+            <option value="">Select Columns</option>
+            {columns1
+              .filter((col) => !selectedColumns.includes(col))
+              .map((col, index) => (
+                <option key={index} value={col}>
+                  {col}
+                </option>
+              ))}
+          </select>
+
+          <div className="selected-columns">
+            {selectedColumns.map((column, index) => (
+              <div key={index} className="selected-column">
+                {column}
+                <FaTimes onClick={() => handleColumnRemove(column)} />
+              </div>
+            ))}
+          </div>
+
+          <select
+            value={delimiter}
+            onChange={(e) => setDelimiter(e.target.value)}
+          >
+            <option value=",">Comma (,)</option>
+            <option value=";">Semicolon (;)</option>
+            <option value="|">Pipe (|)</option>
+            <option value=" ">Space</option>
+          </select>
+
+          <input
+            type="text"
+            value={finalColumnName}
+            onChange={(e) => setFinalColumnName(e.target.value)}
+            placeholder="Final Column Name"
+          />
+
+          <button
+            onClick={() => setIsModalOpen(true)}
+            disabled={selectedColumns.length === 0}
+          >
+            Concatenate
+          </button>
         </div>
-
-        <select
-          value={delimiter}
-          onChange={(e) => setDelimiter(e.target.value)}
-        >
-          <option value=",">Comma (,)</option>
-          <option value=";">Semicolon (;)</option>
-          <option value="|">Pipe (|)</option>
-          <option value=" ">Space</option>
-        </select>
-
-        <input
-          type="text"
-          value={finalColumnName}
-          onChange={(e) => setFinalColumnName(e.target.value)}
-          placeholder="Final Column Name"
-        />
-
-        <button onClick={handleSubmit} disabled={selectedColumns.length === 0}>
-          Concatenate
-        </button>
       </div>
     </div>
   );

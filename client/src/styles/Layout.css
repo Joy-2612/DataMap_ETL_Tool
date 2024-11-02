@@ -13,8 +13,6 @@
   top: 0;
 }
 
-
-
 .main-content {
   background-color: #ffffffe3;
   flex: 1; /* The main content area will take up the remaining space */

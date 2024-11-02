@@ -91,7 +91,7 @@
   font-size: 16px;
   transition: border-color 0.3s ease-in-out;
   margin-top: 10px; /* Add margin to separate it from other elements */
-  margin-left:5px;
+  margin-left: 5px;
 }
 
 /* When the input is focused, change the border color */
@@ -100,7 +100,11 @@
   outline: none;
 }
 
-#file-name{
+#file-name {
   font-size: medium;
-  color:rgba(14, 1, 1, 0.801);
+  color: rgba(14, 1, 1, 0.801);
+}
+
+.convert-container {
+  width: 100%;
 }

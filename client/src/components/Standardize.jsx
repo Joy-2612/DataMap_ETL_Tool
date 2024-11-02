@@ -3,15 +3,15 @@ import "../styles/Standardize.css"; // Modern CSS styling
 import Papa from "papaparse"; // Import the PapaParse library
 
 const Standardize = () => {
-  // State variables
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalClosing, setIsModalClosing] = useState(false);
   const [outputFileName, setOutputFileName] = useState("");
   const [description, setDescription] = useState("");
   const [datasets, setDatasets] = useState([]);
   const [selectedDataset, setSelectedDataset] = useState("");
   const [columns, setColumns] = useState([]);
   const [selectedColumn, setSelectedColumn] = useState("");
-  const [mappings, setMappings] = useState([{ before: "", after: "" }]);
+  const [mappings, setMappings] = useState([{ before: [], after: "" }]);
   const [csvData, setCsvData] = useState([]);
   const [uniqueValues, setUniqueValues] = useState([]);
 
@@ -36,7 +36,6 @@ const Standardize = () => {
     });
   };
 
-  // Fetch datasets from the backend
   const fetchDatasets = async () => {
     try {
       const response = await fetch(
@@ -49,7 +48,6 @@ const Standardize = () => {
     }
   };
 
-  // Fetch columns for the selected dataset
   const fetchColumns = async (dataset) => {
     const csv = await parseCsvFile(dataset.file);
     setCsvData(csv);
@@ -72,13 +70,43 @@ const Standardize = () => {
   }, [selectedColumn, csvData]);
 
   const handleAddMapping = () => {
-    setMappings([...mappings, { before: "", after: "" }]);
+    setMappings([...mappings, { before: [], after: "" }]);
   };
 
   const handleMappingChange = (index, field, value) => {
     const updatedMappings = [...mappings];
     updatedMappings[index][field] = value;
     setMappings(updatedMappings);
+  };
+
+  const handleSelectChange = (index, selectedValue) => {
+    const updatedMappings = [...mappings];
+    const currentMapping = updatedMappings[index];
+
+    if (!currentMapping.before.includes(selectedValue)) {
+      currentMapping.before.push(selectedValue);
+    }
+
+    setMappings(updatedMappings);
+    setUniqueValues(uniqueValues.filter((value) => value !== selectedValue));
+  };
+
+  const handleRemoveSelection = (index, valueToRemove) => {
+    const updatedMappings = [...mappings];
+    const currentMapping = updatedMappings[index];
+    currentMapping.before = currentMapping.before.filter(
+      (value) => value !== valueToRemove
+    );
+    setMappings(updatedMappings);
+    setUniqueValues([...uniqueValues, valueToRemove]);
+  };
+
+  const handleModalClose = () => {
+    setIsModalClosing(true);
+    setTimeout(() => {
+      setIsModalOpen(false);
+      setIsModalClosing(false);
+    }, 300); // Animation duration should match CSS
   };
 
   const handleSubmit = async () => {
@@ -110,15 +138,20 @@ const Standardize = () => {
     } catch (error) {
       console.error("Error submitting mappings:", error);
       alert("Failed to submit standardization mappings.");
+    } finally {
+      setIsModalOpen(false);
+      setOutputFileName("");
+      setDescription("");
     }
   };
 
   return (
     <div>
-      {/* Modal for Output File Name and Description */}
       {isModalOpen && (
-        <div className="modal">
-          <div className="modal-content-standardize">
+        <div className={`modal ${isModalClosing ? "closing" : ""}`}>
+          <div
+            className={`desc-modal-content ${isModalClosing ? "closing" : ""}`}
+          >
             <h2>Enter Output File Details</h2>
             <div className="form-group">
               <label>Output File Name</label>
@@ -136,21 +169,10 @@ const Standardize = () => {
               />
             </div>
             <div className="button-group modal-buttons">
-              <button
-                className="submit-button"
-                onClick={() => {
-                  handleSubmit();
-                  setIsModalOpen(false);
-                  setOutputFileName("");
-                  setDescription("");
-                }}
-              >
+              <button className="submit-button" onClick={handleSubmit}>
                 Submit
               </button>
-              <button
-                className="cancel-button"
-                onClick={() => setIsModalOpen(false)}
-              >
+              <button className="cancel-button" onClick={handleModalClose}>
                 Cancel
               </button>
             </div>
@@ -158,7 +180,6 @@ const Standardize = () => {
         </div>
       )}
 
-      {/* Main Container */}
       <div className="standardize-container">
         <h1 className="title">Standardize Data</h1>
 
@@ -201,34 +222,52 @@ const Standardize = () => {
           </div>
         )}
 
-        <div className="mappings-container">
-          <h2>Mappings</h2>
-          {mappings.map((mapping, index) => (
-            <div key={index} className="mapping-row">
-              <select
-                value={mapping.before}
-                onChange={(e) =>
-                  handleMappingChange(index, "before", e.target.value)
-                }
-              >
-                <option value="">Select a value</option>
-                {uniqueValues.map((value, idx) => (
-                  <option key={idx} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="text"
-                placeholder="After"
-                value={mapping.after}
-                onChange={(e) =>
-                  handleMappingChange(index, "after", e.target.value)
-                }
-              />
-            </div>
-          ))}
-        </div>
+        {selectedDataset && (
+          <div className="mappings-container">
+            <h2>Mappings</h2>
+            {mappings.map((mapping, index) => (
+              <div key={index} className="mapping-row">
+                <div className="multi-select">
+                  <div>
+                    {uniqueValues.length > 0 && (
+                      <select
+                        onChange={(e) =>
+                          handleSelectChange(index, e.target.value)
+                        }
+                      >
+                        <option value="">Select a value</option>
+                        {uniqueValues.map((value, idx) => (
+                          <option key={idx} value={value}>
+                            {value}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="After"
+                    value={mapping.after}
+                    onChange={(e) =>
+                      handleMappingChange(index, "after", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="selected-values">
+                  {mapping.before.map((value, idx) => (
+                    <span
+                      key={idx}
+                      className="selected-value"
+                      onClick={() => handleRemoveSelection(index, value)}
+                    >
+                      {value} &times;
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="button-group">
           <button className="add-button" onClick={handleAddMapping}>

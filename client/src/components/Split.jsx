@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import DataTable from "../components/DataTable/DataTable";
 import Papa from "papaparse";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "sonner";
+import "../styles/Split.css"; // Import your CSS
+import { IoMdClose } from "react-icons/io";
 
 const Split = () => {
   const [datasets, setDatasets] = useState([]);
@@ -10,15 +11,27 @@ const Split = () => {
   const [columns1, setColumns1] = useState([]);
   const [csvData, setCsvData] = useState([]);
   const [splits, setSplits] = useState([
-    { col: "", delimiter: "", numDelimiters: 1, columnNames: [] },
+    { col: "", delimiter: "", numDelimiters: 1, columnNames: [""] },
   ]);
   const [previewData, setPreviewData] = useState([]);
   const [showPreview, setShowPreview] = useState(false);
+  const [conversionCompleted, setConversionCompleted] = useState(false);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState("general");
+  const [addressColumn, setAddressColumn] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [outputFileName, setOutputFileName] = useState("");
+  const [description, setDescription] = useState("");
+  const [isModalClosing, setIsModalClosing] = useState(false);
 
   const userId = localStorage.getItem("userId");
 
-  // Fetch datasets
+  useEffect(() => {
+    fetchDatasets();
+  }, []);
+
   const fetchDatasets = async () => {
     try {
       const response = await fetch(
@@ -31,7 +44,13 @@ const Split = () => {
     }
   };
 
-  // Parse CSV file
+  const fetchColumnAndData = async (dataset) => {
+    const csv = await parseCsvFile(dataset.file);
+    const columns = Object.keys(csv[0]);
+    setColumns1(columns);
+    setCsvData(csv);
+  };
+
   const parseCsvFile = (file) => {
     return new Promise((resolve, reject) => {
       const uint8Array = new Uint8Array(file.data);
@@ -40,28 +59,11 @@ const Split = () => {
       Papa.parse(text, {
         header: true,
         dynamicTyping: true,
-        complete: (result) => {
-          resolve(result.data);
-        },
-        error: (error) => {
-          reject(error);
-        },
+        complete: (result) => resolve(result.data),
+        error: (error) => reject(error),
       });
     });
   };
-
-  // Fetch columns and data
-  const fetchColumnAndData = async (dataset) => {
-    const csv = await parseCsvFile(dataset.file);
-    const columns = Object.keys(csv[0]);
-    setColumns1(columns);
-    setCsvData(csv);
-  };
-
-  // Fetch datasets on mount
-  useEffect(() => {
-    fetchDatasets();
-  }, []);
 
   const handleDatasetChange = async (e) => {
     const selectedDatasetName = e.target.value;
@@ -78,56 +80,10 @@ const Split = () => {
       setCsvData([]);
     }
 
-    // Reset splits
-    setSplits([{ col: "", delimiter: "", numDelimiters: 1, columnNames: [] }]);
-  };
-
-  const handleSplit = async () => {
-    try {
-      const newPreviewData = csvData.map((row) => {
-        const newRow = {};
-
-        splits.forEach((split) => {
-          const { col, delimiter, numDelimiters, columnNames } = split;
-
-          if (row[col]) {
-            const parts = row[col].split(delimiter);
-            const splitParts = parts.slice(0, numDelimiters + 1);
-            const remainingPart = parts
-              .slice(numDelimiters + 1)
-              .join(delimiter);
-
-            // Copy existing columns except the split column
-            Object.keys(row).forEach((key) => {
-              if (key !== col) {
-                newRow[key] = row[key];
-              }
-            });
-
-            // Assign split parts to new column names
-            splitParts.forEach((part, i) => {
-              newRow[columnNames[i]] = part;
-            });
-          }
-        });
-
-        return newRow;
-      });
-
-      setPreviewData(newPreviewData);
-      setShowPreview(true);
-      toast.success("Table generated successfully!");
-    } catch (error) {
-      setError("Error splitting columns. Please try again.");
-      toast.error("Failed to generate table.");
-    }
-  };
-
-  const addSplit = () => {
     setSplits([
-      ...splits,
-      { col: "", delimiter: "", numDelimiters: 1, columnNames: [] },
+      { col: "", delimiter: "", numDelimiters: 1, columnNames: [""] },
     ]);
+    setConversionCompleted(false);
   };
 
   const handleSplitChange = (index, field, value) => {
@@ -135,10 +91,12 @@ const Split = () => {
     newSplits[index][field] = value;
 
     if (field === "numDelimiters") {
+      const numCols = parseInt(value) + 1;
       const selectedColumn = newSplits[index].col;
       const newColumnNames = Array.from(
-        { length: parseInt(value) + 1 },
-        (_, i) => `${selectedColumn}_${i + 1}`
+        { length: numCols },
+        (_, i) =>
+          newSplits[index].columnNames[i] || `${selectedColumn}_${i + 1}`
       );
       newSplits[index].columnNames = newColumnNames;
     }
@@ -146,38 +104,234 @@ const Split = () => {
     setSplits(newSplits);
   };
 
-  const isSplitButtonEnabled = () => {
-    return splits.some(
-      (split) => split.col || split.delimiter || split.numDelimiters > 0
-    );
+  const handleColumnNameChange = (splitIndex, nameIndex, value) => {
+    const newSplits = [...splits];
+    newSplits[splitIndex].columnNames[nameIndex] = value;
+    setSplits(newSplits);
   };
 
-  // Download CSV function
-  const downloadCsv = () => {
-    const csv = Papa.unparse(previewData);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.setAttribute("download", "split_data.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const addSplit = () => {
+    setSplits([
+      ...splits,
+      { col: "", delimiter: "", numDelimiters: 1, columnNames: [""] },
+    ]);
   };
+
+  const handleSplit = async () => {
+    if (!dataset1) {
+      toast.error("Please select a dataset.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:5000/api/file/split", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fileId: dataset1._id,
+          splits,
+          description: description,
+          outputFileName: outputFileName,
+        }),
+      });
+
+      if (!response.ok) {
+        const { error } = await response.json();
+        throw new Error(error || "Failed to split columns.");
+      }
+
+      const { newFileId, message } = await response.json();
+      const newDatasetResponse = await fetch(
+        `http://localhost:5000/api/file/dataset/${newFileId}`
+      );
+
+      if (!newDatasetResponse.ok) {
+        throw new Error("Failed to fetch the new dataset.");
+      }
+
+      const newDataset = await newDatasetResponse.json();
+      console.log("newDataset", newDataset);
+
+      if (newDataset.data && newDataset.data.file) {
+        const csv = await parseCsvFile(newDataset.data.file);
+        setPreviewData(csv);
+      } else {
+        toast.error("Invalid data format in the fetched dataset.");
+        return;
+      }
+
+      toast.success(message);
+      setConversionCompleted(true);
+      handleModalClose(); // Close modal after success
+    } catch (error) {
+      console.error("Error splitting columns:", error);
+      toast.error(
+        error.message || "An error occurred while splitting the columns."
+      );
+    }
+  };
+
+  const handleModalClose = () => {
+    setIsModalClosing(true);
+    setTimeout(() => {
+      setIsModalOpen(false);
+      setIsModalClosing(false);
+    }, 300);
+  };
+
+  const handlePreviewModalClose = () => {
+    setModalVisible(false);
+    setTimeout(() => {
+      setIsPreviewModalOpen(false);
+      setPreviewData([]);
+    }, 300);
+  };
+
+  const renderGeneralSplit = () => (
+    <>
+      {splits.map((split, index) => (
+        <div className="split-row-container" key={index}>
+          <label>Select Column</label>
+          <div className="split-row">
+            <select
+              value={split.col}
+              onChange={(e) => handleSplitChange(index, "col", e.target.value)}
+            >
+              <option value="">Select Column</option>
+              {columns1.map((column, i) => (
+                <option key={i} value={column}>
+                  {column}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={split.delimiter}
+              onChange={(e) =>
+                handleSplitChange(index, "delimiter", e.target.value)
+              }
+            >
+              <option value="">Select Delimiter</option>
+              <option value=" ">Space</option>
+              <option value=",">Comma (,)</option>
+              <option value=";">Semicolon (;)</option>
+              <option value="|">Pipe (|)</option>
+            </select>
+
+            <input
+              type="number"
+              min="0"
+              value={split.numDelimiters}
+              onChange={(e) =>
+                handleSplitChange(index, "numDelimiters", e.target.value)
+              }
+            />
+          </div>
+          {split && (
+            <>
+              <label>Enter Column Names :</label>
+              <div className="split-columns-input">
+                {split.columnNames.map((name, i) => (
+                  <input
+                    key={i}
+                    type="text"
+                    placeholder={`Column ${i + 1} Name`}
+                    value={name}
+                    onChange={(e) =>
+                      handleColumnNameChange(index, i, e.target.value)
+                    }
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      ))}
+
+      <button className="convert-button" onClick={() => setIsModalOpen(true)}>
+        Convert
+      </button>
+
+      {conversionCompleted && (
+        <div className="completion-message">
+          <p>Conversion completed successfully!</p>
+          <button
+            className="preview-button"
+            onClick={() => {
+              setIsPreviewModalOpen(true);
+              setModalVisible(false);
+              setTimeout(() => setModalVisible(true), 10);
+            }}
+          >
+            Show Preview
+          </button>
+        </div>
+      )}
+    </>
+  );
+
+  const renderAddressSplit = () => (
+    <div className="address-split-container">
+      <label>Select Address Column</label>
+      <select
+        value={addressColumn}
+        onChange={(e) => setAddressColumn(e.target.value)}
+      >
+        <option value="">Select Column</option>
+        {columns1.map((column, i) => (
+          <option key={i} value={column}>
+            {column}
+          </option>
+        ))}
+      </select>
+      <button className="convert-button" onClick={() => setIsModalOpen(true)}>
+        Split Address
+      </button>
+
+      {conversionCompleted && (
+        <div className="completion-message">
+          <p>Conversion completed successfully!</p>
+          <button
+            className="preview-button"
+            onClick={() => {
+              setIsPreviewModalOpen(true);
+              setModalVisible(false);
+              setTimeout(() => setModalVisible(true), 10);
+            }}
+          >
+            Show Preview
+          </button>
+        </div>
+      )}
+    </div>
+  );
 
   return (
-    <div>
-      <h2 style={{ textAlign: "center" }}>Split Columns</h2>
+    <div className="split-container">
+      <h2>Split Columns</h2>
+      <div className="tab-selector">
+        <button
+          className={`tab-button ${activeTab === "general" ? "active" : ""}`}
+          onClick={() => setActiveTab("general")}
+        >
+          General Split
+        </button>
+        <button
+          className={`tab-button ${activeTab === "address" ? "active" : ""}`}
+          onClick={() => setActiveTab("address")}
+        >
+          Address Split
+        </button>
+      </div>
 
-      {error && (
-        <div style={{ color: "red", textAlign: "center" }}>{error}</div>
-      )}
-
-      <div style={{ textAlign: "center", marginBottom: "10px" }}>
+      <div className="dataset-selector">
         <label>Select Dataset</label>
         <select
+          className="dataset-selector-select"
           value={dataset1?.name || ""}
           onChange={handleDatasetChange}
-          style={{ marginLeft: "10px" }}
         >
           <option value="">Choose a Dataset</option>
           {datasets.map((dataset, index) => (
@@ -189,124 +343,76 @@ const Split = () => {
       </div>
 
       {dataset1 &&
-        splits.map((split, index) => (
+        (activeTab === "general" ? renderGeneralSplit() : renderAddressSplit())}
+
+      {isModalOpen && (
+        <div className={`modal ${isModalClosing ? "closing" : ""}`}>
           <div
-            key={index}
-            style={{ textAlign: "center", marginBottom: "20px" }}
+            className={`desc-modal-content ${isModalClosing ? "closing" : ""}`}
           >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                marginBottom: "10px",
-              }}
-            >
-              <select
-                value={split.col}
-                onChange={(e) => {
-                  handleSplitChange(index, "col", e.target.value);
-                  const newSplits = [...splits];
-                  const newColumnNames = Array.from(
-                    { length: split.numDelimiters + 1 },
-                    (_, i) => `${e.target.value}_${i + 1}`
-                  );
-                  newSplits[index].columnNames = newColumnNames;
-                  setSplits(newSplits);
-                }}
-                style={{ marginRight: "10px" }}
-              >
-                <option value="">Select Column</option>
-                {columns1.map((column, i) => (
-                  <option key={i} value={column}>
-                    {column}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                value={split.delimiter}
-                onChange={(e) =>
-                  handleSplitChange(index, "delimiter", e.target.value)
-                }
-                style={{ marginRight: "10px" }}
-              >
-                <option value="">Select Delimiter</option>
-                <option value=" ">Space</option>
-                <option value=",">Comma (,)</option>
-                <option value=";">Semicolon (;)</option>
-                <option value="|">Pipe (|)</option>
-              </select>
-            </div>
-
-            <div style={{ marginBottom: "10px" }}>
-              <label>Select number of delimiters to be split:</label>
+            <h2>Enter Output File Details</h2>
+            <div className="form-group">
+              <label>Output File Name</label>
               <input
-                type="number"
-                min="1"
-                value={split.numDelimiters}
-                onChange={(e) =>
-                  handleSplitChange(index, "numDelimiters", e.target.value)
-                }
-                style={{ marginLeft: "10px" }}
+                type="text"
+                value={outputFileName}
+                onChange={(e) => setOutputFileName(e.target.value)}
+              />
+            </div>
+            <div className="form-group">
+              <label>Description</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
+            <div className="button-group modal-buttons">
+              <button className="submit-button" onClick={handleSplit}>
+                Submit
+              </button>
+              <button className="cancel-button" onClick={handleModalClose}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isPreviewModalOpen && (
+        <div
+          className={`modal-overlay ${modalVisible ? "show" : ""}`}
+          onClick={handlePreviewModalClose}
+        >
+          <div
+            className={`modal-content ${modalVisible ? "show" : ""}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="csv-modal-title">
+              CSV Data Preview
+              <IoMdClose
+                className="close-modal-button"
+                onClick={handlePreviewModalClose}
               />
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                marginBottom: "10px",
-              }}
-            >
-              {Array.from(
-                { length: parseInt(split.numDelimiters) + 1 },
-                (_, i) => (
-                  <div key={i} style={{ marginRight: "10px" }}>
-                    <label>{`Column Name ${i + 1}:`}</label>
-                    <input
-                      type="text"
-                      value={split.columnNames[i] || ""}
-                      onChange={(e) => {
-                        const newSplits = [...splits];
-                        newSplits[index].columnNames[i] = e.target.value;
-                        setSplits(newSplits);
-                      }}
-                      style={{ width: "100px" }}
-                    />
-                  </div>
-                )
-              )}
-            </div>
-
-            <button onClick={addSplit}>+</button>
+            {previewData.length > 0 ? (
+              <DataTable
+                title="CSV Data Preview"
+                columns={Object.keys(previewData[0]).map((key) => ({
+                  label: key,
+                  key: key,
+                }))}
+                data={previewData}
+                getRowId={(row, index) => index}
+              />
+            ) : (
+              <p>No data available</p>
+            )}
           </div>
-        ))}
-
-      <br />
-
-      <button onClick={handleSplit} disabled={!isSplitButtonEnabled()}>
-        Convert
-      </button>
-
-      {showPreview && (
-        <DataTable
-          className="csv-data-table"
-          title="Split Data Preview"
-          columns={Object.keys(previewData[0] || {}).map((key) => ({
-            label: key,
-            key,
-          }))}
-          data={previewData}
-          getRowId={(row, index) => index}
-        />
+        </div>
       )}
 
-      <ToastContainer
-        position="bottom-right"
-        autoClose={3000}
-        hideProgressBar={true}
-      />
+      {error && <div className="error-message">{error}</div>}
     </div>
   );
 };

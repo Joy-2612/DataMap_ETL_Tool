@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import "react-toastify/dist/ReactToastify.css";
 import Papa from "papaparse";
 import { FaDownload, FaArrowLeft } from "react-icons/fa";
 import { toast } from "sonner";
@@ -60,7 +59,6 @@ const ConvertBack = () => {
     const droppedFile = event.dataTransfer.files[0];
     if (droppedFile) {
       setFile(droppedFile);
-      
     }
   };
 
@@ -68,7 +66,6 @@ const ConvertBack = () => {
     const selectedFile = event.target.files[0];
     if (selectedFile) {
       setFile(selectedFile);
-      
     }
   };
 
@@ -219,7 +216,9 @@ const ConvertBack = () => {
             </button>
             <div className="preview-header">
               <h2>Preview of Converted File</h2>
-              <span id="file-name"><i>{fileName}</i></span>
+              <span id="file-name">
+                <i>{fileName}</i>
+              </span>
             </div>
             <button className="download-button" onClick={handleDownload}>
               <FaDownload /> Download

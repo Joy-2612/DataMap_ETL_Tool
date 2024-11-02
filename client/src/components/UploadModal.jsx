@@ -17,6 +17,7 @@ const UploadModal = ({ show, onClose, onUpload, userId }) => {
       const formData = new FormData();
       formData.append("file", selectedFile);
       formData.append("userId", userId); // Append userId to the form data
+
       console.log("formData", formData);
       try {
         const response = await fetch("http://localhost:5000/api/file/upload", {

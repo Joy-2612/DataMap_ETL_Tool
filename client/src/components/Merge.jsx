@@ -3,6 +3,9 @@ import "../styles/Merge.css";
 import Papa from "papaparse";
 
 const Merge = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [outputFileName, setOutputFileName] = useState("");
+  const [description, setDescription] = useState("");
   const [datasets, setDatasets] = useState([]);
   const [dataset1, setDataset1] = useState(null);
   const [dataset2, setDataset2] = useState(null);
@@ -95,6 +98,8 @@ const Merge = () => {
           dataset2,
           column1: selectedColumn1,
           column2: selectedColumn2,
+          outputFileName: outputFileName,
+          description: description,
         }),
       });
 
@@ -117,72 +122,116 @@ const Merge = () => {
   };
 
   return (
-    <div className="merge-container">
-      <h2>Merge Datasets</h2>
-      <div className="form-group">
-        <div className="merge-input">
-          <select value={dataset1 || ""} onChange={handleDataset1Change}>
-            <option value="">Select Dataset 1</option>
-            {datasets.map((dataset, index) => (
-              <option key={index} value={dataset.name}>
-                {dataset.name}
-              </option>
-            ))}
-          </select>
-
-          {columns1.length > 0 && (
-            <select
-              value={selectedColumn1}
-              onChange={(e) => setSelectedColumn1(e.target.value)}
-            >
-              <option value="">Select Column from Dataset 1</option>
-              {columns1.map((col, index) => (
-                <option key={index} value={col}>
-                  {col}
-                </option>
-              ))}
-            </select>
-          )}
+    <div>
+      {isModalOpen && (
+        <div className="modal">
+          <div className="desc-modal-content">
+            <h2>Enter Output File Details</h2>
+            <div className="form-group">
+              <label>Output File Name</label>
+              <input
+                type="text"
+                value={outputFileName}
+                onChange={(e) => setOutputFileName(e.target.value)}
+              />
+            </div>
+            <div className="form-group">
+              <label>Description</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
+            <div className="button-group modal-buttons">
+              <button
+                className="submit-button"
+                onClick={() => {
+                  handleSubmit();
+                  setIsModalOpen(false);
+                  setOutputFileName("");
+                  setDescription("");
+                }}
+              >
+                Submit
+              </button>
+              <button
+                className="cancel-button"
+                onClick={() => setIsModalOpen(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="merge-input">
-          <select value={dataset2 || ""} onChange={handleDataset2Change}>
-            <option value="">Select Dataset 2</option>
-            {datasets
-              .filter((dataset) => dataset.name !== dataset1)
-              .map((dataset, index) => (
+      )}
+
+      <div className="merge-container">
+        <h2>Merge Datasets</h2>
+        <div className="form-group">
+          <div className="merge-input">
+            <select value={dataset1 || ""} onChange={handleDataset1Change}>
+              <option value="">Select Dataset 1</option>
+              {datasets.map((dataset, index) => (
                 <option key={index} value={dataset.name}>
                   {dataset.name}
                 </option>
               ))}
-          </select>
-
-          {columns2.length > 0 && (
-            <select
-              value={selectedColumn2}
-              onChange={(e) => setSelectedColumn2(e.target.value)}
-            >
-              <option value="">Select Column from Dataset 2</option>
-              {columns2.map((col, index) => (
-                <option key={index} value={col}>
-                  {col}
-                </option>
-              ))}
             </select>
-          )}
-        </div>
 
-        <button
-          onClick={handleSubmit}
-          disabled={
-            !dataset1 ||
-            !dataset2 ||
-            !selectedColumn1 ||
-            !selectedColumn2 ||
-            isLoading
-          }
-        >
-          {isLoading ? "Merging..." : "Merge"}
-        </button>
+            {columns1.length > 0 && (
+              <select
+                value={selectedColumn1}
+                onChange={(e) => setSelectedColumn1(e.target.value)}
+              >
+                <option value="">Select Column from Dataset 1</option>
+                {columns1.map((col, index) => (
+                  <option key={index} value={col}>
+                    {col}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+          <div className="merge-input">
+            <select value={dataset2 || ""} onChange={handleDataset2Change}>
+              <option value="">Select Dataset 2</option>
+              {datasets
+                .filter((dataset) => dataset.name !== dataset1)
+                .map((dataset, index) => (
+                  <option key={index} value={dataset.name}>
+                    {dataset.name}
+                  </option>
+                ))}
+            </select>
+
+            {columns2.length > 0 && (
+              <select
+                value={selectedColumn2}
+                onChange={(e) => setSelectedColumn2(e.target.value)}
+              >
+                <option value="">Select Column from Dataset 2</option>
+                {columns2.map((col, index) => (
+                  <option key={index} value={col}>
+                    {col}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          <button
+            onClick={() => setIsModalOpen(true)}
+            disabled={
+              !dataset1 ||
+              !dataset2 ||
+              !selectedColumn1 ||
+              !selectedColumn2 ||
+              isLoading
+            }
+          >
+            {isLoading ? "Merging..." : "Merge"}
+          </button>
+        </div>
       </div>
     </div>
   );

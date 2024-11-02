@@ -8,8 +8,7 @@ import { IoMdHelpCircleOutline } from "react-icons/io";
 import { MdOutlineSpaceDashboard } from "react-icons/md";
 import { LuFiles } from "react-icons/lu";
 
-const Sidebar = ({ onAddDataset, datasets, onSelectDataset, isLoading }) => {
-  console.log("Rendering Sidebar with datasets:", datasets);
+const Sidebar = ({ onAddDataset, onSelectDataset, isLoading }) => {
   return (
     <div className="sidebar">
       <div className="sidebar-logo">

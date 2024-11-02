@@ -97,17 +97,15 @@
   background-color: #9b00ff07;
 }
 
-.card-pink{
+.card-pink {
   color: rgb(247, 7, 151);
   border: 3px solid rgb(247, 7, 151);
   background-color: #ff00ae07;
-
 }
-.card-red{
+.card-red {
   color: rgb(252, 2, 2);
   border: 3px solid rgb(252, 2, 2);
   background-color: #ff000006;
-
 }
 
 .feature-card {
@@ -169,5 +167,10 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px;
+  gap: 10px; /* Default gap */
+  transition: all 0.3s ease-in-out; /* Smooth transition */
+}
+
+.feature-card:hover .continue {
+  gap: 20px; /* Increase the gap on hover */
 }
