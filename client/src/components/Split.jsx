@@ -14,7 +14,6 @@ const Split = () => {
     { col: "", delimiter: "", numDelimiters: 1, columnNames: [""] },
   ]);
   const [previewData, setPreviewData] = useState([]);
-  const [showPreview, setShowPreview] = useState(false);
   const [conversionCompleted, setConversionCompleted] = useState(false);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("general");
@@ -124,18 +123,35 @@ const Split = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/file/split", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          fileId: dataset1._id,
-          splits,
-          description: description,
-          outputFileName: outputFileName,
-        }),
-      });
+      let response;
+
+      if (activeTab === "general") {
+        response = await fetch("http://localhost:5000/api/file/split", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            fileId: dataset1._id,
+            splits,
+            description: description,
+            outputFileName: outputFileName,
+          }),
+        });
+      } else {
+        response = await fetch("http://localhost:5000/api/file/splitAddress", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            fileId: dataset1._id,
+            addressName: addressColumn,
+            description: description,
+            outputFileName: outputFileName,
+          }),
+        });
+      }
 
       if (!response.ok) {
         const { error } = await response.json();
@@ -143,6 +159,7 @@ const Split = () => {
       }
 
       const { newFileId, message } = await response.json();
+
       const newDatasetResponse = await fetch(
         `http://localhost:5000/api/file/dataset/${newFileId}`
       );
