@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "../styles/Merge.css";
+import styles from "../styles/Merge.module.css";
 import Papa from "papaparse";
 
 const Merge = () => {
@@ -124,10 +124,10 @@ const Merge = () => {
   return (
     <div>
       {isModalOpen && (
-        <div className="modal">
-          <div className="desc-modal-content">
+        <div className={styles.modal}>
+          <div className={styles.descModalContent}>
             <h2>Enter Output File Details</h2>
-            <div className="form-group">
+            <div className={styles.formGroup}>
               <label>Output File Name</label>
               <input
                 type="text"
@@ -135,16 +135,16 @@ const Merge = () => {
                 onChange={(e) => setOutputFileName(e.target.value)}
               />
             </div>
-            <div className="form-group">
+            <div className={styles.formGroup}>
               <label>Description</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
             </div>
-            <div className="button-group modal-buttons">
+            <div className={`${styles.buttonGroup} ${styles.modalButtons}`}>
               <button
-                className="submit-button"
+                className={styles.submitButton}
                 onClick={() => {
                   handleSubmit();
                   setIsModalOpen(false);
@@ -155,7 +155,7 @@ const Merge = () => {
                 Submit
               </button>
               <button
-                className="cancel-button"
+                className={styles.cancelButton}
                 onClick={() => setIsModalOpen(false)}
               >
                 Cancel
@@ -165,10 +165,10 @@ const Merge = () => {
         </div>
       )}
 
-      <div className="merge-container">
-        <h2>Merge Datasets</h2>
-        <div className="form-group">
-          <div className="merge-input">
+      <div className={styles.mergeContainer}>
+        <h2 className={styles.title}>Merge Datasets</h2>
+        <div className={styles.formGroup}>
+          <div className={styles.mergeInput}>
             <select value={dataset1 || ""} onChange={handleDataset1Change}>
               <option value="">Select Dataset 1</option>
               {datasets.map((dataset, index) => (
@@ -192,7 +192,7 @@ const Merge = () => {
               </select>
             )}
           </div>
-          <div className="merge-input">
+          <div className={styles.mergeInput}>
             <select value={dataset2 || ""} onChange={handleDataset2Change}>
               <option value="">Select Dataset 2</option>
               {datasets

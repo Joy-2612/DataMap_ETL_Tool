@@ -1,7 +1,7 @@
-// Concatenate.js
 import React, { useState, useEffect } from "react";
 import { FaTimes } from "react-icons/fa";
-import "../styles/Concatenate.css";
+import { toast } from "sonner";
+import styles from "../styles/Concatenate.module.css";
 import Papa from "papaparse";
 
 const Concatenate = () => {
@@ -12,25 +12,27 @@ const Concatenate = () => {
   const [dataset1, setDataset1] = useState("");
   const [columns1, setColumns1] = useState([]);
   const [selectedColumns, setSelectedColumns] = useState([]);
+  const [currentSelection, setCurrentSelection] = useState(""); // Track current selection
   const [delimiter, setDelimiter] = useState(",");
   const [finalColumnName, setFinalColumnName] = useState("");
 
   const userId = localStorage.getItem("userId");
 
-  // Fetch the list of datasets for the user
-  const fetchDatasets = async () => {
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/file/datasets/${userId}`
-      );
-      const data = await response.json();
-      setDatasets(data.data);
-    } catch (error) {
-      console.error("Error fetching datasets: ", error);
-    }
-  };
+  useEffect(() => {
+    const fetchDatasets = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:5000/api/file/datasets/${userId}`
+        );
+        const data = await response.json();
+        setDatasets(data.data);
+      } catch (error) {
+        console.error("Error fetching datasets: ", error);
+      }
+    };
 
-  // Fetch columns from a selected dataset
+    fetchDatasets(); // Fetch datasets on component mount
+  }, []);
 
   const parseCsvFile = (file) => {
     return new Promise((resolve, reject) => {
@@ -51,15 +53,11 @@ const Concatenate = () => {
     });
   };
 
-  const fetchColumn = async (dataset, setColumn) => {
+  const fetchColumn = async (dataset) => {
     const csv = await parseCsvFile(dataset.file);
     const columns = Object.keys(csv[0]);
     setColumns1(columns);
   };
-
-  useEffect(() => {
-    fetchDatasets(); // Fetch datasets on component mount
-  }, []);
 
   const handleDatasetChange = (e) => {
     const selectedDatasetName = e.target.value;
@@ -72,12 +70,15 @@ const Concatenate = () => {
     if (selectedDataset) {
       fetchColumn(selectedDataset);
       setSelectedColumns([]); // Clear selected columns when dataset changes
+      setCurrentSelection(""); // Reset current selection
     }
   };
 
-  const handleColumnSelect = (column) => {
-    if (!selectedColumns.includes(column)) {
+  const handleColumnSelect = (e) => {
+    const column = e.target.value;
+    if (column && !selectedColumns.includes(column)) {
       setSelectedColumns([...selectedColumns, column]);
+      setCurrentSelection(""); // Clear current selection to reset the dropdown
     }
   };
 
@@ -98,7 +99,9 @@ const Concatenate = () => {
             dataset: dataset1,
             columns: selectedColumns,
             finalColumnName,
+            outputFileName,
             delimiter,
+            description,
           }),
         }
       );
@@ -106,22 +109,24 @@ const Concatenate = () => {
       const data = await response.json();
 
       if (response.ok) {
-        alert(`File created successfully! New file ID: ${data.newFileId}`);
+        toast.success(
+          `File created successfully! New file ID: ${data.newFileId}`
+        );
       } else {
-        alert(`Error: ${data.message}`);
+        toast.error(`${data.message}`);
       }
     } catch (error) {
-      alert("An error occurred while concatenating columns.");
+      toast.error("An error occurred while concatenating columns.");
     }
   };
 
   return (
     <div>
       {isModalOpen && (
-        <div className="modal">
-          <div className="desc-modal-content">
+        <div className={styles.modal}>
+          <div className={styles.descModalContent}>
             <h2>Enter Output File Details</h2>
-            <div className="form-group">
+            <div className={styles.formGroup}>
               <label>Output File Name</label>
               <input
                 type="text"
@@ -129,16 +134,16 @@ const Concatenate = () => {
                 onChange={(e) => setOutputFileName(e.target.value)}
               />
             </div>
-            <div className="form-group">
+            <div className={styles.formGroup}>
               <label>Description</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
             </div>
-            <div className="button-group modal-buttons">
+            <div className={`${styles.buttonGroup} ${styles.modalButtons}`}>
               <button
-                className="submit-button"
+                className={styles.submitButton}
                 onClick={() => {
                   handleSubmit();
                   setIsModalOpen(false);
@@ -149,7 +154,7 @@ const Concatenate = () => {
                 Submit
               </button>
               <button
-                className="cancel-button"
+                className={styles.cancelButton}
                 onClick={() => setIsModalOpen(false)}
               >
                 Cancel
@@ -158,9 +163,9 @@ const Concatenate = () => {
           </div>
         </div>
       )}
-      <div className="concatenate-container">
-        <div className="title">Concatenate Columns</div>
-        <div className="form-group">
+      <div className={styles.concatenateContainer}>
+        <div className={styles.title}>Concatenate Columns</div>
+        <div className={styles.formGroup}>
           <select value={dataset1} onChange={handleDatasetChange}>
             <option value="">Select Dataset</option>
             {datasets.map((dataset, index) => (
@@ -170,7 +175,7 @@ const Concatenate = () => {
             ))}
           </select>
 
-          <select onChange={(e) => handleColumnSelect(e.target.value)}>
+          <select value={currentSelection} onChange={handleColumnSelect}>
             <option value="">Select Columns</option>
             {columns1
               .filter((col) => !selectedColumns.includes(col))
@@ -181,9 +186,9 @@ const Concatenate = () => {
               ))}
           </select>
 
-          <div className="selected-columns">
+          <div className={styles.selectedColumns}>
             {selectedColumns.map((column, index) => (
-              <div key={index} className="selected-column">
+              <div key={index} className={styles.selectedColumn}>
                 {column}
                 <FaTimes onClick={() => handleColumnRemove(column)} />
               </div>

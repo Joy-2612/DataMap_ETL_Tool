@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import DataTable from "../components/DataTable/DataTable";
 import Papa from "papaparse";
 import { toast } from "sonner";
-import "../styles/Split.css"; // Import your CSS
+import styles from "../styles/Split.module.css"; // Import modular CSS
 import { IoMdClose } from "react-icons/io";
 
 const Split = () => {
@@ -209,9 +209,9 @@ const Split = () => {
   const renderGeneralSplit = () => (
     <>
       {splits.map((split, index) => (
-        <div className="split-row-container" key={index}>
+        <div className={styles.splitRowContainer} key={index}>
           <label>Select Column</label>
-          <div className="split-row">
+          <div className={styles.splitRow}>
             <select
               value={split.col}
               onChange={(e) => handleSplitChange(index, "col", e.target.value)}
@@ -248,8 +248,8 @@ const Split = () => {
           </div>
           {split && (
             <>
-              <label>Enter Column Names :</label>
-              <div className="split-columns-input">
+              <label>Enter Column Names:</label>
+              <div className={styles.splitColumnsInput}>
                 {split.columnNames.map((name, i) => (
                   <input
                     key={i}
@@ -267,15 +267,18 @@ const Split = () => {
         </div>
       ))}
 
-      <button className="convert-button" onClick={() => setIsModalOpen(true)}>
+      <button
+        className={styles.convertButton}
+        onClick={() => setIsModalOpen(true)}
+      >
         Convert
       </button>
 
       {conversionCompleted && (
-        <div className="completion-message">
+        <div className={styles.completionMessage}>
           <p>Conversion completed successfully!</p>
           <button
-            className="preview-button"
+            className={styles.previewButton}
             onClick={() => {
               setIsPreviewModalOpen(true);
               setModalVisible(false);
@@ -290,7 +293,7 @@ const Split = () => {
   );
 
   const renderAddressSplit = () => (
-    <div className="address-split-container">
+    <div className={styles.addressSplitContainer}>
       <label>Select Address Column</label>
       <select
         value={addressColumn}
@@ -303,15 +306,18 @@ const Split = () => {
           </option>
         ))}
       </select>
-      <button className="convert-button" onClick={() => setIsModalOpen(true)}>
+      <button
+        className={styles.convertButton}
+        onClick={() => setIsModalOpen(true)}
+      >
         Split Address
       </button>
 
       {conversionCompleted && (
-        <div className="completion-message">
+        <div className={styles.completionMessage}>
           <p>Conversion completed successfully!</p>
           <button
-            className="preview-button"
+            className={styles.previewButton}
             onClick={() => {
               setIsPreviewModalOpen(true);
               setModalVisible(false);
@@ -326,27 +332,31 @@ const Split = () => {
   );
 
   return (
-    <div className="split-container">
+    <div className={styles.splitContainer}>
       <h2>Split Columns</h2>
-      <div className="tab-selector">
+      <div className={styles.tabSelector}>
         <button
-          className={`tab-button ${activeTab === "general" ? "active" : ""}`}
+          className={`${styles.tabButton} ${
+            activeTab === "general" ? styles.active : ""
+          }`}
           onClick={() => setActiveTab("general")}
         >
           General Split
         </button>
         <button
-          className={`tab-button ${activeTab === "address" ? "active" : ""}`}
+          className={`${styles.tabButton} ${
+            activeTab === "address" ? styles.active : ""
+          }`}
           onClick={() => setActiveTab("address")}
         >
           Address Split
         </button>
       </div>
 
-      <div className="dataset-selector">
+      <div className={styles.datasetSelector}>
         <label>Select Dataset</label>
         <select
-          className="dataset-selector-select"
+          className={styles.datasetSelectorSelect}
           value={dataset1?.name || ""}
           onChange={handleDatasetChange}
         >
@@ -363,12 +373,16 @@ const Split = () => {
         (activeTab === "general" ? renderGeneralSplit() : renderAddressSplit())}
 
       {isModalOpen && (
-        <div className={`modal ${isModalClosing ? "closing" : ""}`}>
+        <div
+          className={`${styles.modal} ${isModalClosing ? styles.closing : ""}`}
+        >
           <div
-            className={`desc-modal-content ${isModalClosing ? "closing" : ""}`}
+            className={`${styles.descModalContent} ${
+              isModalClosing ? styles.closing : ""
+            }`}
           >
             <h2>Enter Output File Details</h2>
-            <div className="form-group">
+            <div className={styles.formGroup}>
               <label>Output File Name</label>
               <input
                 type="text"
@@ -376,18 +390,21 @@ const Split = () => {
                 onChange={(e) => setOutputFileName(e.target.value)}
               />
             </div>
-            <div className="form-group">
+            <div className={styles.formGroup}>
               <label>Description</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
             </div>
-            <div className="button-group modal-buttons">
-              <button className="submit-button" onClick={handleSplit}>
+            <div className={`${styles.buttonGroup} ${styles.modalButtons}`}>
+              <button className={styles.submitButton} onClick={handleSplit}>
                 Submit
               </button>
-              <button className="cancel-button" onClick={handleModalClose}>
+              <button
+                className={styles.cancelButton}
+                onClick={handleModalClose}
+              >
                 Cancel
               </button>
             </div>
@@ -397,17 +414,21 @@ const Split = () => {
 
       {isPreviewModalOpen && (
         <div
-          className={`modal-overlay ${modalVisible ? "show" : ""}`}
+          className={`${styles.modalOverlay} ${
+            modalVisible ? styles.show : ""
+          }`}
           onClick={handlePreviewModalClose}
         >
           <div
-            className={`modal-content ${modalVisible ? "show" : ""}`}
+            className={`${styles.modalContent} ${
+              modalVisible ? styles.show : ""
+            }`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="csv-modal-title">
+            <div className={styles.csvModalTitle}>
               CSV Data Preview
               <IoMdClose
-                className="close-modal-button"
+                className={styles.closeModalButton}
                 onClick={handlePreviewModalClose}
               />
             </div>
@@ -429,7 +450,7 @@ const Split = () => {
         </div>
       )}
 
-      {error && <div className="error-message">{error}</div>}
+      {error && <div className={styles.errorMessage}>{error}</div>}
     </div>
   );
 };

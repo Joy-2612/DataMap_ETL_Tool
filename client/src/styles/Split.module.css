@@ -1,0 +1,254 @@
+.splitContainer {
+  margin: 2rem;
+  padding: 20px;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+.splitContainer h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #333;
+}
+
+.tabSelector {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.tabButton {
+  width: 100%;
+  background-color: #fff;
+  color: #333;
+  border: 1px solid #ddd;
+  padding: 10px 20px;
+  margin: 0 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.tabButton:hover {
+  background-color: white;
+}
+
+.tabButton.active {
+  background-color: #333;
+  color: #fff;
+}
+
+.tabButton:disabled {
+  background-color: #ddd;
+  color: #888;
+  cursor: not-allowed;
+}
+
+.datasetSelector {
+  text-align: left;
+  width: 100%;
+  margin: 15px 0;
+}
+
+.datasetSelectorSelect {
+  padding: 8px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  width: 100%;
+}
+
+.splitRowContainer {
+  text-align: left;
+  align-items: left;
+}
+
+.splitRow {
+  display: grid;
+  gap: 15px;
+  grid-template-columns: 1fr 1fr 1fr;
+  margin: 15px 0;
+}
+
+.splitRow select,
+.splitRow input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  min-width: 120px;
+}
+
+.convertButton {
+  width: 100%;
+  display: block;
+  margin-top: 20px;
+  background-color: #333;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.convertButton:hover {
+  background-color: #555;
+}
+
+.addressSplitContainer {
+  margin: 15px 0;
+  text-align: left;
+}
+
+.addressSplitContainer label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.addressSplitContainer select {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  width: 100%;
+}
+
+.splitColumnsInput {
+  display: grid;
+  gap: 15px;
+  grid-template-columns: 1fr 1fr 1fr;
+  margin: 15px 0;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  opacity: 0;
+  animation: fadeIn 0.3s forwards;
+}
+
+.modal.closing {
+  animation: fadeOut 0.3s forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.descModalContent {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 10px;
+  width: 500px;
+  max-width: 80%;
+  color: black;
+  transform: translateY(-20px);
+  animation: slideIn 0.3s forwards;
+}
+
+.descModalContent.closing {
+  animation: slideOut 0.3s forwards;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  margin-bottom: 10px;
+}
+
+.formGroup label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.buttonGroup {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+.csvModalTitle {
+  font-size: 18px;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.closeModalButton {
+  cursor: pointer;
+  font-size: 24px;
+}
+
+.errorMessage {
+  color: red;
+  text-align: center;
+  margin-top: 10px;
+}
+
+.completionMessage {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.previewButton {
+  background-color: #4caf50;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.previewButton:hover {
+  background-color: #45a049;
+}

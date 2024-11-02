@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "../styles/Standardize.css"; // Modern CSS styling
+import styles from "../styles/Standardize.module.css"; // Modular CSS import
 import Papa from "papaparse"; // Import the PapaParse library
 
 const Standardize = () => {
@@ -115,7 +115,6 @@ const Standardize = () => {
   };
 
   const getFilteredValues = () => {
-    // Return only values that are not selected in any mapping
     return uniqueValues.filter(
       (value) => !globalSelectedValues.includes(value)
     );
@@ -126,7 +125,7 @@ const Standardize = () => {
     setTimeout(() => {
       setIsModalOpen(false);
       setIsModalClosing(false);
-    }, 300); // Animation duration should match CSS
+    }, 300);
   };
 
   const handleSubmit = async () => {
@@ -151,12 +150,10 @@ const Standardize = () => {
       const result = await response.json();
       if (response.ok) {
         alert("Standardization mappings submitted successfully!");
-        console.log("Response:", result);
       } else {
         alert(`Error: ${result.message}`);
       }
     } catch (error) {
-      console.error("Error submitting mappings:", error);
       alert("Failed to submit standardization mappings.");
     } finally {
       setIsModalOpen(false);
@@ -168,12 +165,16 @@ const Standardize = () => {
   return (
     <div>
       {isModalOpen && (
-        <div className={`modal ${isModalClosing ? "closing" : ""}`}>
+        <div
+          className={`${styles.modal} ${isModalClosing ? styles.closing : ""}`}
+        >
           <div
-            className={`desc-modal-content ${isModalClosing ? "closing" : ""}`}
+            className={`${styles.descModalContent} ${
+              isModalClosing ? styles.closing : ""
+            }`}
           >
             <h2>Enter Output File Details</h2>
-            <div className="form-group">
+            <div className={styles.formGroup}>
               <label>Output File Name</label>
               <input
                 type="text"
@@ -181,18 +182,21 @@ const Standardize = () => {
                 onChange={(e) => setOutputFileName(e.target.value)}
               />
             </div>
-            <div className="form-group">
+            <div className={styles.formGroup}>
               <label>Description</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
             </div>
-            <div className="button-group modal-buttons">
-              <button className="submit-button" onClick={handleSubmit}>
+            <div className={`${styles.buttonGroup} ${styles.modalButtons}`}>
+              <button className={styles.submitButton} onClick={handleSubmit}>
                 Submit
               </button>
-              <button className="cancel-button" onClick={handleModalClose}>
+              <button
+                className={styles.cancelButton}
+                onClick={handleModalClose}
+              >
                 Cancel
               </button>
             </div>
@@ -200,10 +204,10 @@ const Standardize = () => {
         </div>
       )}
 
-      <div className="standardize-container">
-        <h1 className="title">Standardize Data</h1>
+      <div className={styles.standardizeContainer}>
+        <h1 className={styles.title}>Standardize Data</h1>
 
-        <div className="form-group">
+        <div className={styles.formGroup}>
           <label>Select Dataset</label>
           <select
             value={selectedDataset}
@@ -226,7 +230,7 @@ const Standardize = () => {
         </div>
 
         {columns.length > 0 && (
-          <div className="form-group">
+          <div className={styles.formGroup}>
             <label>Select Column</label>
             <select
               value={selectedColumn}
@@ -243,11 +247,11 @@ const Standardize = () => {
         )}
 
         {selectedDataset && (
-          <div className="mappings-container">
+          <div className={styles.mappingsContainer}>
             <h2>Mappings</h2>
             {mappings.map((mapping, index) => (
-              <div key={index} className="mapping-row">
-                <div className="multi-select">
+              <div key={index} className={styles.mappingRow}>
+                <div className={styles.multiSelect}>
                   <div>
                     {uniqueValues.length > 0 && (
                       <select
@@ -274,11 +278,11 @@ const Standardize = () => {
                     }
                   />
                 </div>
-                <div className="selected-values">
+                <div className={styles.selectedValues}>
                   {mapping.before.map((value, idx) => (
                     <span
                       key={idx}
-                      className="selected-value"
+                      className={styles.selectedValue}
                       onClick={() => handleRemoveSelection(index, value)}
                     >
                       {value} &times;
@@ -290,12 +294,12 @@ const Standardize = () => {
           </div>
         )}
 
-        <div className="button-group">
-          <button className="add-button" onClick={handleAddMapping}>
+        <div className={styles.buttonGroup}>
+          <button className={styles.addButton} onClick={handleAddMapping}>
             + Add More
           </button>
           <button
-            className="submit-button"
+            className={styles.submitButton}
             onClick={() => setIsModalOpen(true)}
           >
             Submit

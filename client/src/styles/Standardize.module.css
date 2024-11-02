@@ -1,6 +1,4 @@
-/* Standardize.css */
-
-.standardize-container {
+.standardizeContainer {
   backdrop-filter: blur(4px);
   width: auto;
   margin: 2rem;
@@ -20,12 +18,12 @@
   font-size: 2rem;
 }
 
-.form-group {
+.formGroup {
   margin-bottom: 0.5rem;
   gap: 0px !important;
 }
 
-.form-group label {
+.formGroup label {
   display: block;
   text-align: left;
   margin-bottom: 0.5rem;
@@ -33,7 +31,7 @@
   color: black;
 }
 
-.form-group select {
+.formGroup select {
   width: 100%;
   padding: 0.5rem;
   border: none;
@@ -43,16 +41,16 @@
   color: black;
 }
 
-.mappings-container {
+.mappingsContainer {
   margin-top: 2rem;
 }
 
-.mappings-container h2 {
+.mappingsContainer h2 {
   text-align: left;
   color: black;
 }
 
-.mapping-row {
+.mappingRow {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -60,20 +58,20 @@
   margin-bottom: 1rem;
 }
 
-.multi-select {
+.multiSelect {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   gap: 1rem;
 }
 
-.selected-values {
+.selectedValues {
   display: flex;
   flex-direction: row;
   gap: 1rem;
 }
 
-.selected-value {
+.selectedValue {
   padding: 0.3rem 0.7rem;
   border: none;
   border-radius: 50px;
@@ -83,8 +81,8 @@
   color: black;
 }
 
-.mapping-row select,
-.mapping-row input {
+.mappingRow select,
+.mappingRow input {
   flex: 1 1;
   padding: 0.5rem;
   border: none;
@@ -94,13 +92,13 @@
   color: black;
 }
 
-.button-group {
+.buttonGroup {
   display: flex;
   justify-content: space-between;
   margin-top: 1.5rem;
 }
 
-.add-button {
+.addButton {
   padding: 0.75rem 1.5rem;
   border: 2px solid black;
   border-radius: 5px;
@@ -108,9 +106,14 @@
   cursor: pointer;
   transition: background-color 0.3s ease;
   color: black;
+  background-color: transparent;
 }
 
-.submit-button {
+.addButton:hover {
+  background-color: #00000034;
+}
+
+.submitButton {
   padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 5px;
@@ -119,26 +122,14 @@
   transition: background-color 0.3s ease;
   font-weight: bold;
   color: #ffffff;
-}
-
-.add-button {
-  background-color: transparent;
-}
-
-.add-button:hover {
-  background-color: #00000034;
-}
-
-.submit-button {
   background-color: black;
 }
 
-.submit-button:hover {
+.submitButton:hover {
   background-color: #0000009b;
 }
 
 /* Modal styles */
-
 .modal {
   position: fixed;
   top: 0;
@@ -177,7 +168,7 @@
   }
 }
 
-.desc-modal-content {
+.descModalContent {
   background-color: white;
   padding: 2rem;
   border-radius: 10px;
@@ -188,7 +179,7 @@
   animation: slideIn 0.3s forwards;
 }
 
-.desc-modal-content.closing {
+.descModalContent.closing {
   animation: slideOut 0.3s forwards;
 }
 
@@ -214,23 +205,24 @@
   }
 }
 
-.desc-modal-content h2 {
+.descModalContent h2 {
   margin-top: 0;
   color: #333;
 }
 
-.desc-modal-content .form-group {
+.descModalContent .formGroup {
   margin-bottom: 1rem;
 }
 
-.desc-modal-content .form-group label {
+.descModalContent .formGroup label {
   display: block;
   margin-bottom: 0.5rem;
   color: black;
 }
 
-.desc-modal-content .form-group input,
-.desc-modal-content .form-group textarea {
+.descModalContent .formGroup input,
+.descModalContent .formGroup textarea {
+  width: 96%;
   padding: 0.5rem;
   border: 1px solid gray;
   border-radius: 5px;
@@ -239,14 +231,14 @@
   color: black;
 }
 
-.desc-modal-content .button-group {
+.descModalContent .buttonGroup {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
   margin-top: 1rem;
 }
 
-.cancel-button {
+.cancelButton {
   padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 5px;
@@ -257,14 +249,14 @@
   transition: background-color 0.3s ease;
 }
 
-.cancel-button:hover {
+.cancelButton:hover {
   background-color: #888;
 }
 
-.modal-buttons .submit-button {
+.modalButtons .submitButton {
   background-color: black;
 }
 
-.modal-buttons .submit-button:hover {
+.modalButtons .submitButton:hover {
   background-color: #0000009b;
 }

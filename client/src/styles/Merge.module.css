@@ -1,0 +1,207 @@
+/* Merge container styling */
+.mergeContainer {
+  display: flex;
+  flex-direction: column;
+  margin: 2rem;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  font-family: "Arial", sans-serif;
+}
+
+/* Title styling */
+.title {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #333;
+}
+
+.mergeInput {
+  display: flex;
+  gap: 10px;
+}
+
+/* Form group layout */
+.formGroup {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Select dropdown styling */
+select {
+  width: 100%;
+  padding: 12px !important;
+  border: 1px solid #ddd !important;
+  border-radius: 5px !important;
+  font-size: 16px !important;
+  background-color: #f9f9f9 !important;
+  transition: all 0.2s !important;
+}
+
+select:focus {
+  outline: none;
+  border-color: #4a90e2;
+  background-color: #ffffff;
+}
+
+/* Button styling */
+button {
+  padding: 12px 20px;
+  background-color: black;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: black;
+}
+
+button:disabled {
+  background-color: #ddd;
+  cursor: not-allowed;
+}
+
+/* Modal styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  opacity: 0;
+  animation: fadeIn 0.3s forwards;
+}
+
+.modal.closing {
+  animation: fadeOut 0.3s forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.descModalContent {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 10px;
+  width: 500px;
+  max-width: 80%;
+  color: black;
+  transform: translateY(-20px);
+  animation: slideIn 0.3s forwards;
+}
+
+.descModalContent.closing {
+  animation: slideOut 0.3s forwards;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+.descModalContent h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+.descModalContent .formGroup {
+  margin-bottom: 1rem;
+}
+
+.descModalContent .formGroup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: black;
+}
+
+.descModalContent .formGroup input,
+.descModalContent .formGroup textarea {
+  padding: 0.5rem;
+  border: 1px solid gray;
+  border-radius: 5px;
+  font-size: 1rem;
+  background-color: white;
+  color: black;
+}
+
+.descModalContent .buttonGroup {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.cancelButton {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  background-color: #aaa;
+  color: #ffffff;
+  transition: background-color 0.3s ease;
+}
+
+.cancelButton:hover {
+  background-color: #888;
+}
+
+.modalButtons .submitButton {
+  background-color: black;
+}
+
+.modalButtons .submitButton:hover {
+  background-color: #0000009b;
+}
+
+/* Responsive behavior */
+@media (max-width: 768px) {
+  .mergeContainer {
+    width: 90%;
+  }
+}

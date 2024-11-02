@@ -137,8 +137,14 @@ const getDatasetResultByUserId = async (req, res) => {
 
 const concatenateColumns = async (req, res) => {
   try {
-    const { dataset, columns, finalColumnName, delimiter, description } =
-      req.body;
+    const {
+      dataset,
+      columns,
+      finalColumnName,
+      delimiter,
+      outputFileName,
+      description,
+    } = req.body;
 
     // Validate input
     if (!dataset || !columns || !finalColumnName || !delimiter) {
@@ -197,12 +203,9 @@ const concatenateColumns = async (req, res) => {
         // Convert the CSV data to a Buffer instead of Uint8Array
         const csvBuffer = Buffer.from(updatedCsv, "utf-8");
 
-        // Create a new file with a meaningful name
-        const newFileName = `${file.originalName}_concatenated.csv`;
-
         // Save the new file in the database, storing it as a Buffer
         const newFile = new File({
-          originalName: newFileName,
+          originalName: outputFileName,
           data: csvBuffer, // Store as a Buffer
           description: description || "", // Save the description if provided
           contentType: file.contentType, // Use the same content type as original
