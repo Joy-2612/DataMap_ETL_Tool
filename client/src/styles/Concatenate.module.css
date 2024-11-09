@@ -2,10 +2,9 @@
   margin: 2rem;
   padding: 2rem;
   text-align: left;
-  background-color: #f0f4f8;
+  background-color: #232f3e0d;
   border-radius: 10px;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .title {

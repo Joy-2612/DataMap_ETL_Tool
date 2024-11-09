@@ -6,7 +6,7 @@ import Sidebar from "./Sidebar";
 import UploadModal from "./UploadModal";
 import DataTable from "../components/DataTable/DataTable";
 import { MdKeyboardArrowLeft } from "react-icons/md";
-import "../styles/Layout.css";
+import styles from "../styles/Layout.module.css";
 import Navbar from "./Navbar";
 import Datasets from "./Datasets";
 import { Route, Routes, useLocation } from "react-router-dom";
@@ -40,7 +40,7 @@ const Layout = () => {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:5000/api/file/datasets/${userId}`
+        `http://localhost:5000/api/file/alldatasets/${userId}`
       );
       const data = await response.json();
       setDatasets(data.data);
@@ -85,13 +85,13 @@ const Layout = () => {
   };
 
   return (
-    <div className="layout-container">
+    <div className={styles.container}>
       <Sidebar
         datasets={datasets}
         onSelectDataset={handleSelectDataset}
         isLoading={isLoading}
       />
-      <div className="main-content">
+      <div className={styles.mainContent}>
         <Navbar />
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
@@ -209,9 +209,9 @@ const Layout = () => {
                   transition={{ duration: 0.15 }}
                 >
                   {selectedDataset ? (
-                    <div className="dataset-details-container">
-                      <div className="dataset-details">
-                        <div className="dataset-details-button">
+                    <div className={styles.datasetDetailsContainer}>
+                      <div className={styles.datasetDetails}>
+                        <div className={styles.datasetDetailsButton}>
                           <MdKeyboardArrowLeft />
                           <h3 onClick={handleClearSelection}>
                             Back to Dashboard
@@ -220,7 +220,7 @@ const Layout = () => {
                         {selectedDataset.type === "text/csv" ? (
                           <>
                             <h2>CSV Dataset Details</h2>
-                            <div className="dataset-table">
+                            <div className={styles.datasetTable}>
                               {Array.isArray(csvData) && csvData.length > 0 ? (
                                 <DataTable
                                   title="CSV Data"

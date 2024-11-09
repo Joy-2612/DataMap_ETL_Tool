@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Papa from "papaparse";
-import "../styles/Datasets.css"; // Import the CSS styles
+import styles from "../styles/Datasets.module.css";
 import DataTable from "../components/DataTable/DataTable";
 import UploadModal from "./UploadModal";
 import { FaEye } from "react-icons/fa";
@@ -137,10 +137,13 @@ const Datasets = () => {
   };
 
   return (
-    <div className="datasets-container">
-      <div className="datasets-title">
+    <div className={styles.container}>
+      <div className={styles.title}>
         Your Datasets
-        <button className="add-dataset-btn" onClick={handleUploadModalOpen}>
+        <button
+          className={styles.addDatasetButton}
+          onClick={handleUploadModalOpen}
+        >
           + Add Dataset
         </button>
       </div>
@@ -155,49 +158,53 @@ const Datasets = () => {
       {isLoading ? (
         <p>Loading datasets...</p>
       ) : (
-        <table className="datasets-table">
+        <table className={styles.table}>
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Size (bytes)</th>
-              <th>Type</th>
-              <th>Date Created</th>
-              <th>Actions</th>
-              <th>Export</th>
+              <th className={styles.tableHeader}>Name</th>
+              <th className={styles.tableHeader}>Size (bytes)</th>
+              <th className={styles.tableHeader}>Type</th>
+              <th className={styles.tableHeader}>Date Created</th>
+              <th className={styles.tableHeader}>Actions</th>
+              <th className={styles.tableHeader}>Export</th>
             </tr>
           </thead>
           <tbody>
             {datasets?.length > 0 ? (
               datasets?.map((dataset, index) => (
-                <tr key={index}>
-                  <td>
-                    {dataset.name}
-                    <div className="dataset-description">
-                      {dataset.description}
-                    </div>
+                <tr key={index} className={styles.tableRow}>
+                  <td className={styles.tableData}>
+                    <div className={styles.datasetName}>{dataset.name}</div>
+                    {dataset.description && (
+                      <div className={styles.datasetDescription}>
+                        {dataset.description}
+                      </div>
+                    )}
                   </td>
-                  <td>{dataset.size}</td>
-                  <td>{dataset.type}</td>
-                  <td>{new Date(dataset.createdAt).toLocaleString()}</td>
-                  <td>
+                  <td className={styles.tableData}>{dataset.size}</td>
+                  <td className={styles.tableData}>{dataset.type}</td>
+                  <td className={styles.tableData}>
+                    {new Date(dataset.createdAt).toLocaleString()}
+                  </td>
+                  <td className={styles.tableData}>
                     <FaEye
-                      className="view-button"
+                      className={`${styles.iconButton} ${styles.viewButton}`}
                       onClick={() => handleView(dataset)}
                     />
                     <MdDelete
-                      className="delete-button"
+                      className={`${styles.iconButton} ${styles.deleteButton}`}
                       onClick={() => handleDelete(dataset._id)}
                     />
                   </td>
-                  <td>
+                  <td className={styles.tableData}>
                     <button
-                      className="export-csv-btn"
+                      className={`${styles.exportButton} ${styles.exportCsv}`}
                       onClick={() => exportAsCsv(dataset)}
                     >
                       CSV
                     </button>
                     <button
-                      className="export-pdf-btn"
+                      className={`${styles.exportButton} ${styles.exportPdf}`}
                       onClick={() => exportAsPdf(dataset)}
                     >
                       PDF
@@ -207,7 +214,9 @@ const Datasets = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="5">No datasets available</td>
+                <td colSpan="6" className={styles.tableData}>
+                  No datasets available
+                </td>
               </tr>
             )}
           </tbody>
@@ -216,17 +225,21 @@ const Datasets = () => {
 
       {isModalOpen && (
         <div
-          className={`modal-overlay ${modalVisible ? "show" : ""}`}
+          className={`${styles.modalOverlay} ${
+            modalVisible ? styles.modalOverlayVisible : ""
+          }`}
           onClick={handleCloseModal}
         >
           <div
-            className={`modal-content ${modalVisible ? "show" : ""}`}
+            className={`${styles.modalContent} ${
+              modalVisible ? styles.modalContentVisible : ""
+            }`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="csv-modal-title">
+            <div className={styles.modalTitle}>
               {selectedDataset.name}
               <IoMdClose
-                className="close-modal-button"
+                className={styles.closeButton}
                 onClick={handleCloseModal}
               />
             </div>

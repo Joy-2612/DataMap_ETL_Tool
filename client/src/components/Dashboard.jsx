@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import MultiStepForm from "./MultiStepForm"; // Import the MultiStepForm component
-import "../styles/Dashboard.css";
+import styles from "../styles/Dashboard.module.css";
 import { FaCodeMerge } from "react-icons/fa6";
 import { IoMdAddCircleOutline } from "react-icons/io";
 import { PiApproximateEqualsBold } from "react-icons/pi";
@@ -12,9 +11,7 @@ import { MdOutlineVerticalSplit } from "react-icons/md";
 
 const Dashboard = ({ datasets }) => {
   const navigate = useNavigate();
-
-  // Accept datasets as a prop
-  const [isMapFormOpen, setMapFormOpen] = useState(false); // State for MultiStepForm
+  const [isMapFormOpen, setMapFormOpen] = useState(false);
 
   const handleOpenMapForm = () => {
     setMapFormOpen(true);
@@ -24,7 +21,6 @@ const Dashboard = ({ datasets }) => {
     setMapFormOpen(false);
   };
 
-  // Navigate to the respective routes
   const handleNavigateToStandardize = () => {
     navigate("/home/standardize");
   };
@@ -34,7 +30,6 @@ const Dashboard = ({ datasets }) => {
   const handleNavigateToConcatenate = () => {
     navigate("/home/concatenate");
   };
-
   const handleNavigateToConvert = () => {
     navigate("/home/convert");
   };
@@ -46,113 +41,116 @@ const Dashboard = ({ datasets }) => {
   };
 
   return (
-    <div className="dashboard-container">
-      <div className="feature-cards-container">
-        <div className="feature-card card-blue" onClick={handleNavigateToMerge}>
-          <div className="feature-icon">
+    <div className={styles.container}>
+      <div className={styles.featureCardsContainer}>
+        <div
+          className={`${styles.featureCard} ${styles.cardBlue}`}
+          onClick={handleNavigateToMerge}
+        >
+          <div className={styles.featureIcon}>
             <FaCodeMerge />
           </div>
-          <div className="feature-details">
+          <div className={styles.featureDetails}>
             <h2>Merge</h2>
             <p>
               Merge two datasets based on a common column to create a new
               dataset
             </p>
           </div>
-          <div className="continue">
+          <div className={styles.continue}>
             <h3>Continue</h3>
             <FaArrowRightLong />
           </div>
         </div>
 
         <div
-          className="feature-card card-green"
+          className={`${styles.featureCard} ${styles.cardGreen}`}
           onClick={handleNavigateToConcatenate}
         >
-          <div className="feature-icon">
+          <div className={styles.featureIcon}>
             <IoMdAddCircleOutline />
           </div>
-          <div className="feature-details">
+          <div className={styles.featureDetails}>
             <h2>Concatenate</h2>
             <p>
               Concatenate the columns of a dataset based on a delimiter to
               create a new column
             </p>
           </div>
-          <div className="continue">
+          <div className={styles.continue}>
             <h3>Continue</h3>
             <FaArrowRightLong />
           </div>
         </div>
 
         <div
-          className="feature-card card-orange"
+          className={`${styles.featureCard} ${styles.cardOrange}`}
           onClick={handleNavigateToStandardize}
         >
-          <div className="feature-icon">
+          <div className={styles.featureIcon}>
             <PiApproximateEqualsBold />
           </div>
-          <div className="feature-details">
+          <div className={styles.featureDetails}>
             <h2>Standardize</h2>
             <p>
               Standardize the columns of a dataset based on a set of rules and
               mappings to ensure consistency
             </p>
           </div>
-          <div className="continue">
+          <div className={styles.continue}>
             <h3>Continue</h3>
             <FaArrowRightLong />
           </div>
         </div>
 
-        {/* New Convert Dataset Feature Card */}
         <div
-          className="feature-card card-purple"
+          className={`${styles.featureCard} ${styles.cardPurple}`}
           onClick={handleNavigateToConvert}
         >
-          <div className="feature-icon">
+          <div className={styles.featureIcon}>
             <BiTransfer />
           </div>
-          <div className="feature-details">
+          <div className={styles.featureDetails}>
             <h2>Convert To CSV</h2>
             <p>
               Easily transform datasets from formats like XML and JSON into CSV
             </p>
           </div>
-          <div className="continue">
+          <div className={styles.continue}>
             <h3>Continue</h3>
             <FaArrowRightLong />
           </div>
         </div>
 
-        {/* // 5th convert back to xml or JSON */}
         <div
-          className="feature-card card-red"
+          className={`${styles.featureCard} ${styles.cardRed}`}
           onClick={handleNavigateToConvertBack}
         >
-          <div className="feature-icon">
+          <div className={styles.featureIcon}>
             <BiTransferAlt />
           </div>
-          <div className="feature-details">
+          <div className={styles.featureDetails}>
             <h2>Convert to XML or JSON</h2>
-            <p>Easily transform datasets from CSV to XML or JSON </p>
+            <p>Easily transform datasets from CSV to XML or JSON</p>
           </div>
-          <div className="continue">
+          <div className={styles.continue}>
             <h3>Continue</h3>
             <FaArrowRightLong />
           </div>
         </div>
 
-        {/* // 6th convert back to xml or JSON */}
-        <div className="feature-card card-pink" onClick={handleNavigateToSplit}>
-          <div className="feature-icon">
+        <div
+          className={`${styles.featureCard} ${styles.cardPink}`}
+          onClick={handleNavigateToSplit}
+        >
+          <div className={styles.featureIcon}>
             <MdOutlineVerticalSplit />
           </div>
-          <div className="feature-details">
+          <div className={styles.featureDetails}>
             <h2>Split</h2>
             <p>Split the columns of a dataset based on a delimiter</p>
           </div>
-          <div className="continue">
+          <div className={styles.continue}>
             <h3>Continue</h3>
             <FaArrowRightLong />
           </div>

@@ -1,25 +1,106 @@
-.wrapper {
-  position: relative;
-}
-
 .dropdown {
-  position: absolute;
-  top: calc(100% + 1rem);
-  right: 0;
-  z-index: 100;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.3rem;
-  background-color: #ffffff; /* var(--color-white) replaced */
-  border: 1px solid #d1d5db; /* var(--color-gray-300) replaced */
-  border-radius: 0.4rem;
-  box-shadow: 0 0.2rem 0.4rem hsla(207, 90%, 54%, 0.15); /* var(--color-primary-500-hsl-values) replaced */
+  position: relative;
+  width: 100%;
 }
 
-.button {
+.dropdownHeader {
+  width: 30em;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f9f9f9;
   cursor: pointer;
 }
 
-.wrapper.hide .dropdown {
-  display: none;
+.tabContainer {
+  background-color: white;
+  border: 1px solid #ddd;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+.tab {
+  font-weight: bold;
+  width: 100%;
+  margin: 4px;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.activeTab {
+  background-color: black;
+  color: white;
+}
+
+.dropdownList {
+  position: absolute;
+  width: 100%;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #ffffff;
+  z-index: 1000;
+
+  /* Custom scrollbar */
+  scrollbar-width: thin; /* For Firefox */
+  scrollbar-color: black #f0f0f0; /* Thumb color and track color */
+}
+
+/* For WebKit browsers (Chrome, Safari, Edge) */
+.dropdownList::-webkit-scrollbar {
+  width: 6px; /* Narrow scrollbar width */
+}
+
+.dropdownList::-webkit-scrollbar-track {
+  background: #f0f0f0; /* Track color */
+  border-radius: 5px;
+}
+
+.dropdownList::-webkit-scrollbar-thumb {
+  background-color: black; /* Scrollbar thumb color */
+  border-radius: 5px;
+}
+
+.dropdownItem {
+  display: flex;
+  cursor: pointer;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.dropdownItem:last-child {
+  border-bottom: none;
+}
+
+.datasetInfo {
+  display: flex;
+  flex-direction: column;
+  justify-content: left;
+  padding: 5px;
+  cursor: pointer;
+}
+
+.dropdownItem span {
+  text-align: left;
+  font-size: 1rem;
+}
+
+.dropdownItem p {
+  font-size: 0.8rem;
+  text-align: left;
+  margin: 0;
+}
+
+.dropdownItem:hover {
+  background-color: #f1f1f1;
+}
+
+.viewIcon {
+  color: black;
+  cursor: pointer;
 }

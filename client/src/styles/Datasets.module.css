@@ -1,10 +1,10 @@
-.datasets-container {
+.container {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
 }
 
-.datasets-title {
+.title {
   display: flex;
   justify-content: space-between;
   text-align: left;
@@ -13,7 +13,7 @@
   color: #333;
 }
 
-.datasets-table {
+.table {
   width: 100%;
   border-collapse: collapse;
   background-color: white;
@@ -22,25 +22,24 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.datasets-table th,
-.datasets-table td {
+.tableHeader,
+.tableData {
   padding: 15px;
   text-align: left;
   border-bottom: 1px solid #ddd;
   color: #333;
 }
 
-.datasets-table th {
+.tableHeader {
   background-color: #9cabc226;
   font-weight: bold;
 }
 
-.datasets-table tbody tr:hover {
+.tableRow:hover {
   background-color: #f7f7f7;
 }
 
-.view-button,
-.delete-button {
+.iconButton {
   padding: 10px 7px;
   margin: 5px;
   border: none;
@@ -49,18 +48,16 @@
   font-size: 1.4rem;
 }
 
-.view-button {
-  /* background-color: #007bff; */
+.viewButton {
   color: rgb(0, 132, 255);
 }
 
-.delete-button {
-  /* background-color: #dc3545; */
+.deleteButton {
   color: red;
 }
 
 /* Modal overlay styles with animation */
-.modal-overlay {
+.modalOverlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -76,11 +73,11 @@
   transition: opacity 0.3s ease-in-out;
 }
 
-.modal-overlay.show {
+.modalOverlayVisible {
   opacity: 1;
 }
 
-.modal-content {
+.modalContent {
   background-color: white;
   padding: 20px;
   border-radius: 10px;
@@ -93,16 +90,21 @@
   transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
 }
 
-.modal-content.show {
+.modalContentVisible {
   opacity: 1;
   transform: scale(1);
 }
 
-.csv-content {
-  height: 10px;
+.modalTitle {
+  display: flex;
+  justify-content: space-between;
 }
 
-.add-dataset-btn {
+.closeButton {
+  cursor: pointer;
+}
+
+.addDatasetButton {
   display: flex;
   align-items: center;
   gap: 5px;
@@ -120,38 +122,42 @@
   transition: background-color 0.3s ease;
 }
 
-.add-dataset-btn:hover {
+.addDatasetButton:hover {
   background-color: #b77401;
 }
 
-.csv-modal-title {
-  display: flex;
-  justify-content: space-between;
-}
-
-.close-modal-button {
-  cursor: pointer;
-}
-
-.export-csv-btn,
-.export-pdf-btn {
+.exportButton {
   margin: 5px;
   padding: 5px 10px;
   border: none;
   cursor: pointer;
-  background-color: #4caf50;
-  color: white;
   border-radius: 4px;
 }
 
-.export-csv-btn:hover {
+.exportCsv {
+  background-color: #4caf50;
+  color: white;
+}
+
+.exportCsv:hover {
   background-color: #45a049;
 }
 
-.export-pdf-btn {
+.exportPdf {
   background-color: #f44336;
+  color: white;
 }
 
-.export-pdf-btn:hover {
+.exportPdf:hover {
   background-color: #e53935;
+}
+
+.datasetName {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.datasetDescription {
+  font-size: 0.9rem;
+  font-style: italic;
 }

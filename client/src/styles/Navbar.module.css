@@ -1,5 +1,5 @@
-/* Navbar styling */
 @import url("https://fonts.googleapis.com/css2?family=Gruppo&display=swap");
+
 .navbar {
   display: flex;
   position: relative;
@@ -14,13 +14,13 @@
   color: black;
 }
 
-.navbar-buttons {
+.buttons {
   display: flex;
   align-items: center;
 }
 
-.navbar-signin-button,
-.navbar-signout-button {
+.signInButton,
+.signOutButton {
   color: white;
   text-decoration: none;
   padding: 0.5rem 1rem;
@@ -32,7 +32,7 @@
   transition: background-color 0.3s ease;
 }
 
-.navbar-signin-button:hover,
-.navbar-signout-button:hover {
+.signInButton:hover,
+.signOutButton:hover {
   background-color: #b77401;
 }

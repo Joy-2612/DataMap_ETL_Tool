@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from "react";
-import styles from "../styles/Merge.module.css";
 import Papa from "papaparse";
+import { IoMdClose } from "react-icons/io";
+import { toast } from "sonner";
+import DataTable from "../components/DataTable/DataTable";
+import Dropdown from "../components/Dropdown/Dropdown";
+import styles from "../styles/Merge.module.css";
 
 const Merge = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const [outputFileName, setOutputFileName] = useState("");
   const [description, setDescription] = useState("");
   const [datasets, setDatasets] = useState([]);
@@ -13,16 +18,24 @@ const Merge = () => {
   const [columns2, setColumns2] = useState([]);
   const [selectedColumn1, setSelectedColumn1] = useState("");
   const [selectedColumn2, setSelectedColumn2] = useState("");
+  const [selectedCsvData, setSelectedCsvData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Separate states for each dropdown's visibility
+  const [isDropdown1Open, setIsDropdown1Open] = useState(false);
+  const [isDropdown2Open, setIsDropdown2Open] = useState(false);
+
+  // Modal states for output file details
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isDetailsModalClosing, setIsDetailsModalClosing] = useState(false);
 
   const userId = localStorage.getItem("userId");
 
-  // Fetch datasets when the component mounts
   useEffect(() => {
     const fetchDatasets = async () => {
       try {
         const response = await fetch(
-          `http://localhost:5000/api/file/datasets/${userId}`
+          `http://localhost:5000/api/file/alldatasets/${userId}`
         );
         const data = await response.json();
         setDatasets(data.data);
@@ -32,7 +45,7 @@ const Merge = () => {
     };
 
     fetchDatasets();
-  }, []);
+  }, [userId]);
 
   const parseCsvFile = (file) => {
     return new Promise((resolve, reject) => {
@@ -42,9 +55,7 @@ const Merge = () => {
       Papa.parse(text, {
         header: true,
         dynamicTyping: true,
-        complete: (result) => {
-          resolve(result.data);
-        },
+        complete: (result) => resolve(result.data),
         error: (error) => {
           console.error("Error parsing CSV: ", error);
           reject(error);
@@ -66,23 +77,19 @@ const Merge = () => {
     }
   };
 
-  const handleDataset1Change = (e) => {
-    const selectedDataset = e.target.value;
-    setDataset1(selectedDataset);
-    setColumns1([]); // Reset columns on dataset change
-    fetchColumns(selectedDataset, setColumns1);
+  const handleCsvView = async (dataset) => {
+    const selectedDataset = datasets.find((d) => d.name === dataset.name);
+    if (selectedDataset) {
+      const csvData = await parseCsvFile(selectedDataset.file);
+      setSelectedCsvData(csvData);
+      setIsCsvModalOpen(true);
+      setTimeout(() => setModalVisible(true), 10); // Trigger animation
+    }
   };
 
-  const handleDataset2Change = (e) => {
-    const selectedDataset = e.target.value;
-    setDataset2(selectedDataset);
-    setColumns2([]); // Reset columns on dataset change
-    fetchColumns(selectedDataset, setColumns2);
-  };
-
-  const handleSubmit = async () => {
+  const handleDetailsSubmit = async () => {
     if (!selectedColumn1 || !selectedColumn2) {
-      alert("Please select columns from both datasets.");
+      toast.error("Please select columns from both datasets.");
       return;
     }
 
@@ -94,12 +101,12 @@ const Merge = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          dataset1,
-          dataset2,
+          dataset1: dataset1?.name,
+          dataset2: dataset2?.name,
           column1: selectedColumn1,
           column2: selectedColumn2,
-          outputFileName: outputFileName,
-          description: description,
+          outputFileName,
+          description,
         }),
       });
 
@@ -112,20 +119,119 @@ const Merge = () => {
         setDataset2(null);
         setColumns1([]);
         setColumns2([]);
+        setOutputFileName("");
+        setDescription("");
       } else {
-        alert(`Error: ${data.message}`);
+        toast.error(`Error: ${data.message}`);
       }
     } catch (error) {
       setIsLoading(false);
-      alert("An error occurred while merging datasets.");
+      toast.error("An error occurred while merging datasets.");
+    } finally {
+      closeDetailsModal();
     }
   };
 
+  const handleCloseModal = () => {
+    setModalVisible(false);
+    setTimeout(() => {
+      setIsCsvModalOpen(false);
+      setSelectedCsvData([]);
+    }, 300);
+  };
+
+  const openDetailsModal = () => {
+    console.log("Opening details modal"); // Debugging step
+    setIsDetailsModalOpen(true);
+  };
+
+  const closeDetailsModal = () => {
+    setIsDetailsModalClosing(true);
+    setTimeout(() => {
+      setIsDetailsModalOpen(false);
+      setIsDetailsModalClosing(false);
+    }, 300);
+  };
+
   return (
-    <div>
-      {isModalOpen && (
-        <div className={styles.modal}>
-          <div className={styles.descModalContent}>
+    <div className={styles.mergeContainer}>
+      <h2 className={styles.title}>Merge Datasets</h2>
+      <div className={styles.formGroup}>
+        <div className={styles.datasetAndColumnInput}>
+          <div className={styles.mergeInput}>
+            <Dropdown
+              datasets={datasets}
+              selected={dataset1}
+              onSelect={(dataset) => {
+                setDataset1(dataset);
+                fetchColumns(dataset.name, setColumns1);
+                setIsDropdown1Open(false);
+              }}
+              onView={handleCsvView}
+              isOpen={isDropdown1Open}
+              setIsOpen={setIsDropdown1Open}
+            />
+          </div>
+          <select
+            value={selectedColumn1}
+            onChange={(e) => setSelectedColumn1(e.target.value)}
+          >
+            <option value="">Select Column from Dataset 1</option>
+            {columns1.map((col) => (
+              <option key={col} value={col}>
+                {col}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className={styles.datasetAndColumnInput}>
+          <div className={styles.mergeInput}>
+            <Dropdown
+              datasets={datasets.filter((d) => d.name !== dataset1?.name)}
+              selected={dataset2}
+              onSelect={(dataset) => {
+                setDataset2(dataset);
+                fetchColumns(dataset.name, setColumns2);
+                setIsDropdown2Open(false);
+              }}
+              onView={handleCsvView}
+              isOpen={isDropdown2Open}
+              setIsOpen={setIsDropdown2Open}
+            />
+          </div>
+
+          <select
+            value={selectedColumn2}
+            onChange={(e) => setSelectedColumn2(e.target.value)}
+          >
+            <option value="">Select Column from Dataset 2</option>
+            {columns2.map((col) => (
+              <option key={col} value={col}>
+                {col}
+              </option>
+            ))}
+          </select>
+        </div>
+        <button
+          onClick={openDetailsModal}
+          disabled={
+            !dataset1 ||
+            !dataset2 ||
+            !selectedColumn1 ||
+            !selectedColumn2 ||
+            isLoading
+          }
+        >
+          {isLoading ? "Merging..." : "Merge"}
+        </button>
+      </div>
+
+      {/* Output File Details Modal */}
+      {isDetailsModalOpen && (
+        <div className={`${styles.modalOverlay} ${styles.modalOverlayVisible}`}>
+          <div
+            className={`${styles.descModalContent} ${styles.descModalContentVisible}`}
+          >
             <h2>Enter Output File Details</h2>
             <div className={styles.formGroup}>
               <label>Output File Name</label>
@@ -145,18 +251,13 @@ const Merge = () => {
             <div className={`${styles.buttonGroup} ${styles.modalButtons}`}>
               <button
                 className={styles.submitButton}
-                onClick={() => {
-                  handleSubmit();
-                  setIsModalOpen(false);
-                  setOutputFileName("");
-                  setDescription("");
-                }}
+                onClick={handleDetailsSubmit}
               >
                 Submit
               </button>
               <button
                 className={styles.cancelButton}
-                onClick={() => setIsModalOpen(false)}
+                onClick={closeDetailsModal}
               >
                 Cancel
               </button>
@@ -165,74 +266,43 @@ const Merge = () => {
         </div>
       )}
 
-      <div className={styles.mergeContainer}>
-        <h2 className={styles.title}>Merge Datasets</h2>
-        <div className={styles.formGroup}>
-          <div className={styles.mergeInput}>
-            <select value={dataset1 || ""} onChange={handleDataset1Change}>
-              <option value="">Select Dataset 1</option>
-              {datasets.map((dataset, index) => (
-                <option key={index} value={dataset.name}>
-                  {dataset.name}
-                </option>
-              ))}
-            </select>
-
-            {columns1.length > 0 && (
-              <select
-                value={selectedColumn1}
-                onChange={(e) => setSelectedColumn1(e.target.value)}
-              >
-                <option value="">Select Column from Dataset 1</option>
-                {columns1.map((col, index) => (
-                  <option key={index} value={col}>
-                    {col}
-                  </option>
-                ))}
-              </select>
-            )}
-          </div>
-          <div className={styles.mergeInput}>
-            <select value={dataset2 || ""} onChange={handleDataset2Change}>
-              <option value="">Select Dataset 2</option>
-              {datasets
-                .filter((dataset) => dataset.name !== dataset1)
-                .map((dataset, index) => (
-                  <option key={index} value={dataset.name}>
-                    {dataset.name}
-                  </option>
-                ))}
-            </select>
-
-            {columns2.length > 0 && (
-              <select
-                value={selectedColumn2}
-                onChange={(e) => setSelectedColumn2(e.target.value)}
-              >
-                <option value="">Select Column from Dataset 2</option>
-                {columns2.map((col, index) => (
-                  <option key={index} value={col}>
-                    {col}
-                  </option>
-                ))}
-              </select>
-            )}
-          </div>
-
-          <button
-            onClick={() => setIsModalOpen(true)}
-            disabled={
-              !dataset1 ||
-              !dataset2 ||
-              !selectedColumn1 ||
-              !selectedColumn2 ||
-              isLoading
-            }
+      {isCsvModalOpen && (
+        <div
+          className={`${styles.modalOverlay} ${
+            modalVisible ? styles.modalOverlayVisible : ""
+          }`}
+          onClick={handleCloseModal}
+        >
+          <div
+            className={`${styles.modalContent} ${
+              modalVisible ? styles.modalContentVisible : ""
+            }`}
+            onClick={(e) => e.stopPropagation()}
           >
-            {isLoading ? "Merging..." : "Merge"}
-          </button>
+            <div className={styles.modalTitle}>
+              CSV Data
+              <IoMdClose
+                className={styles.closeButton}
+                onClick={handleCloseModal}
+              />
+            </div>
+
+            {selectedCsvData.length > 0 ? (
+              <DataTable
+                title="CSV Data"
+                columns={Object.keys(selectedCsvData[0]).map((key) => ({
+                  label: key,
+                  key: key,
+                }))}
+                data={selectedCsvData}
+                getRowId={(row, index) => index}
+              />
+            ) : (
+              <p>No data available</p>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

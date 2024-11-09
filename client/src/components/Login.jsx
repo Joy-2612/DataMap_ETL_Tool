@@ -1,8 +1,9 @@
+// Login.js
 import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/Login.css";
 import { toast } from "sonner";
 import { UserContext } from "../context/UserContext"; // Import the UserContext
+import styles from "../styles/Login.module.css"; // Import the modular CSS
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -43,8 +44,8 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container">
-      <form className="login-form" onSubmit={handleLogin}>
+    <div className={styles.loginContainer}>
+      <form className={styles.loginForm} onSubmit={handleLogin}>
         <h2>Login</h2>
         <input
           type="email"
@@ -52,6 +53,7 @@ const Login = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          className={styles.loginInput}
         />
         <input
           type="password"
@@ -59,11 +61,16 @@ const Login = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          className={styles.loginInput}
         />
-        <button type="submit">Login</button>
-        <p>
+        <button type="submit" className={styles.loginButton}>
+          Login
+        </button>
+        <p className={styles.loginText}>
           Don't have an account?{" "}
-          <span onClick={() => navigate("/")}>Register here</span>
+          <span onClick={() => navigate("/")} className={styles.registerLink}>
+            Register here
+          </span>
         </p>
       </form>
     </div>

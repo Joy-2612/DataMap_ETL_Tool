@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import styles from "../styles/Standardize.module.css"; // Modular CSS import
-import Papa from "papaparse"; // Import the PapaParse library
+import styles from "../styles/Standardize.module.css";
+import Papa from "papaparse";
+import Multiselect from "multiselect-react-dropdown"; // Import the Multiselect component
 
 const Standardize = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,7 +41,7 @@ const Standardize = () => {
   const fetchDatasets = async () => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/file/datasets/${userId}`
+        `http://localhost:5000/api/file/alldatasets/${userId}`
       );
       const data = await response.json();
       setDatasets(data.data);
@@ -63,7 +64,11 @@ const Standardize = () => {
   useEffect(() => {
     if (selectedColumn && csvData.length > 0) {
       const values = csvData.map((row) => row[selectedColumn]);
-      const uniqueVals = [...new Set(values)];
+      const uniqueVals = [
+        ...new Set(
+          values.filter((value) => value !== undefined && value !== null)
+        ),
+      ]; // Exclude undefined and null values
       setUniqueValues(uniqueVals);
     } else {
       setUniqueValues([]);
@@ -80,38 +85,18 @@ const Standardize = () => {
     setMappings(updatedMappings);
   };
 
-  const handleSelectChange = (index, selectedValue) => {
+  const handleSelectChange = (index, selectedValues) => {
     const updatedMappings = [...mappings];
-    const currentMapping = updatedMappings[index];
-
-    if (!currentMapping.before.includes(selectedValue)) {
-      currentMapping.before.push(selectedValue);
-      const updatedGlobalSelectedValues = new Set(globalSelectedValues);
-      updatedMappings.forEach((mapping) =>
-        mapping.before.forEach((value) =>
-          updatedGlobalSelectedValues.add(value)
-        )
-      );
-      setGlobalSelectedValues([...updatedGlobalSelectedValues]);
-    }
-
+    updatedMappings[index].before = selectedValues;
     setMappings(updatedMappings);
-  };
 
-  const handleRemoveSelection = (index, valueToRemove) => {
-    const updatedMappings = [...mappings];
-    const currentMapping = updatedMappings[index];
-    currentMapping.before = currentMapping.before.filter(
-      (value) => value !== valueToRemove
-    );
-
+    // Update globalSelectedValues based on all mappings
     const updatedGlobalSelectedValues = new Set();
     updatedMappings.forEach((mapping) =>
       mapping.before.forEach((value) => updatedGlobalSelectedValues.add(value))
     );
-    setGlobalSelectedValues([...updatedGlobalSelectedValues]);
 
-    setMappings(updatedMappings);
+    setGlobalSelectedValues([...updatedGlobalSelectedValues]);
   };
 
   const getFilteredValues = () => {
@@ -252,43 +237,39 @@ const Standardize = () => {
             {mappings.map((mapping, index) => (
               <div key={index} className={styles.mappingRow}>
                 <div className={styles.multiSelect}>
-                  <div>
-                    {uniqueValues.length > 0 && (
-                      <select
-                        onChange={(e) =>
-                          handleSelectChange(index, e.target.value)
-                        }
-                        value=""
-                      >
-                        <option value="">Select a value</option>
-                        {getFilteredValues().map((value, idx) => (
-                          <option key={idx} value={value}>
-                            {value}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="After"
-                    value={mapping.after}
-                    onChange={(e) =>
-                      handleMappingChange(index, "after", e.target.value)
-                    }
-                  />
+                  {uniqueValues.length > 0 && (
+                    <Multiselect
+                      options={getFilteredValues()} // Pass the filtered values as options
+                      selectedValues={mapping.before} // Pre-select already selected values
+                      isObject={false} // Directly use values as options, not objects
+                      onSelect={(selectedList) =>
+                        handleSelectChange(index, selectedList)
+                      }
+                      onRemove={(selectedList) =>
+                        handleSelectChange(index, selectedList)
+                      }
+                      placeholder="Select values"
+                      style={{
+                        chips: { background: "black", color: "white" },
+                        searchBox: { border: "1px solid #ccc" },
+                        searchWrapper: {
+                          border: "1px solid #ccc",
+                          backgroundColor: "#f5f5f5",
+                        },
+                        optionListContainer: { color: "black" },
+                        optionContainer: { color: "black" },
+                      }}
+                    />
+                  )}
                 </div>
-                <div className={styles.selectedValues}>
-                  {mapping.before.map((value, idx) => (
-                    <span
-                      key={idx}
-                      className={styles.selectedValue}
-                      onClick={() => handleRemoveSelection(index, value)}
-                    >
-                      {value} &times;
-                    </span>
-                  ))}
-                </div>
+                <input
+                  type="text"
+                  placeholder="After"
+                  value={mapping.after}
+                  onChange={(e) =>
+                    handleMappingChange(index, "after", e.target.value)
+                  }
+                />
               </div>
             ))}
           </div>

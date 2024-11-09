@@ -5,14 +5,13 @@
   margin: 2rem;
   padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  background-color: #ffffff;
+  background-color: #232f3e0d;
   font-family: "Arial", sans-serif;
 }
 
 /* Title styling */
 .title {
-  text-align: center;
+  text-align: left;
   margin-bottom: 20px;
   font-size: 24px;
   color: #333;
@@ -31,15 +30,20 @@
   gap: 15px;
 }
 
+.datasetAndColumnInput {
+  display: flex;
+  gap: 10px;
+}
+
 /* Select dropdown styling */
 select {
   width: 100%;
-  padding: 12px !important;
-  border: 1px solid #ddd !important;
-  border-radius: 5px !important;
-  font-size: 16px !important;
-  background-color: #f9f9f9 !important;
-  transition: all 0.2s !important;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+  background-color: #f9f9f9;
+  transition: all 0.2s;
 }
 
 select:focus {
@@ -68,135 +72,67 @@ button:disabled {
   cursor: not-allowed;
 }
 
-/* Modal styles */
-.modal {
+/* Modal overlay styling */
+.modalOverlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.6); /* Increase overlay opacity */
+  backdrop-filter: blur(8px); /* Increase blur effect */
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(6px);
-  z-index: 1000;
-  opacity: 0;
-  animation: fadeIn 0.3s forwards;
+  z-index: 1000; /* Ensure modal overlay is on top */
+  transition: opacity 0.3s ease-in-out;
 }
 
-.modal.closing {
-  animation: fadeOut 0.3s forwards;
+.modalOverlayVisible {
+  opacity: 1;
+  /* Adding outline for debugging */
+  outline: 2px solid red;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes fadeOut {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
-.descModalContent {
+/* Modal content styling */
+.modalContent {
   background-color: white;
-  padding: 2rem;
+  padding: 20px;
   border-radius: 10px;
-  width: 500px;
-  max-width: 80%;
-  color: black;
-  transform: translateY(-20px);
-  animation: slideIn 0.3s forwards;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  width: 80%;
+  overflow-y: auto;
+  position: relative;
+  transform: scale(0.9);
+  z-index: 1001; /* Make sure content is above the overlay */
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
 }
 
-.descModalContent.closing {
-  animation: slideOut 0.3s forwards;
+.modalContentVisible {
+  opacity: 1;
+  transform: scale(1);
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideOut {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-}
-
-.descModalContent h2 {
-  margin-top: 0;
-  color: #333;
-}
-
-.descModalContent .formGroup {
-  margin-bottom: 1rem;
-}
-
-.descModalContent .formGroup label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: black;
-}
-
-.descModalContent .formGroup input,
-.descModalContent .formGroup textarea {
-  padding: 0.5rem;
-  border: 1px solid gray;
-  border-radius: 5px;
-  font-size: 1rem;
-  background-color: white;
-  color: black;
-}
-
-.descModalContent .buttonGroup {
+/* Modal title and close button */
+.modalTitle {
   display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 1rem;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
 }
 
-.cancelButton {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 5px;
-  font-size: 1rem;
+.closeButton {
+  font-size: 1.5rem;
   cursor: pointer;
-  background-color: #aaa;
-  color: #ffffff;
-  transition: background-color 0.3s ease;
+  color: #333;
+  transition: color 0.3s ease;
 }
 
-.cancelButton:hover {
-  background-color: #888;
-}
-
-.modalButtons .submitButton {
-  background-color: black;
-}
-
-.modalButtons .submitButton:hover {
-  background-color: #0000009b;
+.closeButton:hover {
+  color: #ff0000;
 }
 
 /* Responsive behavior */
@@ -204,4 +140,73 @@ button:disabled {
   .mergeContainer {
     width: 90%;
   }
+
+  .modalContent {
+    width: 90%;
+  }
+}
+
+/* Modal overlay transition */
+.modalOverlay {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.modalOverlayVisible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Modal content transition */
+.modalContent {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.modalContentVisible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Modal overlay transition */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.modalOverlayVisible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Modal content transition */
+.descModalContent {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 500px; /* Adjust as needed */
+  max-width: 80%;
+  color: black;
+  transform: scale(0.9);
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.descModalContentVisible {
+  opacity: 1;
+  transform: scale(1);
 }

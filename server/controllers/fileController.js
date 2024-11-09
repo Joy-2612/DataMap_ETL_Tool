@@ -38,7 +38,6 @@ const uploadFile = async (req, res) => {
 
 const getDatasetByDatasetId = async (req, res) => {
   const { datasetId } = req.params;
-  console.log("Hello : ", datasetId);
 
   try {
     const dataset = await File.findById(datasetId);
@@ -124,8 +123,6 @@ const getDatasetResultByUserId = async (req, res) => {
         createdAt: dataset.createdAt, // Calculate size from binary data length
       };
     });
-
-    console.log("Formatted datasets:", formattedDatasets);
 
     // Send the formatted response
     res.status(200).json({ data: formattedDatasets });
@@ -260,10 +257,65 @@ const naturalJoin = (dataset1, dataset2, key1, key2) => {
   return joinedData;
 };
 
+const fullOuterJoin = (dataset1, dataset2, key1, key2) => {
+  const joinedData = [];
+
+  // Create a map for quick lookup of rows in dataset2 by key2
+  const map2 = new Map();
+  dataset2.forEach((row) => {
+    const key = row[key2];
+    if (!map2.has(key)) {
+      map2.set(key, []);
+    }
+    map2.get(key).push(row);
+  });
+
+  // Track keys in dataset2 that have been matched
+  const matchedKeys = new Set();
+
+  // Iterate over dataset1 and match with dataset2 based on key1 and key2
+  dataset1.forEach((row1) => {
+    const key = row1[key1];
+    const matchingRows = map2.get(key);
+
+    if (matchingRows) {
+      matchingRows.forEach((row2) => {
+        const mergedRow = { ...row1, ...row2 }; // Merge the two rows
+        joinedData.push(mergedRow);
+      });
+      matchedKeys.add(key);
+    } else {
+      // No match found in dataset2, add row1 with nulls for dataset2 columns
+      const rowWithNulls = { ...row1 };
+      Object.keys(dataset2[0]).forEach((col) => {
+        if (!(col in rowWithNulls)) rowWithNulls[col] = null;
+      });
+      joinedData.push(rowWithNulls);
+    }
+  });
+
+  // Add rows from dataset2 that had no match in dataset1
+  dataset2.forEach((row2) => {
+    const key = row2[key2];
+    if (!matchedKeys.has(key)) {
+      // No match found in dataset1, add row2 with nulls for dataset1 columns
+      const rowWithNulls = { ...row2 };
+      Object.keys(dataset1[0]).forEach((col) => {
+        if (!(col in rowWithNulls)) rowWithNulls[col] = null;
+      });
+      joinedData.push(rowWithNulls);
+    }
+  });
+
+  return joinedData;
+};
+
 // Controller to merge two datasets based on given columns
 const mergeDatasets = async (req, res) => {
   try {
     const { dataset1, dataset2, column1, column2, description } = req.body;
+
+    console.log("Looking for datasets:", dataset1, dataset2);
 
     // Validate input
     if (!dataset1 || !dataset2 || !column1 || !column2) {
@@ -276,10 +328,21 @@ const mergeDatasets = async (req, res) => {
     const file1 = await File.findOne({ originalName: dataset1 });
     const file2 = await File.findOne({ originalName: dataset2 });
 
-    if (!file1 || !file2) {
+    // if (!file1 || !file2) {
+    //   return res
+    //     .status(404)
+    //     .json({ message: "One or both datasets not found" });
+    // }
+
+    if (!file1) {
       return res
         .status(404)
-        .json({ message: "One or both datasets not found" });
+        .json({ message: `Dataset "${dataset1}" not found` });
+    }
+    if (!file2) {
+      return res
+        .status(404)
+        .json({ message: `Dataset "${dataset2}" not found` });
     }
 
     // Decode Base64 data stored in the files
@@ -315,7 +378,7 @@ const mergeDatasets = async (req, res) => {
     await Promise.all([dataset1Promise, dataset2Promise]);
 
     // Perform natural join on the datasets based on the given keys
-    const joinedData = naturalJoin(
+    const joinedData = fullOuterJoin(
       dataset1Rows,
       dataset2Rows,
       column1,
@@ -365,7 +428,6 @@ const standardizeColumn = async (req, res) => {
   try {
     const { dataset, column, mappings, outputFileName, description } = req.body;
 
-    // Validate input
     if (!dataset || !column || !Array.isArray(mappings) || !outputFileName) {
       return res.status(400).json({
         message:
@@ -373,32 +435,26 @@ const standardizeColumn = async (req, res) => {
       });
     }
 
-    // Find the dataset by its name
     const file = await File.findOne({ originalName: dataset });
 
     if (!file) {
       return res.status(404).json({ message: "Dataset not found" });
     }
 
-    // Decode Base64 data stored in the file
     const csvContent = Buffer.from(file.data, "base64").toString("utf-8");
 
-    // Convert the CSV content into a readable stream
     const stream = Readable.from(csvContent);
 
-    // Array to store rows after processing
     const rows = [];
 
-    // Parse the CSV file
     stream
       .pipe(csvParser())
       .on("data", (row) => {
         const value = row[column];
 
-        // Iterate through mappings to check if any `before` array contains the current value
         mappings.forEach((mapping) => {
           if (mapping.before.includes(value)) {
-            row[column] = mapping.after; // Replace with `after` value
+            row[column] = mapping.after;
           }
         });
 
@@ -744,10 +800,10 @@ const splitAddress = async (req, res) => {
       const pincodeMatch = (row[addressName] || "").match(/-\s*(\d{6})$/);
       const pincode = pincodeMatch ? pincodeMatch[1] : "";
 
-      return { ...row, pincode };
+      return { ...row, addressParts, pincode };
     });
 
-    // Fetch additional location data based on pincode
+    // Fetch additional location data based on pincode and update the address field
     const enrichedData = await Promise.all(
       splitData.map(async (item) => {
         try {
@@ -756,25 +812,54 @@ const splitAddress = async (req, res) => {
           );
           const locationData = response.data[0]?.PostOffice?.[0] || {};
 
+          // Extract details from the location data
+          const post_office = locationData.Name || "Unknown";
+          const district = locationData.District || "Unknown";
+          const state = locationData.State || "Unknown";
+          const country = locationData.Country || "India";
+
+          // Remove any of the location fields if they are contained in parts of the original address
+          const cleanedAddressParts = item.addressParts.filter(
+            (part) =>
+              !part.includes(post_office) &&
+              !part.includes(district) &&
+              !part.includes(state) &&
+              !part.includes(country) &&
+              !part.includes(item.pincode) // Also remove pincode if it's in the address
+          );
+
+          item["Street Address"] = cleanedAddressParts.join(", ");
+          delete item[addressName]; // Remove the original column
+
           return {
             ...item,
-            post_office: locationData.Name || "Unknown",
-            district: locationData.District || "Unknown",
-            state: locationData.State || "Unknown",
-            country: locationData.Country || "India",
+            post_office,
+            district,
+            state,
+            country,
           };
         } catch (error) {
           console.error(
             `Error fetching data for pincode ${item.pincode}:`,
             error
           );
-          return { ...item, post_office: "Unknown" };
+          // Use original address if data fetch fails
+          return {
+            ...item,
+            post_office: "Unknown",
+            district: "Unknown",
+            state: "Unknown",
+            country: "India",
+          };
         }
       })
     );
 
-    // Convert enriched data back to CSV
-    const json2csvParser = new Parser({ fields: Object.keys(enrichedData[0]) });
+    // Convert enriched data back to CSV, excluding the `addressParts` array
+    const fields = Object.keys(enrichedData[0]).filter(
+      (field) => field !== "addressParts"
+    );
+    const json2csvParser = new Parser({ fields });
     const updatedCsv = json2csvParser.parse(enrichedData);
 
     // Save the CSV data as a Buffer
@@ -785,16 +870,16 @@ const splitAddress = async (req, res) => {
       originalName: outputFileName,
       data: csvBuffer,
       contentType: "text/csv",
-      description, // Save the description if provided
-      userId: file.userId, // Maintain user ownership
-      result: true, // Mark as a result file
+      description,
+      userId: file.userId,
+      result: true,
     });
 
     await newFile.save();
 
     // Send a success response with the new file's ID
     res.status(201).json({
-      message: "Address split and saved successfully!",
+      message: "Address split and cleaned successfully!",
       newFileId: newFile._id,
     });
   } catch (error) {
@@ -802,6 +887,44 @@ const splitAddress = async (req, res) => {
     res.status(500).json({ error: "Error splitting address" });
   }
 };
+
+const getAllDatasetsByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Fetch datasets for the given userId
+    const datasets = await File.find({ userId });
+
+    // If no datasets found, return a 404 response
+    if (!datasets || datasets.length === 0) {
+      console.warn(`No datasets found for userId: ${userId}`);
+      return res
+        .status(404)
+        .json({ message: "No datasets found for this user." });
+    }
+
+    // Format the response to match the required structure
+    const formattedDatasets = datasets.map((dataset) => {
+      return {
+        _id: dataset._id, // Include the ID for each dataset
+        name: dataset.originalName, // Rename originalName to name
+        type: dataset.contentType, // Rename contentType to type
+        file: dataset.data, // Binary data remains the same
+        result: dataset.result, // Include the result field
+        description: dataset.description || "", // Include description if available
+        size: dataset.data.length, // Calculate size from binary data length
+        createdAt: dataset.createdAt, // Calculate size from binary data length
+      };
+    });
+
+    // Send the formatted response
+    res.status(200).json({ data: formattedDatasets });
+  } catch (error) {
+    console.error("Error fetching datasets:", error);
+    res.status(500).json({ message: "Failed to fetch datasets" });
+  }
+};
+
 module.exports = {
   uploadFile,
   getDatasetsByUserId,
@@ -809,6 +932,7 @@ module.exports = {
   mergeDatasets,
   getDatasetResultByUserId,
   standardizeColumn,
+  getAllDatasetsByUserId,
   deleteDatasetById,
   convertFile,
   convertBack,

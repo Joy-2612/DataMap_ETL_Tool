@@ -10,6 +10,7 @@ const Split = () => {
   const [dataset1, setDataset1] = useState(null);
   const [columns1, setColumns1] = useState([]);
   const [csvData, setCsvData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [splits, setSplits] = useState([
     { col: "", delimiter: "", numDelimiters: 1, columnNames: [""] },
   ]);
@@ -34,7 +35,7 @@ const Split = () => {
   const fetchDatasets = async () => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/file/datasets/${userId}`
+        `http://localhost:5000/api/file/alldatasets/${userId}`
       );
       const data = await response.json();
       setDatasets(data.data);
@@ -123,6 +124,7 @@ const Split = () => {
     }
 
     try {
+      setIsLoading(true);
       let response;
 
       if (activeTab === "general") {
@@ -187,6 +189,8 @@ const Split = () => {
       toast.error(
         error.message || "An error occurred while splitting the columns."
       );
+    } finally {
+      setIsLoading(false); // Stop loading
     }
   };
 
@@ -398,8 +402,16 @@ const Split = () => {
               />
             </div>
             <div className={`${styles.buttonGroup} ${styles.modalButtons}`}>
-              <button className={styles.submitButton} onClick={handleSplit}>
-                Submit
+              <button
+                className={styles.submitButton}
+                onClick={handleSplit}
+                disabled={isLoading} // Disable button during loading
+              >
+                {isLoading ? (
+                  <span className={styles.loader}></span> // Show loader when loading
+                ) : (
+                  "Submit"
+                )}
               </button>
               <button
                 className={styles.cancelButton}

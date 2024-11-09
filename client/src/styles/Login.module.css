@@ -1,5 +1,6 @@
-/* client/src/styles/Login.css */
-.login-container {
+/* Login.module.css */
+
+.loginContainer {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -7,7 +8,7 @@
   background-color: #f6f2eb;
 }
 
-.login-form {
+.loginForm {
   background-color: #ffffff;
   padding: 2rem;
   border-radius: 8px;
@@ -15,14 +16,14 @@
   width: 300px;
 }
 
-.login-form h2 {
+.loginForm h2 {
   margin-bottom: 1rem;
   font-size: 1.5rem;
   text-align: center;
   color: #333;
 }
 
-.login-form input {
+.loginInput {
   width: 91%;
   padding: 0.75rem;
   margin-bottom: 1rem;
@@ -31,7 +32,7 @@
   font-size: 1rem;
 }
 
-.login-form button {
+.loginButton {
   width: 100%;
   padding: 0.75rem;
   background-color: #ffb93f;
@@ -43,25 +44,17 @@
   transition: background-color 0.3s ease;
 }
 
-.login-form button:hover {
+.loginButton:hover {
   background-color: #b77401;
 }
 
-.login-form p {
+.loginText {
   text-align: center;
   margin-top: 1rem;
   font-size: 0.9rem;
 }
 
-.login-form p a {
-  color: #007bff;
-  text-decoration: none;
-}
-
-.login-form p a:hover {
-  text-decoration: underline;
-}
-
-span {
+.registerLink {
   color: #b77401;
+  cursor: pointer;
 }

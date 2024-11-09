@@ -4,6 +4,7 @@ const multer = require("multer");
 const {
   uploadFile,
   getDatasetsByUserId,
+  getAllDatasetsByUserId,
   concatenateColumns,
   getDatasetResultByUserId,
   mergeDatasets,
@@ -25,6 +26,7 @@ const upload = multer({ storage });
 // Define the upload route
 router.post("/upload", upload.single("file"), uploadFile);
 router.get("/dataset/:datasetId", getDatasetByDatasetId);
+router.get("/alldatasets/:userId", getAllDatasetsByUserId);
 router.get("/datasets/:userId", getDatasetsByUserId);
 router.post("/concatenate", concatenateColumns);
 router.get("/results/:userId", getDatasetResultByUserId);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import "../styles/Navbar.css";
+import styles from "../styles/Navbar.module.css";
 
 const Navbar = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -19,14 +19,14 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="navbar">
-      <div className="navbar-buttons">
+    <nav className={styles.navbar}>
+      <div className={styles.buttons}>
         {isAuthenticated ? (
-          <button onClick={handleLogout} className="navbar-signout-button">
+          <button onClick={handleLogout} className={styles.signOutButton}>
             Logout
           </button>
         ) : (
-          <Link to="/login" className="navbar-signin-button">
+          <Link to="/login" className={styles.signInButton}>
             Sign In
           </Link>
         )}

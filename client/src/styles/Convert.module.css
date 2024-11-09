@@ -1,4 +1,4 @@
-.convert-container {
+.container {
   text-align: center;
   padding: 20px;
 }
@@ -18,17 +18,17 @@
   transition: background-color 0.3s;
 }
 
-.dropzone.dragging {
+.dropzoneDragging {
   background-color: #f0f0f0;
 }
 
-.dropzone p {
+.dropzoneText {
   margin: 0;
   font-size: 1.2rem;
   color: #666;
 }
 
-.file-input-label {
+.fileInputLabel {
   display: inline-block;
   margin-top: 10px;
   padding: 12px 20px;
@@ -39,11 +39,11 @@
   transition: background 0.3s;
 }
 
-.file-input-label:hover {
+.fileInputLabelHover:hover {
   background-color: #333;
 }
 
-.convert-button {
+.convertButton {
   width: 100%;
   margin-top: 10px;
   padding: 12px;
@@ -55,25 +55,25 @@
   transition: background 0.3s;
 }
 
-.convert-button:hover {
+.convertButtonHover:hover {
   background-color: #333;
 }
 
-.csv-data-container {
+.csvDataContainer {
   padding: 10px;
   border-radius: 5px;
   background-color: #cbcadd11;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.csv-data-header {
+.csvDataHeader {
   width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.csv-data-table {
+.csvDataTable {
   width: 100%;
   border-collapse: collapse;
 }
@@ -82,25 +82,23 @@
   cursor: pointer;
 }
 
-/* Style for the custom file name input */
-#customFileName {
+.customFileNameInput {
   width: 20%;
   padding: 10px;
   border: 2px solid #ddd;
   border-radius: 5px;
   font-size: 16px;
   transition: border-color 0.3s ease-in-out;
-  margin-top: 10px; /* Add margin to separate it from other elements */
+  margin-top: 10px;
   margin-left: 5px;
 }
 
-/* When the input is focused, change the border color */
-#customFileName:focus {
+.customFileNameInput:focus {
   border-color: #007bff;
   outline: none;
 }
 
-#file-name {
+.fileName {
   font-size: medium;
   color: rgba(14, 1, 1, 0.801);
 }

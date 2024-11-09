@@ -1,8 +1,8 @@
-// client/src/components/Register.jsx
+// Register.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/Register.css";
 import { toast } from "sonner";
+import styles from "../styles/Register.module.css";
 
 const Register = () => {
   const [email, setEmail] = useState("");
@@ -24,23 +24,21 @@ const Register = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // Registration successful, navigate to login page or show success message
         toast.success("Registration successful");
         navigate("/login");
       } else {
-        // Handle errors (e.g., show error message)
         toast.error(data.message);
         console.error("Registration failed:", data.message);
       }
     } catch (error) {
-      toast.error(error);
-      console.error("An error occurred:", toast);
+      toast.error("An error occurred during registration");
+      console.error("An error occurred:", error);
     }
   };
 
   return (
-    <div className="register-container">
-      <form className="register-form" onSubmit={handleRegister}>
+    <div className={styles.registerContainer}>
+      <form className={styles.registerForm} onSubmit={handleRegister}>
         <h2>Register</h2>
         <input
           type="email"
@@ -48,6 +46,7 @@ const Register = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          className={styles.registerInput}
         />
         <input
           type="password"
@@ -55,11 +54,16 @@ const Register = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          className={styles.registerInput}
         />
-        <button type="submit">Register</button>
-        <p>
+        <button type="submit" className={styles.registerButton}>
+          Register
+        </button>
+        <p className={styles.registerText}>
           Already have an account?{" "}
-          <span onClick={() => navigate("/login")}>Login here</span>
+          <span onClick={() => navigate("/login")} className={styles.loginLink}>
+            Login here
+          </span>
         </p>
       </form>
     </div>

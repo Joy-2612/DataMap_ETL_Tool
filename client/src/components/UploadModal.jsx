@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import "../styles/UploadModal.css";
+import styles from "../styles/UploadModal.module.css";
 import { toast } from "sonner";
-import { AiOutlineClose } from "react-icons/ai"; // Import the close icon
+import { AiOutlineClose } from "react-icons/ai";
 import { PiFilesFill } from "react-icons/pi";
 
 const UploadModal = ({ show, onClose, onUpload, userId }) => {
@@ -16,9 +16,8 @@ const UploadModal = ({ show, onClose, onUpload, userId }) => {
     if (selectedFile) {
       const formData = new FormData();
       formData.append("file", selectedFile);
-      formData.append("userId", userId); // Append userId to the form data
+      formData.append("userId", userId);
 
-      console.log("formData", formData);
       try {
         const response = await fetch("http://localhost:5000/api/file/upload", {
           method: "POST",
@@ -66,38 +65,40 @@ const UploadModal = ({ show, onClose, onUpload, userId }) => {
   if (!show) return null;
 
   return (
-    <div className="upload-modal-overlay">
-      <div className="upload-modal-content">
-        {/* Close button with icon */}
-        <button className="close-button" onClick={onClose}>
+    <div className={styles.overlay}>
+      <div className={styles.content}>
+        <button className={styles.closeButton} onClick={onClose}>
           <AiOutlineClose size={20} />
         </button>
 
-        <h2>Upload Dataset</h2>
+        <h2 className={styles.title}>Upload Dataset</h2>
 
-        {/* Drag-and-Drop Area */}
         <div
-          className={`drag-drop-area ${dragActive ? "active" : ""}`}
+          className={`${styles.dragDropArea} ${
+            dragActive ? styles.activeDrag : ""
+          }`}
           onDragEnter={handleDrag}
           onDragOver={handleDrag}
           onDragLeave={handleDrag}
           onDrop={handleDrop}
         >
-          <p className="file-icon">
+          <p className={styles.fileIcon}>
             <PiFilesFill />
           </p>
-          <p>Drag and drop your CSV file here, or click to select a file</p>
+          <p className={styles.dragDropText}>
+            Drag and drop your CSV file here, or click to select a file
+          </p>
           <input
             type="file"
             accept=".csv"
             onChange={handleFileChange}
-            className="file-input"
+            className={styles.fileInput}
           />
           {selectedFile && <p>Selected file: {selectedFile.name}</p>}
         </div>
 
         <button
-          className="upload-button"
+          className={styles.uploadButton}
           onClick={handleUpload}
           disabled={!selectedFile}
         >

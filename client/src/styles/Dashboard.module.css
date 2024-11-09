@@ -1,12 +1,10 @@
-/* Dashboard container styling */
-.dashboard-container {
+.container {
   padding: 1rem;
   display: flex;
   flex-direction: column;
 }
 
-/* Main content styling */
-.dashboard-content {
+.content {
   flex: 1;
   padding: 20px;
 }
@@ -30,7 +28,7 @@
     rgba(0, 0, 0, 0.3) 0px 30px 60px -30px;
 }
 
-.action-icon {
+.actionIcon {
   align-items: center;
   margin-right: 20px;
   color: white;
@@ -44,20 +42,20 @@
   display: flex;
 }
 
-.action-details {
+.actionDetails {
   display: flex;
   flex-direction: column;
-  align-items: self-start;
+  align-items: flex-start;
   gap: 5px;
 }
 
-.action-details h2 {
+.actionDetails h2 {
   font-size: 1.9em;
   font-weight: bold;
   margin: 0;
 }
 
-.action-details p {
+.actionDetails p {
   font-size: 1em;
   margin: 0;
 }
@@ -66,49 +64,49 @@
   padding: 1rem;
 }
 
-.feature-cards-container {
+.featureCardsContainer {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
 }
 
-.card-blue {
+.cardBlue {
   color: #00b3ff;
   border: 3px solid #00b3ff;
   background-color: #00b3ff07;
 }
 
-.card-green {
+.cardGreen {
   color: #07d100;
   border: 3px solid #07d100;
   background-color: #07d10007;
 }
 
-.card-orange {
+.cardOrange {
   color: #ff9f00;
   border: 3px solid #ff9f00;
   background-color: #ff9f0007;
 }
 
-/* New Convert Dataset Card - Yellow Gradient Outline */
-.card-purple {
+.cardPurple {
   color: #9b00ff;
   border: 3px solid #9b00ff;
   background-color: #9b00ff07;
 }
 
-.card-pink {
+.cardPink {
   color: rgb(247, 7, 151);
   border: 3px solid rgb(247, 7, 151);
   background-color: #ff00ae07;
 }
-.card-red {
+
+.cardRed {
   color: rgb(252, 2, 2);
   border: 3px solid rgb(252, 2, 2);
   background-color: #ff000006;
 }
 
-.feature-card {
+.featureCard {
   display: flex;
   flex-direction: column;
   backdrop-filter: blur(8px);
@@ -118,7 +116,7 @@
   transition: all 0.2s ease-in-out;
 }
 
-.feature-icon {
+.featureIcon {
   font-size: 1.5em;
   margin-bottom: 5px;
   border-radius: 12px;
@@ -126,38 +124,38 @@
   color: inherit;
 }
 
-.feature-details {
+.featureDetails {
   display: flex;
   min-height: 120px;
   flex-direction: column;
   text-align: left;
-  align-items: self-start;
+  align-items: flex-start;
   gap: 5px;
 }
 
-.feature-details h2 {
+.featureDetails h2 {
   font-size: 1.5em;
   color: black;
   font-weight: bold;
   margin: 0;
 }
 
-.feature-details p {
+.featureDetails p {
   color: black;
   font-size: 1em;
   margin: 0;
 }
 
-.feature-details h3 {
+.featureDetails h3 {
   transition: all 0.2s ease-in-out;
 }
 
-.feature-card:hover {
+.featureCard:hover {
   cursor: pointer;
   transition: all 0.2s ease-in-out;
 }
 
-.feature-card:hover .continue {
+.featureCard:hover .continue {
   color: inherit;
   transition: all 0.2s ease-in-out;
 }
@@ -167,10 +165,10 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px; /* Default gap */
-  transition: all 0.3s ease-in-out; /* Smooth transition */
+  gap: 10px;
+  transition: all 0.3s ease-in-out;
 }
 
-.feature-card:hover .continue {
-  gap: 20px; /* Increase the gap on hover */
+.featureCard:hover .continue {
+  gap: 20px;
 }

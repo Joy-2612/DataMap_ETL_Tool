@@ -1,11 +1,62 @@
-/* Sidebar styling */
+/* Sidebar.module.css */
+
 .sidebar {
   width: 230px;
   height: 100%;
   background-color: #ffffffe3;
+  border-right: 2px solid #00000014;
 }
 
-.add-dataset-btn:hover {
+.sidebarLogo {
+  font-family: "Gruppo", sans-serif;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.sidebarLogo a {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  color: black;
+  justify-content: center;
+  text-align: center;
+  text-decoration: none;
+  padding: 1rem;
+}
+
+.mainMenuText {
+  color: #3f454a;
+  text-align: start;
+  margin-left: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.menuList {
+  display: flex;
+  flex-direction: column;
+}
+
+.menuItem {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px;
+  padding: 10px;
+  color: black;
+  border-radius: 0.7rem;
+  font-size: 16px;
+  font-weight: 600;
+  text-transform: capitalize;
+  transition: background-color 0.3s ease;
+}
+
+.menuItem:hover {
+  background-color: #c9cfd57b;
+}
+
+.addDatasetBtn:hover {
   background-color: #b77401;
 }
 
@@ -23,58 +74,14 @@
   background-color: #f3c371;
 }
 
-.dataset-name {
+.datasetName {
   margin: 0px;
   font-size: 1.1rem;
   font-weight: bold;
 }
 
-.dataset-bytes {
+.datasetBytes {
   margin: 0px;
   font-size: 0.9rem;
   color: #3f454a;
-}
-
-.sidebar-logo {
-  font-family: "Gruppo", sans-serif;
-  font-size: 2rem;
-  font-weight: bold;
-}
-
-.sidebar-logo a {
-  align-items: center;
-  display: flex;
-  gap: 10px;
-  color: black;
-  justify-content: center;
-  text-align: center;
-  text-decoration: none;
-  padding: 1rem;
-}
-
-.sidebar p {
-  color: #3f454a;
-  text-align: start;
-  margin-left: 20px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.menu-item {
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 10px;
-  padding: 10px;
-  color: black;
-  border-radius: 0.7rem;
-  font-size: 16px;
-  font-weight: 600;
-  text-transform: capitalize;
-  transition: background-color 0.3s ease;
-}
-
-.menu-item:hover {
-  background-color: #c9cfd57b;
 }

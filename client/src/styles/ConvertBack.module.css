@@ -1,0 +1,134 @@
+.convertContainer {
+  text-align: center;
+  padding: 20px;
+}
+
+.title {
+  text-align: left;
+  font-size: 2em;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.dropzone {
+  border: 2px dashed #ccc;
+  border-radius: 5px;
+  padding: 70px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.dropzone.dragging {
+  background-color: #f0f0f0;
+}
+
+.dropzoneText {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.fileName {
+  margin-top: 10px;
+  font-size: 1.1rem;
+  color: #444;
+}
+
+.dropdownContainer {
+  margin-top: 5px;
+}
+
+.fileNameInput {
+  margin-top: 10px;
+}
+
+.customFileNameInput {
+  width: 20%;
+  padding: 10px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+  transition: border-color 0.3s ease-in-out;
+  margin-left: 5px;
+}
+
+.customFileNameInput:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.convertButton {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  border: none;
+  border-radius: 5px;
+  background-color: black;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.convertButton:hover {
+  background-color: #333;
+}
+
+.previewSection {
+  padding: 20px;
+  text-align: left;
+}
+
+.buttonContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 5px;
+  background-color: #ddd;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.backButton:hover {
+  background-color: #bbb;
+}
+
+.previewHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.2rem;
+}
+
+.fileNameDisplay {
+  font-size: medium;
+  color: rgba(14, 1, 1, 0.801);
+}
+
+.downloadButton {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 5px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.downloadButton:hover {
+  background-color: #0056b3;
+}
+
+.preview {
+  margin-left: 20px;
+  text-align: left;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
