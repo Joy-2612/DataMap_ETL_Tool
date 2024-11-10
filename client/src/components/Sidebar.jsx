@@ -27,7 +27,7 @@ const Sidebar = ({ onAddDataset, onSelectDataset, isLoading }) => {
           <LuFiles /> Datasets
         </Link>
         <Link to="history" className={styles.menuItem}>
-          <FaHistory /> History
+          <FaHistory /> Results
         </Link>
         <Link to="help" className={styles.menuItem}>
           <IoMdHelpCircleOutline /> Help

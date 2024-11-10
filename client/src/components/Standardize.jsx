@@ -1,21 +1,33 @@
 import React, { useState, useEffect } from "react";
 import styles from "../styles/Standardize.module.css";
 import Papa from "papaparse";
-import Multiselect from "multiselect-react-dropdown"; // Import the Multiselect component
+import { toast } from "sonner";
+import Multiselect from "multiselect-react-dropdown";
+import Dropdown from "../components/Dropdown/Dropdown";
+import DataTable from "../components/DataTable/DataTable";
+import { IoMdClose } from "react-icons/io";
 
 const Standardize = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalClosing, setIsModalClosing] = useState(false);
   const [outputFileName, setOutputFileName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [description, setDescription] = useState("");
   const [datasets, setDatasets] = useState([]);
-  const [selectedDataset, setSelectedDataset] = useState("");
+  const [selectedDataset, setSelectedDataset] = useState(null);
   const [columns, setColumns] = useState([]);
   const [selectedColumn, setSelectedColumn] = useState("");
   const [mappings, setMappings] = useState([{ before: [], after: "" }]);
   const [csvData, setCsvData] = useState([]);
   const [uniqueValues, setUniqueValues] = useState([]);
   const [globalSelectedValues, setGlobalSelectedValues] = useState([]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
+  const [selectedCsvData, setSelectedCsvData] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const [newFileId, setNewFileId] = useState(null);
 
   const userId = localStorage.getItem("userId");
 
@@ -27,9 +39,7 @@ const Standardize = () => {
       Papa.parse(text, {
         header: true,
         dynamicTyping: true,
-        complete: (result) => {
-          resolve(result.data);
-        },
+        complete: (result) => resolve(result.data),
         error: (error) => {
           console.error("Error parsing CSV: ", error);
           reject(error);
@@ -59,7 +69,7 @@ const Standardize = () => {
 
   useEffect(() => {
     fetchDatasets();
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     if (selectedColumn && csvData.length > 0) {
@@ -68,7 +78,7 @@ const Standardize = () => {
         ...new Set(
           values.filter((value) => value !== undefined && value !== null)
         ),
-      ]; // Exclude undefined and null values
+      ];
       setUniqueValues(uniqueVals);
     } else {
       setUniqueValues([]);
@@ -90,7 +100,6 @@ const Standardize = () => {
     updatedMappings[index].before = selectedValues;
     setMappings(updatedMappings);
 
-    // Update globalSelectedValues based on all mappings
     const updatedGlobalSelectedValues = new Set();
     updatedMappings.forEach((mapping) =>
       mapping.before.forEach((value) => updatedGlobalSelectedValues.add(value))
@@ -115,6 +124,7 @@ const Standardize = () => {
 
   const handleSubmit = async () => {
     try {
+      setIsLoading(true);
       const response = await fetch(
         "http://localhost:5000/api/file/standardize",
         {
@@ -123,7 +133,7 @@ const Standardize = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            dataset: selectedDataset,
+            dataset: selectedDataset?.name,
             column: selectedColumn,
             mappings: mappings,
             outputFileName: outputFileName,
@@ -134,31 +144,82 @@ const Standardize = () => {
 
       const result = await response.json();
       if (response.ok) {
-        alert("Standardization mappings submitted successfully!");
+        toast.success("Standardization mappings submitted successfully!");
+        setNewFileId(result.newFileId);
       } else {
-        alert(`Error: ${result.message}`);
+        toast.error(`Error: ${result.message}`);
       }
     } catch (error) {
-      alert("Failed to submit standardization mappings.");
+      toast.error("Failed to submit standardization mappings.");
     } finally {
+      setIsLoading(false);
       setIsModalOpen(false);
       setOutputFileName("");
       setDescription("");
     }
   };
 
+  const handleCsvView = async (dataset) => {
+    const selectedDataset = datasets.find((d) => d.name === dataset.name);
+    if (selectedDataset) {
+      const csvData = await parseCsvFile(selectedDataset.file);
+      setSelectedCsvData(csvData);
+      setIsCsvModalOpen(true);
+      setTimeout(() => setModalVisible(true), 10);
+    }
+  };
+
+  const handlePreview = async () => {
+    try {
+      // Fetch the dataset using the newFileId
+      const response = await fetch(
+        `http://localhost:5000/api/file/dataset/${newFileId}`
+      );
+      const data = await response.json();
+      if (response.ok) {
+        // Parse the CSV data
+        const csvData = await parseCsvFile(data.data.file);
+        setSelectedCsvData(csvData);
+        setIsCsvModalOpen(true);
+        setTimeout(() => setModalVisible(true), 10);
+      } else {
+        toast.error(`Error fetching dataset: ${data.message}`);
+      }
+    } catch (error) {
+      toast.error("An error occurred while fetching the dataset.");
+    }
+  };
+
+  const handleCloseModal = () => {
+    setModalVisible(false);
+    setTimeout(() => {
+      setIsCsvModalOpen(false);
+      setSelectedCsvData([]);
+    }, 300);
+  };
+
   return (
     <div>
       {isModalOpen && (
         <div
-          className={`${styles.modal} ${isModalClosing ? styles.closing : ""}`}
+          className={`${styles.modalOverlay} ${
+            isModalClosing ? styles.closing : ""
+          }`}
+          onClick={handleModalClose}
         >
           <div
             className={`${styles.descModalContent} ${
               isModalClosing ? styles.closing : ""
             }`}
+            onClick={(e) => e.stopPropagation()}
           >
-            <h2>Enter Output File Details</h2>
+            <div className={styles.modalTitle}>
+              Enter Output File Details
+              <IoMdClose
+                className={styles.closeButton}
+                onClick={handleModalClose}
+              />
+            </div>
             <div className={styles.formGroup}>
               <label>Output File Name</label>
               <input
@@ -168,15 +229,19 @@ const Standardize = () => {
               />
             </div>
             <div className={styles.formGroup}>
-              <label>Description</label>
+              <label>Description (Optional)</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
             </div>
             <div className={`${styles.buttonGroup} ${styles.modalButtons}`}>
-              <button className={styles.submitButton} onClick={handleSubmit}>
-                Submit
+              <button
+                className={styles.submitButton}
+                onClick={handleSubmit}
+                disabled={isLoading}
+              >
+                {isLoading ? <span className={styles.loader}></span> : "Submit"}
               </button>
               <button
                 className={styles.cancelButton}
@@ -194,24 +259,18 @@ const Standardize = () => {
 
         <div className={styles.formGroup}>
           <label>Select Dataset</label>
-          <select
-            value={selectedDataset}
-            onChange={(e) => {
-              const datasetName = e.target.value;
-              setSelectedDataset(datasetName);
-              const selectedDataset = datasets.find(
-                (ds) => ds.name === datasetName
-              );
-              if (selectedDataset) fetchColumns(selectedDataset);
+          <Dropdown
+            datasets={datasets}
+            selected={selectedDataset}
+            onSelect={(dataset) => {
+              setSelectedDataset(dataset);
+              fetchColumns(dataset);
+              setIsDropdownOpen(false);
             }}
-          >
-            <option value="">Choose a Dataset</option>
-            {datasets.map((dataset, index) => (
-              <option key={index} value={dataset.name}>
-                {dataset.name}
-              </option>
-            ))}
-          </select>
+            onView={handleCsvView}
+            isOpen={isDropdownOpen}
+            setIsOpen={setIsDropdownOpen}
+          />
         </div>
 
         {columns.length > 0 && (
@@ -239,9 +298,9 @@ const Standardize = () => {
                 <div className={styles.multiSelect}>
                   {uniqueValues.length > 0 && (
                     <Multiselect
-                      options={getFilteredValues()} // Pass the filtered values as options
-                      selectedValues={mapping.before} // Pre-select already selected values
-                      isObject={false} // Directly use values as options, not objects
+                      options={getFilteredValues()}
+                      selectedValues={mapping.before}
+                      isObject={false}
                       onSelect={(selectedList) =>
                         handleSelectChange(index, selectedList)
                       }
@@ -250,6 +309,7 @@ const Standardize = () => {
                       }
                       placeholder="Select values"
                       style={{
+                        color: "black",
                         chips: { background: "black", color: "white" },
                         searchBox: { border: "1px solid #ccc" },
                         searchWrapper: {
@@ -257,7 +317,6 @@ const Standardize = () => {
                           backgroundColor: "#f5f5f5",
                         },
                         optionListContainer: { color: "black" },
-                        optionContainer: { color: "black" },
                       }}
                     />
                   )}
@@ -286,7 +345,51 @@ const Standardize = () => {
             Submit
           </button>
         </div>
+        {newFileId && (
+          <button onClick={handlePreview} className={styles.previewButton}>
+            Preview Result
+          </button>
+        )}
       </div>
+
+      {/* CSV Data Modal */}
+      {isCsvModalOpen && (
+        <div
+          className={`${styles.modalOverlay} ${
+            modalVisible ? styles.modalOverlayVisible : ""
+          }`}
+          onClick={handleCloseModal}
+        >
+          <div
+            className={`${styles.modalContent} ${
+              modalVisible ? styles.modalContentVisible : ""
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.modalTitle}>
+              CSV Data
+              <IoMdClose
+                className={styles.closeButton}
+                onClick={handleCloseModal}
+              />
+            </div>
+
+            {selectedCsvData.length > 0 ? (
+              <DataTable
+                title="CSV Data"
+                columns={Object.keys(selectedCsvData[0]).map((key) => ({
+                  label: key,
+                  key: key,
+                }))}
+                data={selectedCsvData}
+                getRowId={(row, index) => index}
+              />
+            ) : (
+              <p>No data available</p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

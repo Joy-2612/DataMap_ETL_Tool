@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { AiOutlineFullscreen } from "react-icons/ai";
+import { FaSearch } from "react-icons/fa"; // Import the search icon
 import styles from "./Dropdown.module.css";
 
 const Dropdown = ({
@@ -11,12 +12,12 @@ const Dropdown = ({
   setIsOpen,
 }) => {
   const [activeTab, setActiveTab] = useState("Standard");
+  const [searchQuery, setSearchQuery] = useState("");
   const dropdownRef = useRef(null);
 
   // Handle clicks outside to close the dropdown
   useEffect(() => {
     const handleOutsideClick = (event) => {
-      // Check if setIsOpen is a valid function before calling
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target) &&
@@ -33,14 +34,22 @@ const Dropdown = ({
 
   const handleSelect = (dataset) => {
     onSelect(dataset);
+    setIsOpen(false); // Close the dropdown after selection
+    setSearchQuery(""); // Reset the search query
   };
 
-  // Filter datasets based on the active tab
+  // Filter datasets based on the active tab and search query
   const filteredDatasets =
     datasets?.filter((dataset) => {
-      if (activeTab === "Standard") return dataset.result === false;
-      if (activeTab === "Result") return dataset.result === true;
-      return true;
+      const matchesTab =
+        (activeTab === "Standard" && dataset.result === false) ||
+        (activeTab === "Result" && dataset.result === true);
+
+      const matchesSearch = dataset.name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+
+      return matchesTab && matchesSearch;
     }) || [];
 
   return (
@@ -68,6 +77,16 @@ const Dropdown = ({
               Result
             </span>
           </div>
+          <div className={styles.searchContainer}>
+            <FaSearch className={styles.searchIcon} />
+            <input
+              type="text"
+              className={styles.searchInput}
+              placeholder="Search datasets..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
           <div className={styles.dropdownList}>
             {filteredDatasets.map((dataset) => (
               <div
@@ -90,6 +109,9 @@ const Dropdown = ({
                 />
               </div>
             ))}
+            {filteredDatasets.length === 0 && (
+              <div className={styles.noResults}>No datasets found.</div>
+            )}
           </div>
         </div>
       )}

@@ -4,8 +4,9 @@
 }
 
 .dropdownHeader {
-  width: 30em;
   padding: 10px;
+  color: black;
+  text-align: left;
   border: 1px solid #ddd;
   border-radius: 5px;
   background-color: #f9f9f9;
@@ -14,7 +15,7 @@
 
 .tabContainer {
   background-color: white;
-  border: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
   display: flex;
   justify-content: space-evenly;
   align-items: center;
@@ -23,10 +24,12 @@
 .tab {
   font-weight: bold;
   width: 100%;
+  color: black;
   margin: 4px;
-  padding: 10px;
+  padding: 5px 10px;
   border-radius: 5px;
   cursor: pointer;
+  text-align: center;
 }
 
 .activeTab {
@@ -34,16 +37,45 @@
   color: white;
 }
 
-.dropdownList {
+.dropdownContent {
   position: absolute;
   width: 100%;
-  max-height: 400px;
-  overflow-y: auto;
   border: 1px solid #ddd;
   border-radius: 5px;
   background-color: #ffffff;
   z-index: 1000;
+}
 
+.searchContainer {
+  position: relative;
+  margin: 10px;
+}
+
+.searchInput {
+  width: calc(100% - 40px);
+  padding: 8px 10px 8px 30px; /* Add left padding to make space for the icon */
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+.searchIcon {
+  position: absolute;
+  top: 50%;
+  left: 12px; /* Position icon inside the input */
+  transform: translateY(-50%);
+  color: #888;
+  pointer-events: none; /* Icon should not interfere with input clicks */
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #4a90e2;
+}
+
+.dropdownList {
+  max-height: 300px;
+  overflow-y: auto;
   /* Custom scrollbar */
   scrollbar-width: thin; /* For Firefox */
   scrollbar-color: black #f0f0f0; /* Thumb color and track color */
@@ -51,25 +83,26 @@
 
 /* For WebKit browsers (Chrome, Safari, Edge) */
 .dropdownList::-webkit-scrollbar {
-  width: 6px; /* Narrow scrollbar width */
+  width: 6px;
 }
 
 .dropdownList::-webkit-scrollbar-track {
-  background: #f0f0f0; /* Track color */
+  background: #f0f0f0;
   border-radius: 5px;
 }
 
 .dropdownList::-webkit-scrollbar-thumb {
-  background-color: black; /* Scrollbar thumb color */
+  background-color: black;
   border-radius: 5px;
 }
 
 .dropdownItem {
   display: flex;
+  color: black;
   cursor: pointer;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
+  padding: 5px 10px;
   border-bottom: 1px solid #ddd;
 }
 
@@ -103,4 +136,10 @@
 .viewIcon {
   color: black;
   cursor: pointer;
+}
+
+.noResults {
+  padding: 10px;
+  text-align: center;
+  color: #999;
 }

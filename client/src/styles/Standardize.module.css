@@ -5,9 +5,8 @@
   background-color: #232f3e0d;
   border-radius: 10px;
   padding: 2rem;
-  box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  color: #ffffff;
+  color: #333;
 }
 
 .title {
@@ -19,8 +18,18 @@
 }
 
 .formGroup {
+  align-items: left;
   margin-bottom: 0.5rem;
-  gap: 0px !important;
+}
+
+.formGroup input {
+  width: calc(100% - 20px);
+  color: black;
+}
+
+.formGroup textarea {
+  width: 100%;
+  color: black;
 }
 
 .formGroup label {
@@ -75,7 +84,6 @@
   border: none;
   border-radius: 50px;
   font-size: 0.8rem;
-  font-weight: lighter;
   background-color: rgba(0, 85, 255, 0.134);
   color: black;
 }
@@ -87,7 +95,6 @@
   border: none;
   border-radius: 5px;
   font-size: 1rem;
-  background-color: white;
   color: black;
 }
 
@@ -128,43 +135,70 @@
   background-color: #0000009b;
 }
 
-/* Modal styles */
-.modal {
+.previewButton {
+  margin-top: 1rem;
+  padding: 12px;
+  border: none;
+  border-radius: 5px;
+  background-color: #4caf50;
+  color: white;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.previewButton:hover {
+  background-color: #45a049;
+}
+
+/* Loader Spinner */
+.loader {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #333;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Modal Styles */
+.modalOverlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  background-color: rgba(0, 0, 0, 0.4);
   display: flex;
-  align-items: center;
   justify-content: center;
-  backdrop-filter: blur(6px);
+  align-items: center;
   z-index: 1000;
-  opacity: 0;
-  animation: fadeIn 0.3s forwards;
+  transition: opacity 0.3s ease-in-out;
 }
 
-.modal.closing {
-  animation: fadeOut 0.3s forwards;
+.modalOverlayVisible {
+  opacity: 1;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes fadeOut {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
+.modalContent {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 10px;
+  width: 70%;
+  max-width: 800px;
+  overflow-y: auto;
+  position: relative;
+  transform: scale(0.9);
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
 }
 
 .descModalContent {
@@ -172,65 +206,32 @@
   padding: 2rem;
   border-radius: 10px;
   width: 500px;
-  max-width: 80%;
-  color: black;
-  transform: translateY(-20px);
-  animation: slideIn 0.3s forwards;
+  overflow-y: auto;
+  position: relative;
+  transform: scale(0.9);
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
 }
 
-.descModalContent.closing {
-  animation: slideOut 0.3s forwards;
+.modalContentVisible {
+  opacity: 1;
+  transform: scale(1);
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideOut {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-}
-
-.descModalContent h2 {
-  margin-top: 0;
-  color: #333;
-}
-
-.descModalContent .formGroup {
+.modalTitle {
+  font-size: 1.5rem;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 1rem;
 }
 
-.descModalContent .formGroup label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: black;
+.closeButton {
+  cursor: pointer;
+  font-size: 1.5rem;
 }
 
-.descModalContent .formGroup input,
-.descModalContent .formGroup textarea {
-  width: 96%;
-  padding: 0.5rem;
-  border: 1px solid gray;
-  border-radius: 5px;
-  font-size: 1rem;
-  background-color: white;
-  color: black;
-}
-
-.descModalContent .buttonGroup {
+.buttonGroup {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
@@ -241,8 +242,6 @@
   padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 5px;
-  font-size: 1rem;
-  cursor: pointer;
   background-color: #aaa;
   color: #ffffff;
   transition: background-color 0.3s ease;
@@ -252,48 +251,20 @@
   background-color: #888;
 }
 
-.modalButtons .submitButton {
-  background-color: black;
-}
-
-.modalButtons .submitButton:hover {
-  background-color: #0000009b;
-}
-
-.customDropdown {
+.submitButton {
   position: relative;
-}
-
-.dropdownToggle {
-  padding: 0.5rem;
-  width: 880px;
-  height: 25px;
-  border: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border: none;
   border-radius: 5px;
+  background-color: black;
+  color: white;
   cursor: pointer;
-  color: black;
-  background-color: white;
+  transition: background-color 0.3s ease;
 }
 
-.dropdownMenu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 100%;
-  max-height: 200px;
-  overflow-y: auto;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: white;
-  z-index: 10;
-}
-
-.dropdownItem {
-  padding: 0.5rem;
-  cursor: pointer;
-  color: black;
-}
-
-.dropdownItem:hover {
-  background-color: #e6e6e6;
+.submitButton:hover {
+  background-color: #0000009b;
 }

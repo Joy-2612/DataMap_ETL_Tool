@@ -181,10 +181,26 @@ const concatenateColumns = async (req, res) => {
         // Assign the concatenated value to the new column
         row[finalColumnName] = concatenatedValue;
 
-        // Optionally, remove the old columns
+        // Get the index of the first column from the columns list
+        const firstColumnIndex = Object.keys(row).indexOf(columns[0]);
+
+        // Remove the old columns
         columns.forEach((col) => delete row[col]);
 
-        rows.push(row);
+        // Create a new ordered row object with finalColumnName at firstColumnIndex
+        const orderedRow = {};
+        const rowKeys = Object.keys(row);
+
+        rowKeys.forEach((key, idx) => {
+          if (idx === firstColumnIndex) {
+            orderedRow[finalColumnName] = concatenatedValue;
+          }
+          if (key !== finalColumnName) {
+            orderedRow[key] = row[key];
+          }
+        });
+
+        rows.push(orderedRow);
       })
       .on("end", async () => {
         if (rows.length === 0) {
@@ -313,7 +329,14 @@ const fullOuterJoin = (dataset1, dataset2, key1, key2) => {
 // Controller to merge two datasets based on given columns
 const mergeDatasets = async (req, res) => {
   try {
-    const { dataset1, dataset2, column1, column2, description } = req.body;
+    const {
+      dataset1,
+      dataset2,
+      column1,
+      column2,
+      outputFileName,
+      description,
+    } = req.body;
 
     console.log("Looking for datasets:", dataset1, dataset2);
 
@@ -398,12 +421,9 @@ const mergeDatasets = async (req, res) => {
     // Convert the CSV data to a Buffer
     const csvBuffer = Buffer.from(updatedCsv, "utf-8");
 
-    // Create a new file with a meaningful name
-    const newFileName = `merge_result.csv`;
-
     // Save the new merged file to the database
     const newFile = new File({
-      originalName: newFileName,
+      originalName: outputFileName,
       data: csvBuffer,
       description: description || "", // Save the description if provided
       contentType: file1.contentType, // Use the same content type as original
@@ -856,9 +876,24 @@ const splitAddress = async (req, res) => {
     );
 
     // Convert enriched data back to CSV, excluding the `addressParts` array
-    const fields = Object.keys(enrichedData[0]).filter(
+    let fields = Object.keys(enrichedData[0]).filter(
       (field) => field !== "addressParts"
     );
+
+    // Rearrange the fields so that 'pincode' is after 'state'
+    const stateIndex = fields.indexOf("state");
+    const pincodeIndex = fields.indexOf("pincode");
+    if (
+      pincodeIndex !== -1 &&
+      stateIndex !== -1 &&
+      pincodeIndex !== stateIndex + 1
+    ) {
+      // Remove 'pincode' from its current position
+      fields.splice(pincodeIndex, 1);
+      // Insert 'pincode' after 'state'
+      fields.splice(stateIndex, 0, "pincode");
+    }
+
     const json2csvParser = new Parser({ fields });
     const updatedCsv = json2csvParser.parse(enrichedData);
 

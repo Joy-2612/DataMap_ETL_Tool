@@ -29,8 +29,8 @@
 
 .uploadButton {
   padding: 10px;
-  background-color: #ffb93f;
-  color: black;
+  background-color: black;
+  color: white;
   border: none;
   width: 100%;
   border-radius: 4px;
@@ -41,12 +41,18 @@
 .closeButton {
   position: absolute;
   top: 10px;
+  color: black;
   right: 10px;
   background: none;
   border: none;
   cursor: pointer;
   font-size: 20px;
   transition: color 0.3s ease;
+}
+
+.closeButton:hover {
+  color: red;
+  background: transparent;
 }
 
 .dragDropArea {

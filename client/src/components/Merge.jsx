@@ -114,7 +114,9 @@ const Merge = () => {
       setIsLoading(false);
 
       if (response.ok) {
-        alert(`Datasets merged successfully! New file ID: ${data.newFileId}`);
+        toast.success(
+          `Datasets merged successfully! New file ID: ${data.newFileId}`
+        );
         setDataset1(null);
         setDataset2(null);
         setColumns1([]);
@@ -226,9 +228,10 @@ const Merge = () => {
         </button>
       </div>
 
-      {/* Output File Details Modal */}
       {isDetailsModalOpen && (
-        <div className={`${styles.modalOverlay} ${styles.modalOverlayVisible}`}>
+        <div
+          className={`${styles.descModalOverlay} ${styles.descModalOverlayVisible}`}
+        >
           <div
             className={`${styles.descModalContent} ${styles.descModalContentVisible}`}
           >
@@ -242,7 +245,7 @@ const Merge = () => {
               />
             </div>
             <div className={styles.formGroup}>
-              <label>Description</label>
+              <label>Description (Optional)</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}

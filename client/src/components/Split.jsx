@@ -2,21 +2,20 @@ import React, { useState, useEffect } from "react";
 import DataTable from "../components/DataTable/DataTable";
 import Papa from "papaparse";
 import { toast } from "sonner";
-import styles from "../styles/Split.module.css"; // Import modular CSS
+import Dropdown from "../components/Dropdown/Dropdown";
 import { IoMdClose } from "react-icons/io";
+import styles from "../styles/Split.module.css";
 
 const Split = () => {
   const [datasets, setDatasets] = useState([]);
   const [dataset1, setDataset1] = useState(null);
   const [columns1, setColumns1] = useState([]);
   const [csvData, setCsvData] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [splits, setSplits] = useState([
     { col: "", delimiter: "", numDelimiters: 1, columnNames: [""] },
   ]);
   const [previewData, setPreviewData] = useState([]);
   const [conversionCompleted, setConversionCompleted] = useState(false);
-  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("general");
   const [addressColumn, setAddressColumn] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -24,7 +23,9 @@ const Split = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [outputFileName, setOutputFileName] = useState("");
   const [description, setDescription] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [isModalClosing, setIsModalClosing] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const userId = localStorage.getItem("userId");
 
@@ -40,11 +41,11 @@ const Split = () => {
       const data = await response.json();
       setDatasets(data.data);
     } catch (error) {
-      setError("Error fetching datasets. Please try again.");
+      toast.error("Error fetching datasets. Please try again.");
     }
   };
 
-  const fetchColumnAndData = async (dataset) => {
+  const fetchColumnsAndData = async (dataset) => {
     const csv = await parseCsvFile(dataset.file);
     const columns = Object.keys(csv[0]);
     setColumns1(columns);
@@ -65,21 +66,9 @@ const Split = () => {
     });
   };
 
-  const handleDatasetChange = async (e) => {
-    const selectedDatasetName = e.target.value;
-    const selectedDataset = datasets.find(
-      (dataset) => dataset.name === selectedDatasetName
-    );
-
-    setDataset1(selectedDataset);
-
-    if (selectedDataset) {
-      await fetchColumnAndData(selectedDataset);
-    } else {
-      setColumns1([]);
-      setCsvData([]);
-    }
-
+  const handleDatasetSelect = async (dataset) => {
+    setDataset1(dataset);
+    await fetchColumnsAndData(dataset);
     setSplits([
       { col: "", delimiter: "", numDelimiters: 1, columnNames: [""] },
     ]);
@@ -171,7 +160,6 @@ const Split = () => {
       }
 
       const newDataset = await newDatasetResponse.json();
-      console.log("newDataset", newDataset);
 
       if (newDataset.data && newDataset.data.file) {
         const csv = await parseCsvFile(newDataset.data.file);
@@ -183,14 +171,14 @@ const Split = () => {
 
       toast.success(message);
       setConversionCompleted(true);
-      handleModalClose(); // Close modal after success
+      handleModalClose();
     } catch (error) {
       console.error("Error splitting columns:", error);
       toast.error(
         error.message || "An error occurred while splitting the columns."
       );
     } finally {
-      setIsLoading(false); // Stop loading
+      setIsLoading(false);
     }
   };
 
@@ -206,138 +194,13 @@ const Split = () => {
     setModalVisible(false);
     setTimeout(() => {
       setIsPreviewModalOpen(false);
-      setPreviewData([]);
     }, 300);
   };
-
-  const renderGeneralSplit = () => (
-    <>
-      {splits.map((split, index) => (
-        <div className={styles.splitRowContainer} key={index}>
-          <label>Select Column</label>
-          <div className={styles.splitRow}>
-            <select
-              value={split.col}
-              onChange={(e) => handleSplitChange(index, "col", e.target.value)}
-            >
-              <option value="">Select Column</option>
-              {columns1.map((column, i) => (
-                <option key={i} value={column}>
-                  {column}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={split.delimiter}
-              onChange={(e) =>
-                handleSplitChange(index, "delimiter", e.target.value)
-              }
-            >
-              <option value="">Select Delimiter</option>
-              <option value=" ">Space</option>
-              <option value=",">Comma (,)</option>
-              <option value=";">Semicolon (;)</option>
-              <option value="|">Pipe (|)</option>
-            </select>
-
-            <input
-              type="number"
-              min="0"
-              value={split.numDelimiters}
-              onChange={(e) =>
-                handleSplitChange(index, "numDelimiters", e.target.value)
-              }
-            />
-          </div>
-          {split && (
-            <>
-              <label>Enter Column Names:</label>
-              <div className={styles.splitColumnsInput}>
-                {split.columnNames.map((name, i) => (
-                  <input
-                    key={i}
-                    type="text"
-                    placeholder={`Column ${i + 1} Name`}
-                    value={name}
-                    onChange={(e) =>
-                      handleColumnNameChange(index, i, e.target.value)
-                    }
-                  />
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      ))}
-
-      <button
-        className={styles.convertButton}
-        onClick={() => setIsModalOpen(true)}
-      >
-        Convert
-      </button>
-
-      {conversionCompleted && (
-        <div className={styles.completionMessage}>
-          <p>Conversion completed successfully!</p>
-          <button
-            className={styles.previewButton}
-            onClick={() => {
-              setIsPreviewModalOpen(true);
-              setModalVisible(false);
-              setTimeout(() => setModalVisible(true), 10);
-            }}
-          >
-            Show Preview
-          </button>
-        </div>
-      )}
-    </>
-  );
-
-  const renderAddressSplit = () => (
-    <div className={styles.addressSplitContainer}>
-      <label>Select Address Column</label>
-      <select
-        value={addressColumn}
-        onChange={(e) => setAddressColumn(e.target.value)}
-      >
-        <option value="">Select Column</option>
-        {columns1.map((column, i) => (
-          <option key={i} value={column}>
-            {column}
-          </option>
-        ))}
-      </select>
-      <button
-        className={styles.convertButton}
-        onClick={() => setIsModalOpen(true)}
-      >
-        Split Address
-      </button>
-
-      {conversionCompleted && (
-        <div className={styles.completionMessage}>
-          <p>Conversion completed successfully!</p>
-          <button
-            className={styles.previewButton}
-            onClick={() => {
-              setIsPreviewModalOpen(true);
-              setModalVisible(false);
-              setTimeout(() => setModalVisible(true), 10);
-            }}
-          >
-            Show Preview
-          </button>
-        </div>
-      )}
-    </div>
-  );
 
   return (
     <div className={styles.splitContainer}>
       <h2>Split Columns</h2>
+
       <div className={styles.tabSelector}>
         <button
           className={`${styles.tabButton} ${
@@ -359,22 +222,119 @@ const Split = () => {
 
       <div className={styles.datasetSelector}>
         <label>Select Dataset</label>
-        <select
-          className={styles.datasetSelectorSelect}
-          value={dataset1?.name || ""}
-          onChange={handleDatasetChange}
-        >
-          <option value="">Choose a Dataset</option>
-          {datasets.map((dataset, index) => (
-            <option key={index} value={dataset.name}>
-              {dataset.name}
-            </option>
-          ))}
-        </select>
+        <Dropdown
+          datasets={datasets}
+          selected={dataset1}
+          onSelect={handleDatasetSelect}
+          isOpen={isDropdownOpen}
+          setIsOpen={setIsDropdownOpen}
+        />
       </div>
 
       {dataset1 &&
-        (activeTab === "general" ? renderGeneralSplit() : renderAddressSplit())}
+        (activeTab === "general" ? (
+          <div>
+            {splits.map((split, index) => (
+              <div className={styles.splitRowContainer} key={index}>
+                <label>Select Column</label>
+                <div className={styles.splitRow}>
+                  <select
+                    value={split.col}
+                    onChange={(e) =>
+                      handleSplitChange(index, "col", e.target.value)
+                    }
+                  >
+                    <option value="">Select Column</option>
+                    {columns1.map((column, i) => (
+                      <option key={i} value={column}>
+                        {column}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={split.delimiter}
+                    onChange={(e) =>
+                      handleSplitChange(index, "delimiter", e.target.value)
+                    }
+                  >
+                    <option value="">Select Delimiter</option>
+                    <option value=" ">Space</option>
+                    <option value=",">Comma (,)</option>
+                    <option value=";">Semicolon (;)</option>
+                    <option value="|">Pipe (|)</option>
+                  </select>
+
+                  <input
+                    type="number"
+                    min="0"
+                    value={split.numDelimiters}
+                    onChange={(e) =>
+                      handleSplitChange(index, "numDelimiters", e.target.value)
+                    }
+                  />
+                </div>
+                <label>Enter Column Names:</label>
+                <div className={styles.splitColumnsInput}>
+                  {split.columnNames.map((name, i) => (
+                    <input
+                      key={i}
+                      type="text"
+                      placeholder={`Column ${i + 1} Name`}
+                      value={name}
+                      onChange={(e) =>
+                        handleColumnNameChange(index, i, e.target.value)
+                      }
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+            <button
+              className={styles.convertButton}
+              onClick={() => setIsModalOpen(true)}
+            >
+              Convert
+            </button>
+          </div>
+        ) : (
+          <div className={styles.addressSplitContainer}>
+            <label>Select Address Column</label>
+            <select
+              value={addressColumn}
+              onChange={(e) => setAddressColumn(e.target.value)}
+            >
+              <option value="">Select Column</option>
+              {columns1.map((column, i) => (
+                <option key={i} value={column}>
+                  {column}
+                </option>
+              ))}
+            </select>
+            <button
+              className={styles.convertButton}
+              onClick={() => setIsModalOpen(true)}
+            >
+              Split Address
+            </button>
+          </div>
+        ))}
+
+      {conversionCompleted && (
+        <div className={styles.completionMessage}>
+          <p>Conversion completed successfully!</p>
+          <button
+            className={styles.previewButton}
+            onClick={() => {
+              setIsPreviewModalOpen(true);
+              setModalVisible(false);
+              setTimeout(() => setModalVisible(true), 10);
+            }}
+          >
+            Show Preview
+          </button>
+        </div>
+      )}
 
       {isModalOpen && (
         <div
@@ -395,7 +355,7 @@ const Split = () => {
               />
             </div>
             <div className={styles.formGroup}>
-              <label>Description</label>
+              <label>Description (Optional)</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -405,13 +365,9 @@ const Split = () => {
               <button
                 className={styles.submitButton}
                 onClick={handleSplit}
-                disabled={isLoading} // Disable button during loading
+                disabled={isLoading}
               >
-                {isLoading ? (
-                  <span className={styles.loader}></span> // Show loader when loading
-                ) : (
-                  "Submit"
-                )}
+                {isLoading ? <span className={styles.loader}></span> : "Submit"}
               </button>
               <button
                 className={styles.cancelButton}
@@ -427,13 +383,13 @@ const Split = () => {
       {isPreviewModalOpen && (
         <div
           className={`${styles.modalOverlay} ${
-            modalVisible ? styles.show : ""
+            modalVisible ? styles.modalOverlayVisible : ""
           }`}
           onClick={handlePreviewModalClose}
         >
           <div
             className={`${styles.modalContent} ${
-              modalVisible ? styles.show : ""
+              modalVisible ? styles.modalContentVisible : ""
             }`}
             onClick={(e) => e.stopPropagation()}
           >
@@ -461,8 +417,6 @@ const Split = () => {
           </div>
         </div>
       )}
-
-      {error && <div className={styles.errorMessage}>{error}</div>}
     </div>
   );
 };
