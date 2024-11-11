@@ -123,7 +123,7 @@ const History = () => {
 
   return (
     <div className={styles.container}>
-      <h2 className={styles.title}>Your Datasets</h2>
+      <h2 className={styles.title}>Result Datasets</h2>
       {isLoading ? (
         <p>Loading datasets...</p>
       ) : (

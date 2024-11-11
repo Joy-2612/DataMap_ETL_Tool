@@ -752,7 +752,7 @@ const splitCols = async (req, res) => {
           });
 
           // Optionally, remove the original column
-          // delete newRow[col]; // Uncomment this line to remove the original column
+          delete newRow[col]; // Uncomment this line to remove the original column
         }
       });
 

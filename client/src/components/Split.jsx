@@ -19,6 +19,8 @@ const Split = () => {
   const [activeTab, setActiveTab] = useState("general");
   const [addressColumn, setAddressColumn] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [viewDataset, setViewDataset] = useState(null);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [outputFileName, setOutputFileName] = useState("");
@@ -64,6 +66,33 @@ const Split = () => {
         error: (error) => reject(error),
       });
     });
+  };
+
+  const handleViewDataset = async (dataset) => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(
+        `http://localhost:5000/api/file/dataset/${dataset._id}`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch the dataset.");
+      }
+
+      const data = await response.json();
+      if (data.data && data.data.file) {
+        const csv = await parseCsvFile(data.data.file);
+        setViewDataset(csv);
+        setIsViewModalOpen(true);
+        setModalVisible(true); // Ensure modal is visible
+      } else {
+        toast.error("Invalid data format in the fetched dataset.");
+      }
+    } catch (error) {
+      console.error("Error fetching dataset:", error);
+      toast.error("An error occurred while fetching the dataset.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDatasetSelect = async (dataset) => {
@@ -226,6 +255,7 @@ const Split = () => {
           datasets={datasets}
           selected={dataset1}
           onSelect={handleDatasetSelect}
+          onView={handleViewDataset} // Pass handleViewDataset here
           isOpen={isDropdownOpen}
           setIsOpen={setIsDropdownOpen}
         />
@@ -335,7 +365,49 @@ const Split = () => {
           </button>
         </div>
       )}
+      {isViewModalOpen && (
+        <div
+          className={`${styles.modalOverlay} ${
+            modalVisible ? styles.modalOverlayVisible : ""
+          }`}
+          onClick={() => {
+            setIsViewModalOpen(false);
+            setModalVisible(false);
+          }}
+        >
+          <div
+            className={`${styles.modalContent} ${
+              modalVisible ? styles.modalContentVisible : ""
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.csvModalTitle}>
+              Dataset Preview
+              <IoMdClose
+                className={styles.closeModalButton}
+                onClick={() => {
+                  setIsViewModalOpen(false);
+                  setModalVisible(false);
+                }}
+              />
+            </div>
 
+            {viewDataset && viewDataset.length > 0 ? (
+              <DataTable
+                title="Dataset Preview"
+                columns={Object.keys(viewDataset[0]).map((key) => ({
+                  label: key,
+                  key: key,
+                }))}
+                data={viewDataset}
+                getRowId={(row, index) => index}
+              />
+            ) : (
+              <p>No data available</p>
+            )}
+          </div>
+        </div>
+      )}
       {isModalOpen && (
         <div
           className={`${styles.modal} ${isModalClosing ? styles.closing : ""}`}
