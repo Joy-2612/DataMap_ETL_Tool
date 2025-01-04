@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import styles from "../styles/UploadModal.module.css";
+import styles from "./UploadModal.module.css";
 import { toast } from "sonner";
 import { AiOutlineClose } from "react-icons/ai";
 import { PiFilesFill } from "react-icons/pi";

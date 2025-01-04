@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Papa from "papaparse";
 import { FaDownload, FaArrowLeft } from "react-icons/fa";
 import { toast } from "sonner";
-import styles from "../styles/ConvertBack.module.css";
+import styles from "./ConvertBack.module.css";
 const xmlFormatter = require("xml-formatter");
 
 const ConvertBack = () => {

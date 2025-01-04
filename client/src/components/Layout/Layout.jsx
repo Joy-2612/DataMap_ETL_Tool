@@ -1,22 +1,23 @@
 import React, { useEffect, useState } from "react";
 import Papa from "papaparse";
 import { AnimatePresence, motion } from "framer-motion";
-import Dashboard from "./Dashboard";
-import Sidebar from "./Sidebar";
-import UploadModal from "./UploadModal";
-import DataTable from "../components/DataTable/DataTable";
+import Dashboard from "../Pages/Dashboard/Dashboard";
+import Sidebar from "./Sidebar/Sidebar";
+import UploadModal from "../UI/UploadModal/UploadModal";
+import DataTable from "../UI/DataTable/DataTable";
 import { MdKeyboardArrowLeft } from "react-icons/md";
-import styles from "../styles/Layout.module.css";
-import Navbar from "./Navbar";
-import Datasets from "./Datasets";
+import styles from "./Layout.module.css";
+import Navbar from "./Navbar/Navbar";
+import Datasets from "../Pages/Datasets/Datasets";
 import { Route, Routes, useLocation } from "react-router-dom";
-import History from "./History";
-import Standardize from "./Standardize";
-import Concatenate from "./Concatenate";
-import Convert from "./Convert";
-import ConvertBack from "./ConvertBack";
-import Merge from "./Merge";
-import Split from "./Split";
+import Results from "../Pages/Results/Results";
+import Standardize from "../Features/Standardize/Standardize";
+import Concatenate from "../Features/Concatenate/Concatenate";
+import Convert from "../Features/Convert/Convert";
+import ConvertBack from "../Features/ConvertBack/ConvertBack";
+import Merge from "../Features/Merge/Merge";
+import Split from "../Features/Split/Split";
+import AI from "../Features/AI/AI";
 
 const Layout = () => {
   const [datasets, setDatasets] = useState([]);
@@ -96,6 +97,19 @@ const Layout = () => {
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             <Route
+              path="/ai"
+              element={
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <AI />
+                </motion.div>
+              }
+            />
+            <Route
               path="/datasets"
               element={
                 <motion.div
@@ -117,7 +131,7 @@ const Layout = () => {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
                 >
-                  <History />
+                  <Results />
                 </motion.div>
               }
             />

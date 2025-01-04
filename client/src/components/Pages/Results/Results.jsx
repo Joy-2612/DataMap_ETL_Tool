@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Papa from "papaparse";
-import styles from "../styles/Datasets.module.css"; // Import the modular CSS
-import DataTable from "../components/DataTable/DataTable";
+import styles from "./Results.module.css"; // Import the modular CSS
+import DataTable from "../../UI/DataTable/DataTable";
 import { FaEye } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { IoMdClose } from "react-icons/io";
@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
-const History = () => {
+const Results = () => {
   const [datasets, setDatasets] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -232,4 +232,4 @@ const History = () => {
   );
 };
 
-export default History;
+export default Results;

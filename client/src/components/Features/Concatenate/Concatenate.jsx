@@ -3,9 +3,9 @@ import { FaTimes } from "react-icons/fa";
 import { IoMdClose } from "react-icons/io";
 import { toast } from "sonner";
 import Papa from "papaparse";
-import Dropdown from "../components/Dropdown/Dropdown";
-import DataTable from "../components/DataTable/DataTable";
-import styles from "../styles/Concatenate.module.css";
+import Dropdown from "../../UI/Dropdown/Dropdown";
+import DataTable from "../../UI/DataTable/DataTable";
+import styles from "./Concatenate.module.css";
 
 const Concatenate = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);

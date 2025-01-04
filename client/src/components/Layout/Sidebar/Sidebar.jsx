@@ -6,7 +6,7 @@ import { FaHistory } from "react-icons/fa";
 import { IoMdHelpCircleOutline } from "react-icons/io";
 import { MdOutlineSpaceDashboard } from "react-icons/md";
 import { LuFiles } from "react-icons/lu";
-import styles from "../styles/Sidebar.module.css";
+import styles from "./Sidebar.module.css";
 
 const Sidebar = ({ onAddDataset, onSelectDataset, isLoading }) => {
   return (

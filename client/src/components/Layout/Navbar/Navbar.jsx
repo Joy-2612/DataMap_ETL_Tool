@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import styles from "../styles/Navbar.module.css";
+import styles from "./Navbar.module.css";
 
 const Navbar = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import styles from "../styles/Dashboard.module.css";
+import styles from "./Dashboard.module.css";
 import { FaCodeMerge } from "react-icons/fa6";
 import { IoMdAddCircleOutline } from "react-icons/io";
 import { PiApproximateEqualsBold } from "react-icons/pi";
@@ -8,6 +8,7 @@ import { FaArrowRightLong } from "react-icons/fa6";
 import { BiTransfer, BiTransferAlt } from "react-icons/bi";
 import { useNavigate } from "react-router-dom";
 import { MdOutlineVerticalSplit } from "react-icons/md";
+import { BsStars } from "react-icons/bs";
 
 const Dashboard = ({ datasets }) => {
   const navigate = useNavigate();
@@ -39,9 +40,29 @@ const Dashboard = ({ datasets }) => {
   const handleNavigateToSplit = () => {
     navigate("/home/split");
   };
+  const handleNavigateToAI = () => {
+    navigate("/home/ai");
+  };
 
   return (
     <div className={styles.container}>
+      <div className={styles.aicard} onClick={handleNavigateToAI}>
+        <div className={styles.aicardicon}>
+          <BsStars />
+        </div>
+        <div className={styles.aicardcontent}>
+          {/* <div className={styles.headertext}>Let's do it with AI..!</div> */}
+          <div className={styles.headertext}>Agentic AI</div>
+          <p>
+            Agentic AI is a powerful tool that can help you automate your data
+          </p>
+        </div>
+        <div className={styles.continueButton}>
+          <h3>Continue</h3>
+          <FaArrowRightLong />
+        </div>
+      </div>
+
       <div className={styles.featureCardsContainer}>
         <div
           className={`${styles.featureCard} ${styles.cardBlue}`}

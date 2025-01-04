@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useState } from "react";
 import styles from "./DataTable.module.css";
-import usePagination from "../../hooks/usePagination";
+import usePagination from "../../../hooks/usePagination";
 import useSearchQuery from "./hooks/useSearchQuery";
 import Dropdown from "../Dropdown/Dropdown";
 import { BiChevronDown } from "react-icons/bi";

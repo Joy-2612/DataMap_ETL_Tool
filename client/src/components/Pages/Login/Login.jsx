@@ -2,8 +2,8 @@
 import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { UserContext } from "../context/UserContext"; // Import the UserContext
-import styles from "../styles/Login.module.css"; // Import the modular CSS
+import { UserContext } from "../../../context/UserContext"; // Import the UserContext
+import styles from "./Login.module.css"; // Import the modular CSS
 
 const Login = () => {
   const [email, setEmail] = useState("");

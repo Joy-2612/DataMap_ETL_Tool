@@ -106,8 +106,8 @@ button:hover {
   background-color: white;
   padding: 2rem;
   border-radius: 10px;
-  width: 70%;
-  max-width: 800px;
+  width: 80%;
+  max-width: 900px;
   overflow-y: auto;
   position: relative;
   transform: scale(0.9);

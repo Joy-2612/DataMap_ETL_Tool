@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Papa from "papaparse";
-import styles from "../styles/Datasets.module.css";
-import DataTable from "../components/DataTable/DataTable";
-import UploadModal from "./UploadModal";
+import styles from "./Datasets.module.css";
+import DataTable from "../../UI/DataTable/DataTable";
+import UploadModal from "../../UI/UploadModal/UploadModal";
 import { FaEye } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { IoMdClose } from "react-icons/io";

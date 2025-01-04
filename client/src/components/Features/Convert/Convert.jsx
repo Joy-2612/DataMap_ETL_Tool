@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import Papa from "papaparse";
-import DataTable from "../components/DataTable/DataTable";
+import DataTable from "../../UI/DataTable/DataTable";
 import { FaDownload } from "react-icons/fa";
 import { toast } from "sonner";
-import styles from "../styles/Convert.module.css";
+import styles from "./Convert.module.css";
 
 const Convert = () => {
   const [file, setFile] = useState(null);

@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import Papa from "papaparse";
 import { IoMdClose } from "react-icons/io";
 import { toast } from "sonner";
-import DataTable from "../components/DataTable/DataTable";
-import Dropdown from "../components/Dropdown/Dropdown";
-import styles from "../styles/Merge.module.css";
+import DataTable from "../../UI/DataTable/DataTable";
+import Dropdown from "../../UI/Dropdown/Dropdown";
+import styles from "./Merge.module.css";
 
 const Merge = () => {
   const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);

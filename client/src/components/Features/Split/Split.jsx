@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import DataTable from "../components/DataTable/DataTable";
+import DataTable from "../../UI/DataTable/DataTable";
 import Papa from "papaparse";
 import { toast } from "sonner";
-import Dropdown from "../components/Dropdown/Dropdown";
+import Dropdown from "../../UI/Dropdown/Dropdown";
 import { IoMdClose } from "react-icons/io";
-import styles from "../styles/Split.module.css";
+import styles from "./Split.module.css";
 
 const Split = () => {
   const [datasets, setDatasets] = useState([]);

@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import styles from "../styles/Register.module.css";
+import styles from "./Register.module.css";
 
 const Register = () => {
   const [email, setEmail] = useState("");

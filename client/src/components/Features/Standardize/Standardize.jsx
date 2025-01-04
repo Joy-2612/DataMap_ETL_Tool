@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import styles from "../styles/Standardize.module.css";
+import styles from "./Standardize.module.css";
 import Papa from "papaparse";
 import { toast } from "sonner";
 import Multiselect from "multiselect-react-dropdown";
-import Dropdown from "../components/Dropdown/Dropdown";
-import DataTable from "../components/DataTable/DataTable";
+import Dropdown from "../../UI/Dropdown/Dropdown";
+import DataTable from "../../UI/DataTable/DataTable";
 import { IoMdClose } from "react-icons/io";
 
 const Standardize = () => {
