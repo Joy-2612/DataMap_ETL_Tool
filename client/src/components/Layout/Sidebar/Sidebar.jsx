@@ -29,6 +29,9 @@ const Sidebar = ({ onAddDataset, onSelectDataset, isLoading }) => {
         <Link to="history" className={styles.menuItem}>
           <FaHistory /> Results
         </Link>
+        <Link to="flow-diagrams" className={styles.menuItem}>
+          <FaHistory /> Flow Diagrams
+        </Link>
         <Link to="help" className={styles.menuItem}>
           <IoMdHelpCircleOutline /> Help
         </Link>

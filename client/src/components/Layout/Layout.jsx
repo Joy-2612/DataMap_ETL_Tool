@@ -9,6 +9,7 @@ import { MdKeyboardArrowLeft } from "react-icons/md";
 import styles from "./Layout.module.css";
 import Navbar from "./Navbar/Navbar";
 import Datasets from "../Pages/Datasets/Datasets";
+import FlowDiagrams from "../Pages/FlowDiagrams/FlowDiagrams";
 import { Route, Routes, useLocation } from "react-router-dom";
 import Results from "../Pages/Results/Results";
 import Standardize from "../Features/Standardize/Standardize";
@@ -132,6 +133,19 @@ const Layout = () => {
                   transition={{ duration: 0.15 }}
                 >
                   <Results />
+                </motion.div>
+              }
+            />
+            <Route
+              path="/flow-diagrams"
+              element={
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <FlowDiagrams />
                 </motion.div>
               }
             />
