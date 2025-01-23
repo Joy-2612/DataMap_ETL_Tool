@@ -133,7 +133,7 @@ const Standardize = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            dataset: selectedDataset?.name,
+            datasetId: selectedDataset?._id,
             column: selectedColumn,
             mappings: mappings,
             outputFileName: outputFileName,

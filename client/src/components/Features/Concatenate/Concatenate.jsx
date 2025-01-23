@@ -115,7 +115,7 @@ const Concatenate = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            dataset: dataset1.name,
+            dataset: dataset1._id,
             columns: selectedColumns,
             finalColumnName,
             outputFileName,

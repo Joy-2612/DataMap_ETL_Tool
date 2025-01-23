@@ -101,8 +101,8 @@ const Merge = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          dataset1: dataset1?.name,
-          dataset2: dataset2?.name,
+          dataset1: dataset1?._id,
+          dataset2: dataset2?._id,
           column1: selectedColumn1,
           column2: selectedColumn2,
           outputFileName,

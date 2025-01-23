@@ -87,7 +87,7 @@ const concatenateColumnsService = async ({
   description,
 }) => {
   // Find the file
-  const file = await File.findOne({ originalName: dataset });
+  const file = await File.findOne({ _id: dataset });
   if (!file) throw new Error("File not found");
 
   // Decode Base64 data
@@ -151,8 +151,13 @@ const mergeDatasetsService = async ({
   outputFileName,
   description,
 }) => {
-  const file1 = await File.findOne({ originalName: dataset1 });
-  const file2 = await File.findOne({ originalName: dataset2 });
+  const file1 = await File.findOne({
+    $or: [{ originalName: dataset1 }, { _id: dataset1 }],
+  });
+
+  const file2 = await File.findOne({
+    $or: [{ originalName: dataset2 }, { _id: dataset2 }],
+  });
 
   if (!file1) {
     throw new Error(`Dataset "${dataset1}" not found`);
@@ -224,13 +229,14 @@ const mergeDatasetsService = async ({
  * Standardize a column based on provided "before => after" mappings
  */
 const standardizeColumnService = async ({
-  dataset,
+  datasetId,
   column,
   mappings,
   outputFileName,
   description,
 }) => {
-  const file = await File.findOne({ originalName: dataset });
+  console.log(datasetId);
+  const file = await File.findOne({ _id: datasetId });
   if (!file) throw new Error("Dataset not found");
 
   const csvContent = Buffer.from(file.data, "base64").toString("utf-8");

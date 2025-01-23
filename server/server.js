@@ -25,6 +25,7 @@ mongoose
 // Routes
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/file", require("./routes/fileRoutes"));
+app.use("/api/ai", require("./routes/aiRoutes"));
 
 // Start server
 app.listen(PORT, () =>
