@@ -1,158 +1,162 @@
 /* Sidebar container styling */
 .sidebar {
-    width: 250px;
-    background-color: white;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin-right: 2px;
-    border-radius: 8px;
-    transition: width 0.3s ease;
+  width: 250px;
+  height: 560px;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-right: 2px;
+  border-radius: 8px;
+  transition: width 0.3s ease;
+}
+
+/* Handle responsiveness for small screens */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 200px; /* Reduce sidebar width on smaller screens */
   }
-  
-  /* Handle responsiveness for small screens */
-  @media (max-width: 768px) {
-    .sidebar {
-      width: 200px; /* Reduce sidebar width on smaller screens */
-    }
+}
+
+/* Handle very small screens (for mobile) */
+@media (max-width: 480px) {
+  .sidebar {
+    width: 100%; /* Make the sidebar full width on small devices */
+    margin-right: 0;
+    box-shadow: none; /* Optional: Remove shadow on small screens */
   }
-  
-  /* Handle very small screens (for mobile) */
-  @media (max-width: 480px) {
-    .sidebar {
-      width: 100%; /* Make the sidebar full width on small devices */
-      margin-right: 0;
-      box-shadow: none; /* Optional: Remove shadow on small screens */
-    }
-  
-    .tab {
-      font-size: 0.8rem; /* Smaller font size for tabs */
-    }
-  
-    .tabContent {
-      padding: 8px;
-    }
-  
-    .draggableItem {
-      font-size: 0.8rem; /* Smaller font size for items */
-    }
-  
-    .actionOption {
-      font-size: 0.8rem; /* Smaller font size for action options */
-    }
-  
-    .addNodeButton {
-      font-size: 0.8rem; /* Smaller button text */
-    }
-  }
-  
-  /* Tab Header Styling */
-  .tabHeader {
-    display: flex;
-    background-color: #f4f4f4;
-    border-bottom: 1px solid #ddd;
-    border-radius: 8px 8px 0 0;
-    flex-wrap: wrap; /* Allows tabs to wrap to the next line on small screens */
-  }
-  
+
   .tab {
-    flex: 1;
-    padding: 10px;
-    text-align: center;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-    background-color: white;
-    border-radius: 8px 8px 0 0;
+    font-size: 0.8rem; /* Smaller font size for tabs */
   }
-  
-  .tab:hover {
-    background-color: #000000;
-    color: rgb(255, 255, 255);
-  }
-  
-  .activeTab {
-    background-color: #333;
-    color: #fff;
-  }
-  
-  /* Tab Content Styling */
+
   .tabContent {
-    flex: 1;
-    overflow-y: auto;
-    padding: 10px;
-    background-color: white;
-    border-radius: 0 0 8px 8px;
-  }
-  
-  /* Styling for draggable items and empty state */
-  .itemsContainer {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .draggableItem {
-    padding: 8px 12px;
-    background-color: #e0e0e0;
-    cursor: grab;
-    border-radius: 12px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-weight: bold;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .draggableItem:hover {
-    background-color: #333;
-    color: #ffffff;
-    transform: scale(1.02);
-  }
-  
-  .selectedItem {
-    background-color: white;
-    color: #333;
-    border: 1px solid black;
-    border-radius: 12px;
-  }
-  
-  .emptyState {
-    text-align: center;
-    color: #888;
-    padding: 20px;
-    font-size: 0.9rem;
-  }
-  
-  /* Action Options Styling */
-  .actionOptions {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 10px;
-  }
-  
-  .actionOption {
     padding: 8px;
-    background-color: #ffffff;
-    cursor: pointer;
-    border-radius: 12px;
-    border: 1px solid black;
-    font-weight: bold;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
   }
-  
-  .actionOption:hover {
-    background-color: #333;
-    color: #fff;
+
+  .draggableItem {
+    font-size: 0.8rem; /* Smaller font size for items */
   }
-  
-  /* Add Node button */
+
+  .actionOption {
+    font-size: 0.8rem; /* Smaller font size for action options */
+  }
+
   .addNodeButton {
-    margin-top: 5px;
+    font-size: 0.8rem; /* Smaller button text */
   }
-  
+}
+
+/* Tab Header Styling */
+.tabHeader {
+  display: flex;
+  background-color: #f4f4f4;
+  border-bottom: 1px solid #ddd;
+  border-radius: 8px 8px 0 0;
+  flex-wrap: wrap; /* Allows tabs to wrap to the next line on small screens */
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  background-color: white;
+  border-radius: 4px;
+  margin: 4px;
+}
+
+.tab:hover {
+  background-color: #000000;
+  color: rgb(255, 255, 255);
+}
+
+.activeTab {
+  background-color: #333;
+  color: #fff;
+}
+
+/* Tab Content Styling */
+.tabContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  background-color: white;
+  border-radius: 0 0 8px 8px;
+}
+
+/* Styling for draggable items and empty state */
+.itemsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.draggableItem {
+  padding: 8px 12px;
+  background-color: #e0e0e0;
+  cursor: grab;
+  border-radius: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: bold;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.draggableItem:hover {
+  background-color: #333;
+  color: #ffffff;
+  transform: scale(1.02);
+}
+
+.selectedItem {
+  background-color: white;
+  color: #333;
+  border: 1px solid black;
+  border-radius: 4px;
+}
+
+.emptyState {
+  text-align: center;
+  color: #888;
+  padding: 20px;
+  font-size: 0.9rem;
+}
+
+/* Action Options Styling */
+.actionOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+}
+
+.actionOption {
+  padding: 8px;
+  background-color: #ffffff;
+  cursor: pointer;
+  border-radius: 12px;
+  border: 1px solid black;
+  font-weight: bold;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.actionOption:hover {
+  background-color: #333;
+  color: #fff;
+}
+
+/* Add Node button */
+.addNodeButton {
+  margin-top: 5px;
+}

@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
 import { UserContext } from "../../../context/UserContext";
-import { FaArrowUp } from "react-icons/fa";
+import { FaArrowUp, FaCheck } from "react-icons/fa";
+import { IoCloseSharp } from "react-icons/io5";
 import Skeleton from "react-loading-skeleton";
 import Papa from "papaparse";
-import { FaCheck } from "react-icons/fa";
-import { IoCloseSharp } from "react-icons/io5";
 import DataTable from "../../UI/DataTable/DataTable";
 import "react-loading-skeleton/dist/skeleton.css";
 import styles from "./AI.module.css";
@@ -412,7 +411,7 @@ const AI = () => {
       return newMessages;
     });
 
-    toast.success("file saved in the database.");
+    toast.success("File saved in the database.");
   };
 
   // Reject the final answer
@@ -444,6 +443,7 @@ const AI = () => {
       <div
         style={{
           lineHeight: 1.5,
+          margin: "0rem",
           marginBottom: "0.2rem",
         }}
       >
@@ -469,12 +469,14 @@ const AI = () => {
             if (msg.datasetData) {
               return (
                 <div className={styles.messageBotContainer} key={index}>
-                  {showIcon && (
+                  {showIcon ? (
                     <img
                       src="https://static.vecteezy.com/system/resources/previews/049/889/441/non_2x/generate-ai-abstract-symbol-artificial-intelligence-colorful-stars-icon-vector.jpg"
                       alt="AI Icon"
                       className={styles.aiIcon}
                     />
+                  ) : (
+                    <div className={styles.aiIcon} />
                   )}
                   <div className={styles.messageBot}>
                     <DataTable
@@ -499,14 +501,20 @@ const AI = () => {
             if (msg.isLoading) {
               return (
                 <div className={styles.messageBotContainer} key={index}>
-                  {showIcon && (
+                  {showIcon ? (
                     <img
                       src="https://static.vecteezy.com/system/resources/previews/049/889/441/non_2x/generate-ai-abstract-symbol-artificial-intelligence-colorful-stars-icon-vector.jpg"
                       alt="AI Icon"
                       className={styles.aiIcon}
                     />
+                  ) : (
+                    <div className={styles.aiIcon} />
                   )}
-                  <div className={styles.messageBot}>
+                  <div
+                    className={`${styles.messageBot} ${
+                      msg.isLoading ? styles.messageBotLoading : ""
+                    }`}
+                  >
                     <Skeleton
                       count={3}
                       height="20px"
@@ -514,7 +522,7 @@ const AI = () => {
                       highlightColor="#f4cdfa"
                       width="100%"
                       wrapper={Box}
-                      style={{ marginBottom: "0.5rem" }}
+                      style={{ marginBottom: "0.3rem" }}
                     />
                   </div>
                 </div>
@@ -524,12 +532,14 @@ const AI = () => {
             // Normal (non-loading) bot messages (includes partial "thought" + final answer)
             return (
               <div className={styles.messageBotContainer} key={index}>
-                {showIcon && (
+                {showIcon ? (
                   <img
                     src="https://static.vecteezy.com/system/resources/previews/049/889/441/non_2x/generate-ai-abstract-symbol-artificial-intelligence-colorful-stars-icon-vector.jpg"
                     alt="AI Icon"
                     className={styles.aiIcon}
                   />
+                ) : (
+                  <div className={styles.aiIcon} />
                 )}
                 <div
                   className={styles.messageBot}

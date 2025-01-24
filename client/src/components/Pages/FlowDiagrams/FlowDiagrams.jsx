@@ -6,8 +6,10 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
   addEdge,
+  ReactFlowProvider,
 } from "reactflow";
-import RightSideBar from './RightSideBar';
+
+import RightSideBar from "./RightSideBar";
 import styles from "./FlowDiagrams.module.css";
 import "reactflow/dist/style.css";
 
@@ -23,10 +25,14 @@ const initialNodes = [
 const initialEdges = [];
 
 const FlowDiagrams = () => {
+  // remove useReactFlow from the top-level and store the instance from onInit
+  const [reactFlowInstance, setReactFlowInstance] = useState(null);
+
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [selectedEdge, setSelectedEdge] = useState(null); // Track the selected edge
-  const [sidebarToggle, setSidebarToggle] = useState(false); // Track the sidebar toggle state
+
+  const [selectedEdge, setSelectedEdge] = useState(null);
+  const [sidebarToggle, setSidebarToggle] = useState(false);
   const userId = localStorage.getItem("userId");
 
   const onConnect = useCallback(
@@ -36,134 +42,144 @@ const FlowDiagrams = () => {
 
   const onDragOver = useCallback((event) => {
     event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
+    event.dataTransfer.dropEffect = "move";
   }, []);
 
-  const onDrop = useCallback((event) => {
-    event.preventDefault();
-    const reactFlowBounds = event.target.getBoundingClientRect();
-    const itemId = event.dataTransfer.getData('text/plain');
-    const itemName = event.dataTransfer.getData('text/name'); // Optional
+  // Use reactFlowInstance.project(...) within onDrop
+  const onDrop = useCallback(
+    (event) => {
+      event.preventDefault();
+      const reactFlowBounds = event.target.getBoundingClientRect();
+      const itemId = event.dataTransfer.getData("text/plain");
+      const itemName = event.dataTransfer.getData("text/name");
 
-    const position = {
-      x: event.clientX - reactFlowBounds.left,
-      y: event.clientY - reactFlowBounds.top,
-    };
+      // If the instance is not ready yet, just return
+      if (!reactFlowInstance) {
+        return;
+      }
 
-    const newNode = {
-      id: `item-${itemId}-${Date.now()}`,  // Adding a timestamp to make the ID unique
-      type: 'default',
-      position,
-      data: { label: itemName || `Item ${itemId}` },
-      style: {
-        fontWeight: 'bold',  // Make text bold
-        overflow: 'hidden',  // Prevent text overflow
-        textOverflow: 'ellipsis',  // Ellipsis when text overflows
-        whiteSpace: 'nowrap',  // Prevent text from wrapping
-        padding: '10px',  // Add padding for better spacing
-      },
-    };
+      // Convert cursor coordinates to the current zoom/pan scale
+      const position = reactFlowInstance.project({
+        x: event.clientX - reactFlowBounds.left,
+        y: event.clientY - reactFlowBounds.top,
+      });
 
-    setNodes((nds) => nds.concat(newNode));
-  }, [setNodes]);
+      const newNode = {
+        id: `item-${itemId}-${Date.now()}`,
+        type: "default",
+        position,
+        data: { label: itemName || `Item ${itemId}` },
+        style: {
+          fontWeight: "bold",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          padding: "10px",
+        },
+      };
+
+      setNodes((nds) => nds.concat(newNode));
+    },
+    [reactFlowInstance, setNodes]
+  );
 
   // Handle double-click to add a node
   const handleAddNode = (item) => {
     const newNode = {
-      id: `item-${item.id}-${Date.now()}`,  // Adding a timestamp to make the ID unique
-      type: 'default',
+      id: `item-${item.id}-${Date.now()}`,
+      type: "default",
       position: { x: Math.random() * 200, y: Math.random() * 200 },
       data: { label: item.name },
       style: {
-        fontWeight: 'bold',  // Make text bold
-        overflow: 'hidden',  // Prevent text overflow
-        textOverflow: 'ellipsis',  // Ellipsis when text overflows
-        whiteSpace: 'nowrap',  // Prevent text from wrapping
-        padding: '10px',  // Add padding for better spacing
+        fontWeight: "bold",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        padding: "10px",
       },
     };
-
     setNodes((nds) => nds.concat(newNode));
   };
 
   const handleAddNodeOutput = (item) => {
     const newNode = {
       id: `output-${item.id}-${Date.now()}`,
-      type: 'default',
+      type: "default",
       position: { x: Math.random() * 200, y: Math.random() * 200 },
       data: { label: item.name },
       style: {
-        border: '1px solid red', // Red border for output node
-        boxShadow: '0 0 2px red', // Optional shadow effect
-        fontWeight: 'bold',
-        padding: '10px',
+        border: "1px solid red",
+        boxShadow: "0 0 2px red",
+        fontWeight: "bold",
+        padding: "10px",
       },
     };
-
     setNodes((nds) => nds.concat(newNode));
   };
 
   // Handle double-click on an edge
   const onEdgeDoubleClick = (event, edge) => {
     event.preventDefault();
-    setSelectedEdge(edge); // Set the selected edge
-    setSidebarToggle(true); // Hide all headings except 'Actions'
+    setSelectedEdge(edge);
+    setSidebarToggle(true);
   };
 
-  // Reset selected edge when clicking on background or nodes (focus loss from edge)
+  // Reset selected edge when clicking on background or nodes
   const onBackgroundClick = () => {
-    setSelectedEdge(null); // Remove edge selection
-    setSidebarToggle(false); // Reset sidebar state to show all headings
+    setSelectedEdge(null);
+    setSidebarToggle(false);
   };
 
-  // Handle node click to remove selection from edge
   const onNodeClick = () => {
-    setSelectedEdge(null); // Remove edge selection when node is clicked
-    setSidebarToggle(false); // Reset sidebar state to show all headings
+    setSelectedEdge(null);
+    setSidebarToggle(false);
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.flowContainer}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onDragOver={onDragOver}
-          onDrop={onDrop}
-          fitView
-          onEdgeDoubleClick={onEdgeDoubleClick}  // Attach double-click handler for edges
-          onBackgroundClick={onBackgroundClick}  // Reset the edge selection when clicking on background
-          onNodeClick={onNodeClick}  // Remove edge selection when clicking on node
-        >
+    <ReactFlowProvider>
+      <div className={styles.container}>
+        <div className={styles.flowContainer}>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onDragOver={onDragOver}
+            onDrop={onDrop}
+            onEdgeDoubleClick={onEdgeDoubleClick}
+            onBackgroundClick={onBackgroundClick}
+            onNodeClick={onNodeClick}
+            fitView
+            // This is crucial so we get a valid reactFlowInstance in state
+            onInit={setReactFlowInstance}
+          >
+            <MiniMap
+              style={{
+                transform: "scale(0.5) translate(200px, -50px)",
+                transformOrigin: "top left",
+              }}
+            />
+            <Controls
+              style={{
+                transform: "scale(0.5) translate(-20px, -100px)",
+                transformOrigin: "top left",
+              }}
+            />
+            <Background variant="dots" gap={12} size={1} />
+          </ReactFlow>
+        </div>
 
-          
-
-          <MiniMap style={{
-            transform: 'scale(0.5) translate(200px, -50px)',  // Scaling and offsetting
-            transformOrigin: 'top left', // Origin of transformation
-          }}/>
-          
-          <Controls style={{
-            
-            transform: 'scale(0.5) translate(-20px, -100px)',  // Scaling and offsetting
-            transformOrigin: 'top left', // Origin of transformation
-          }}/>
-          <Background variant="dots" gap={12} size={1} />
-        </ReactFlow>
+        <RightSideBar
+          userId={userId}
+          onAddNode={handleAddNode}
+          onAddNodeOutput={handleAddNodeOutput}
+          selectedEdge={selectedEdge}
+          setEdges={setEdges}
+          sidebarToggle={sidebarToggle}
+        />
       </div>
-
-      {/* Pass selectedEdge to RightSideBar */}
-      <RightSideBar userId={userId}
-       onAddNode={handleAddNode} 
-       onAddNodeOutput={handleAddNodeOutput} 
-       selectedEdge={selectedEdge} 
-       setEdges={setEdges}  
-       sidebarToggle={sidebarToggle} // Pass toggle state to RightSideBar
-       />
-    </div>
+    </ReactFlowProvider>
   );
 };
 
