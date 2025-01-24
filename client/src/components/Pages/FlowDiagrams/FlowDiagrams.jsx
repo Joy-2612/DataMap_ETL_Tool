@@ -156,13 +156,11 @@ const FlowDiagrams = () => {
           >
             <MiniMap
               style={{
-                transform: "scale(0.5) translate(200px, -50px)",
                 transformOrigin: "top left",
               }}
             />
             <Controls
               style={{
-                transform: "scale(0.5) translate(-20px, -100px)",
                 transformOrigin: "top left",
               }}
             />
