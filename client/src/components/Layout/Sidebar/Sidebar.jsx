@@ -6,6 +6,7 @@ import { FaHistory } from "react-icons/fa";
 import { IoMdHelpCircleOutline } from "react-icons/io";
 import { MdOutlineSpaceDashboard } from "react-icons/md";
 import { LuFiles } from "react-icons/lu";
+import { RiFlowChart } from "react-icons/ri";
 import styles from "./Sidebar.module.css";
 
 const Sidebar = ({ onAddDataset, onSelectDataset, isLoading }) => {
@@ -30,7 +31,7 @@ const Sidebar = ({ onAddDataset, onSelectDataset, isLoading }) => {
           <FaHistory /> Results
         </Link>
         <Link to="flow-diagrams" className={styles.menuItem}>
-          <FaHistory /> Flow Diagrams
+          <RiFlowChart /> Flow Diagrams
         </Link>
         <Link to="help" className={styles.menuItem}>
           <IoMdHelpCircleOutline /> Help
