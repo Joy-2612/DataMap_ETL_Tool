@@ -1,11 +1,39 @@
-.diagramContainer {
+.container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto;
+  height: 500px;
   width: 100%;
-  height: 100%;
-  padding: 0;
-  overflow: hidden;
 }
+
+.flowContainer {
+  flex: 1;
+}
+
+.addNodeButton {
+  margin-bottom: 10px;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.addNodeButton:hover {
+  background-color: #0056b3;
+}
+
+.addNodeButton:active {
+  background-color: #003f7f;
+}
+
+.flowContainer {
+  height: 600px;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+
