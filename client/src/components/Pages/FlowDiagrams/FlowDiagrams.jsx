@@ -8,7 +8,6 @@ import ReactFlow, {
   addEdge,
   ReactFlowProvider,
 } from "reactflow";
-
 import RightSideBar from "./RightSideBar";
 import styles from "./FlowDiagrams.module.css";
 import "reactflow/dist/style.css";
@@ -19,25 +18,34 @@ const initialNodes = [
     type: "input",
     data: { label: "Start Node" },
     position: { x: 250, y: 0 },
+    style: { fontWeight: "bold" },
   },
 ];
 
 const initialEdges = [];
 
 const FlowDiagrams = () => {
-  // remove useReactFlow from the top-level and store the instance from onInit
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
-
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-
   const [selectedEdge, setSelectedEdge] = useState(null);
+  const [selectedNode, setSelectedNode] = useState(null);
   const [sidebarToggle, setSidebarToggle] = useState(false);
   const userId = localStorage.getItem("userId");
 
   const onConnect = useCallback(
-    (params) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
+    (params) => {
+      const targetNode = nodes.find(node => node.id === params.target);
+      if (targetNode?.data?.type === 'action') {
+        setEdges((eds) => addEdge(params, eds));
+      } else {
+        const hasExistingConnection = edges.some(edge => edge.target === params.target);
+        if (!hasExistingConnection) {
+          setEdges((eds) => addEdge(params, eds));
+        }
+      }
+    },
+    [setEdges, nodes, edges]
   );
 
   const onDragOver = useCallback((event) => {
@@ -45,7 +53,6 @@ const FlowDiagrams = () => {
     event.dataTransfer.dropEffect = "move";
   }, []);
 
-  // Use reactFlowInstance.project(...) within onDrop
   const onDrop = useCallback(
     (event) => {
       event.preventDefault();
@@ -53,12 +60,8 @@ const FlowDiagrams = () => {
       const itemId = event.dataTransfer.getData("text/plain");
       const itemName = event.dataTransfer.getData("text/name");
 
-      // If the instance is not ready yet, just return
-      if (!reactFlowInstance) {
-        return;
-      }
+      if (!reactFlowInstance) return;
 
-      // Convert cursor coordinates to the current zoom/pan scale
       const position = reactFlowInstance.project({
         x: event.clientX - reactFlowBounds.left,
         y: event.clientY - reactFlowBounds.top,
@@ -83,7 +86,6 @@ const FlowDiagrams = () => {
     [reactFlowInstance, setNodes]
   );
 
-  // Handle double-click to add a node
   const handleAddNode = (item) => {
     const newNode = {
       id: `item-${item.id}-${Date.now()}`,
@@ -103,11 +105,19 @@ const FlowDiagrams = () => {
 
   const handleAddNodeOutput = (item) => {
     const newNode = {
-      id: `output-${item.id}-${Date.now()}`,
+      id: `${item.type || 'output'}-${item.id}-${Date.now()}`,
       type: "default",
       position: { x: Math.random() * 200, y: Math.random() * 200 },
-      data: { label: item.name },
-      style: {
+      data: { 
+        label: item.name,
+        type: item.type || 'output',
+        actionType: item.actionType // Store the specific action type
+      },
+      style: item.type === 'action' ? {
+        ...item.style,
+        minWidth: '150px',
+        minHeight: '50px',
+      } : {
         border: "1px solid red",
         boxShadow: "0 0 2px red",
         fontWeight: "bold",
@@ -117,22 +127,26 @@ const FlowDiagrams = () => {
     setNodes((nds) => nds.concat(newNode));
   };
 
-  // Handle double-click on an edge
   const onEdgeDoubleClick = (event, edge) => {
     event.preventDefault();
     setSelectedEdge(edge);
+    setSelectedNode(null);
     setSidebarToggle(true);
   };
 
-  // Reset selected edge when clicking on background or nodes
   const onBackgroundClick = () => {
     setSelectedEdge(null);
-    setSidebarToggle(false);
+    setSelectedNode(null);
+    setSidebarToggle(true);
+    
   };
 
-  const onNodeClick = () => {
+  const onNodeClick = (event, node) => {
+    event.preventDefault();
     setSelectedEdge(null);
-    setSidebarToggle(false);
+    setSelectedNode(node);
+    setSidebarToggle(true);
+    // console.log(node);
   };
 
   return (
@@ -151,19 +165,10 @@ const FlowDiagrams = () => {
             onBackgroundClick={onBackgroundClick}
             onNodeClick={onNodeClick}
             fitView
-            // This is crucial so we get a valid reactFlowInstance in state
             onInit={setReactFlowInstance}
           >
-            <MiniMap
-              style={{
-                transformOrigin: "top left",
-              }}
-            />
-            <Controls
-              style={{
-                transformOrigin: "top left",
-              }}
-            />
+            <MiniMap style={{ transformOrigin: "top left" }} />
+            <Controls style={{ transformOrigin: "top left" }} />
             <Background variant="dots" gap={12} size={1} />
           </ReactFlow>
         </div>
@@ -173,6 +178,7 @@ const FlowDiagrams = () => {
           onAddNode={handleAddNode}
           onAddNodeOutput={handleAddNodeOutput}
           selectedEdge={selectedEdge}
+          selectedNode={selectedNode}
           setEdges={setEdges}
           sidebarToggle={sidebarToggle}
         />

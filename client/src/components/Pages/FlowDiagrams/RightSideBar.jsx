@@ -1,20 +1,57 @@
 import React, { useState, useEffect } from "react";
 import styles from "./RightSideBar.module.css";
+import Concatenate from "../../Features/Concatenate/Concatenate";
+import Split from "../../Features/Split/Split";
+import Standardize from "../../Features/Standardize/Standardize";
+import Merge from "../../Features/Merge/Merge";
+import Convert from "../../Features/Convert/Convert";
+import ConvertBack from "../../Features/ConvertBack/ConvertBack";
 
 const RightSideBar = ({
   onAddNode,
   onAddNodeOutput,
   userId,
   selectedEdge,
+  selectedNode,
   setEdges,
 }) => {
   const [datasets, setDatasets] = useState([]);
   const [results, setResults] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [newNodeName, setNewNodeName] = useState(""); // Track input value for Add Node
-  const [activeTab, setActiveTab] = useState("datasets"); // Track active tab
+  const [newNodeName, setNewNodeName] = useState("");
+  const [activeTab, setActiveTab] = useState("datasets"); // Default to "datasets"
+  const [nodeType, setNodeType] = useState("regular");
+  const [isHidden, setIsHidden] = useState(true);
 
-  // Fetch datasets and results from API
+  const actionOptions = [
+    {
+      id: "concatenate",
+      name: "Concatenate",
+      color: "blue",
+      component: Concatenate,
+    },
+    { id: "split", name: "Split", color: "blue", component: Split },
+    { id: "merge", name: "Merge", color: "blue", component: Merge },
+    {
+      id: "standardize",
+      name: "Standardize",
+      color: "blue",
+      component: Standardize,
+    },
+    {
+      id: "convertCSV",
+      name: "Convert to CSV",
+      color: "blue",
+      component: Convert,
+    },
+    {
+      id: "convertXML",
+      name: "Convert to XML/JSON",
+      color: "blue",
+      component: ConvertBack,
+    },
+  ];
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -38,42 +75,38 @@ const RightSideBar = ({
     }
   }, [userId]);
 
-  // Handle drag and drop for items
+  const isActionNode = selectedNode?.data?.type === "action";
+  const selectedAction = isActionNode
+    ? actionOptions.find((action) => action.id === selectedNode.data.actionType)
+    : null;
+
   const handleDragStart = (event, item) => {
     event.dataTransfer.setData("text/plain", item.id);
     event.dataTransfer.setData("text/name", item.name);
     event.dataTransfer.effectAllowed = "move";
   };
 
-  // Handle double click on an item to add a node
   const handleDoubleClick = (item) => {
     if (onAddNode) {
       onAddNode(item);
     }
   };
 
-  // Set active tab based on edge selection
-  useEffect(() => {
-    if (selectedEdge) {
-      setActiveTab("edgeActions"); // Show the "Actions" tab when an edge is selected
-    } else if (activeTab === "edgeActions") {
-      setActiveTab("datasets"); // Reset to "Datasets" if no edge is selected
-    }
-  }, [selectedEdge]);
+  const renderActionComponent = () => {
+    if (!selectedAction?.component) return null;
 
-  // Handle action click
-  const handleActionClick = (action) => {
-    if (selectedEdge) {
-      const updatedEdge = { ...selectedEdge, label: `Action: ${action}` };
-      setEdges((prevEdges) =>
-        prevEdges.map((edge) =>
-          edge.id === selectedEdge.id ? updatedEdge : edge
-        )
-      );
-    }
+    const ActionComponent = selectedAction.component;
+    return (
+      <div className={styles.actionComponentContainer}>
+        <ActionComponent
+          nodeId={selectedNode.id}
+          isHidden={isHidden}
+          // Add other props needed by your action components
+        />
+      </div>
+    );
   };
 
-  // Render list of items (datasets or results)
   const renderItems = (items) => (
     <div className={styles.itemsContainer}>
       {items.length === 0 ? (
@@ -97,125 +130,135 @@ const RightSideBar = ({
     </div>
   );
 
-  // Render action options when an edge is selected
-  const renderActionOptions = () => (
-    <div className={styles.actionOptions}>
-      <div
-        className={styles.actionOption}
-        onClick={() => handleActionClick("Concatenate")}
-      >
-        Concatenate
-      </div>
-      <div
-        className={styles.actionOption}
-        onClick={() => handleActionClick("Split")}
-      >
-        Split
-      </div>
-      <div
-        className={styles.actionOption}
-        onClick={() => handleActionClick("Merge")}
-      >
-        Merge
-      </div>
-      <div
-        className={styles.actionOption}
-        onClick={() => handleActionClick("Standardize")}
-      >
-        Standardize
-      </div>
-      <div
-        className={styles.actionOption}
-        onClick={() => handleActionClick("Convert to CSV")}
-      >
-        Convert to CSV
-      </div>
-      <div
-        className={styles.actionOption}
-        onClick={() => handleActionClick("Convert to XML/JSON")}
-      >
-        Convert to XML/JSON
-      </div>
-    </div>
-  );
-
-  // Render Add Node tab
   const renderAddNodeTab = () => (
     <div className={styles.addNodeContainer}>
-      <input
-        type="text"
-        placeholder="Enter node name"
-        value={newNodeName}
-        onChange={(e) => setNewNodeName(e.target.value)}
-        className={styles.nodeInput}
-      />
-      {newNodeName && (
-        <button
-          className={styles.addNodeButton}
-          onClick={() => {
-            if (onAddNodeOutput)
-              onAddNodeOutput({ id: Date.now().toString(), name: newNodeName });
-            setNewNodeName(""); // Clear input after adding the node
-          }}
-        >
-          Add Node
-        </button>
+      <select
+        className={styles.nodeTypeSelect}
+        value={nodeType}
+        onChange={(e) => setNodeType(e.target.value)}
+      >
+        <option value="regular">Regular Node</option>
+        <option value="action">Action Node</option>
+      </select>
+
+      {nodeType === "regular" ? (
+        <>
+          <input
+            type="text"
+            placeholder="Enter node name"
+            value={newNodeName}
+            onChange={(e) => setNewNodeName(e.target.value)}
+            className={styles.nodeInput}
+          />
+          {newNodeName && (
+            <button
+              className={styles.addNodeButton}
+              onClick={() => {
+                if (onAddNodeOutput) {
+                  onAddNodeOutput({
+                    id: Date.now().toString(),
+                    name: newNodeName,
+                  });
+                }
+                setNewNodeName("");
+              }}
+            >
+              Add Node
+            </button>
+          )}
+        </>
+      ) : (
+        <div className={styles.actionNodeSelect}>
+          <select
+            className={styles.actionSelect}
+            onChange={(e) => {
+              const selectedAction = actionOptions.find(
+                (action) => action.id === e.target.value
+              );
+              if (selectedAction) {
+                onAddNodeOutput({
+                  id: Date.now().toString(),
+                  name: selectedAction.name,
+                  type: "action",
+                  actionType: selectedAction.id,
+                  style: {
+                    border: "2px solid blue",
+                    borderRadius: "4px",
+                    padding: "10px",
+                    backgroundColor: "#f8f9fa",
+                  },
+                });
+              }
+            }}
+          >
+            <option value="">Select Action</option>
+            {actionOptions.map((action) => (
+              <option key={action.id} value={action.id}>
+                {action.name}
+              </option>
+            ))}
+          </select>
+        </div>
       )}
     </div>
   );
 
+  if (isActionNode) {
+    // If an action node is selected, display the action header with the activeTab as "action"
+    return (
+      <div className={styles.sidebar}>
+        <div className={styles.actionHeader}>
+          {activeTab === "action" && (
+            <div
+              className={styles.backButton}
+              onClick={() => {
+                setActiveTab("datasets"); // Go back to the datasets tab
+                setSelectedItem(null); // Clear the selected action
+              }}
+            >
+              Back
+            </div>
+          )}
+          <div
+            className={`${styles.tab} ${activeTab === "action" ? styles.tab : ""}`}
+            onClick={() => setActiveTab("action")}
+          >
+            {selectedNode.data.label}
+          </div>
+        </div>
+        {renderActionComponent()}
+      </div>
+    );
+  }
+
+  // Default behavior when no action node is selected
   return (
     <div className={styles.sidebar}>
       <div className={styles.tabHeader}>
-        {/* Display tabs dynamically based on edge selection */}
-        {activeTab !== "edgeActions" && (
-          <>
-            <div
-              className={`${styles.tab} ${
-                activeTab === "datasets" ? styles.activeTab : ""
-              }`}
-              onClick={() => setActiveTab("datasets")}
-            >
-              Datasets
-            </div>
-            <div
-              className={`${styles.tab} ${
-                activeTab === "results" ? styles.activeTab : ""
-              }`}
-              onClick={() => setActiveTab("results")}
-            >
-              Results
-            </div>
-            <div
-              className={`${styles.tab} ${
-                activeTab === "addNode" ? styles.activeTab : ""
-              }`}
-              onClick={() => setActiveTab("addNode")}
-            >
-              Add Node
-            </div>
-          </>
-        )}
-
-        {/* Display Actions tab when an edge is selected */}
-        {selectedEdge && (
-          <div
-            className={`${styles.tab} ${
-              activeTab === "edgeActions" ? styles.activeTab : ""
-            }`}
-            onClick={() => setActiveTab("edgeActions")}
-          >
-            Actions
-          </div>
-        )}
+        <div
+          className={`${styles.tab} ${activeTab === "datasets" ? styles.activeTab : ""}`}
+          onClick={() => setActiveTab("datasets")}
+        >
+          Datasets
+        </div>
+        <div
+          className={`${styles.tab} ${activeTab === "results" ? styles.activeTab : ""}`}
+          onClick={() => setActiveTab("results")}
+        >
+          Results
+        </div>
+        <div
+          className={`${styles.tab} ${activeTab === "addNode" ? styles.activeTab : ""}`}
+          onClick={() => setActiveTab("addNode")}
+        >
+          Add Node
+        </div>
       </div>
 
       <div className={styles.tabContent}>
-        {/* Show content based on the active tab */}
         {activeTab === "datasets" && renderItems(datasets)}
         {activeTab === "results" && renderItems(results)}
         {activeTab === "addNode" && renderAddNodeTab()}
-        {activeTab === "edgeActions" && renderActionOptions()}
       </div>
     </div>
   );

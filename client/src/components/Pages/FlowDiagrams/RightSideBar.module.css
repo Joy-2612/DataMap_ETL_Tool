@@ -14,20 +14,20 @@
 /* Handle responsiveness for small screens */
 @media (max-width: 768px) {
   .sidebar {
-    width: 200px; /* Reduce sidebar width on smaller screens */
+    width: 200px;
   }
 }
 
 /* Handle very small screens (for mobile) */
 @media (max-width: 480px) {
   .sidebar {
-    width: 100%; /* Make the sidebar full width on small devices */
+    width: 100%;
     margin-right: 0;
-    box-shadow: none; /* Optional: Remove shadow on small screens */
+    box-shadow: none;
   }
 
   .tab {
-    font-size: 0.8rem; /* Smaller font size for tabs */
+    font-size: 0.8rem;
   }
 
   .tabContent {
@@ -35,15 +35,15 @@
   }
 
   .draggableItem {
-    font-size: 0.8rem; /* Smaller font size for items */
+    font-size: 0.8rem;
   }
 
   .actionOption {
-    font-size: 0.8rem; /* Smaller font size for action options */
+    font-size: 0.8rem;
   }
 
-  .addNodeButton {
-    font-size: 0.8rem; /* Smaller button text */
+  .button {
+    font-size: 0.8rem;
   }
 }
 
@@ -53,7 +53,7 @@
   background-color: #f4f4f4;
   border-bottom: 1px solid #ddd;
   border-radius: 8px 8px 0 0;
-  flex-wrap: wrap; /* Allows tabs to wrap to the next line on small screens */
+  flex-wrap: wrap;
 }
 
 .tab {
@@ -91,7 +91,76 @@
   border-radius: 0 0 8px 8px;
 }
 
-/* Styling for draggable items and empty state */
+/* Collapsible Section Styling */
+.collapsibleSection {
+  margin: 10px 0;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.collapsibleHeader {
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  background-color: #e0e0e0;
+  transition: background-color 0.3s;
+}
+
+.headerText {
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.collapsibleContent {
+  padding: 10px;
+  background-color: white;
+}
+
+/* Input and Button Styling */
+.input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.button {
+  width: 100%;
+  padding: 8px;
+  background-color: #333;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.button:hover {
+  background-color: #444;
+}
+
+/* Action Options Styling */
+.actionOption {
+  padding: 8px;
+  margin: 4px 0;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+  background-color: #ffffff;
+  border: 1px solid black;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.actionOption:hover {
+  background-color: #f0f0f0;
+}
+
+/* Draggable Items Styling */
 .itemsContainer {
   display: flex;
   flex-direction: column;
@@ -132,31 +201,100 @@
   font-size: 0.9rem;
 }
 
-/* Action Options Styling */
-.actionOptions {
+/* Icon Styling */
+.chevronIcon {
+  min-width: 20px;
+  min-height: 20px;
+}
+
+/* Add Node Container */
+.addNodeContainer {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.actionHeaderContainer {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background-color: #f4f4f4;
+  padding: 4px;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  margin-right: 4px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.backButton:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.actionComponentContainer {
+  height: 100%;
+  overflow-y: auto;
   padding: 10px;
 }
 
-.actionOption {
-  padding: 8px;
-  background-color: #ffffff;
+/* Update existing tab styles to accommodate action header */
+.tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  text-align: center;
   cursor: pointer;
-  border-radius: 4px;
-  border: 1px solid black;
   font-weight: bold;
   font-size: 0.9rem;
   transition: all 0.3s ease;
+  background-color: white;
+  border-radius: 4px;
+  margin: 4px;
 }
 
-.actionOption:hover {
+.tab:hover {
+  background-color: #000000;
+  color: rgb(255, 255, 255);
+}
+
+.activeTab {
   background-color: #333;
   color: #fff;
 }
+/* Other styles remain unchanged */
+/* Other styles remain unchanged */
 
-/* Add Node button */
-.addNodeButton {
-  margin-top: 5px;
+/* Back button style */
+.backButton {
+  padding: 5px 10px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  color: #007bff;
+  transition: background-color 0.3s;
 }
+
+.backButton:hover {
+  background-color: #f1f1f1;
+}
+
+/* Concatenate header style */
+ .actionHeader {
+  display: flex;
+}
+
+
+/* .actionHeader:hover {
+  background-color: black;
+  color: white;
+}  */
