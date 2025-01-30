@@ -7,7 +7,7 @@ import Dropdown from "../../UI/Dropdown/Dropdown";
 import DataTable from "../../UI/DataTable/DataTable";
 import styles from "./Concatenate.module.css";
 
-const Concatenate = () => {
+const Concatenate =  ({ isHidden }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [outputFileName, setOutputFileName] = useState("");
   const [description, setDescription] = useState("");
@@ -176,7 +176,8 @@ const Concatenate = () => {
 
   return (
     <div className={styles.concatenateContainer}>
-      <div className={styles.title}>Concatenate Columns</div>
+      {!isHidden && (<div className={styles.title}>Concatenate Columns</div>)}
+      
       <div className={styles.formGroup}>
         <div className={styles.labelContainer}>
           {dataset1 && <label>Dataset</label>}
