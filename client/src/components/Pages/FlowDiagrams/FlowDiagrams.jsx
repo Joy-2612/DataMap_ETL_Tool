@@ -12,15 +12,7 @@ import RightSideBar from "./RightSideBar";
 import styles from "./FlowDiagrams.module.css";
 import "reactflow/dist/style.css";
 
-const initialNodes = [
-  {
-    id: "1",
-    type: "input",
-    data: { label: "Start Node" },
-    position: { x: 250, y: 0 },
-    style: { fontWeight: "bold" },
-  },
-];
+const initialNodes = [];
 
 const initialEdges = [];
 
@@ -35,11 +27,13 @@ const FlowDiagrams = () => {
 
   const onConnect = useCallback(
     (params) => {
-      const targetNode = nodes.find(node => node.id === params.target);
-      if (targetNode?.data?.type === 'action') {
+      const targetNode = nodes.find((node) => node.id === params.target);
+      if (targetNode?.data?.type === "action") {
         setEdges((eds) => addEdge(params, eds));
       } else {
-        const hasExistingConnection = edges.some(edge => edge.target === params.target);
+        const hasExistingConnection = edges.some(
+          (edge) => edge.target === params.target
+        );
         if (!hasExistingConnection) {
           setEdges((eds) => addEdge(params, eds));
         }
@@ -105,24 +99,27 @@ const FlowDiagrams = () => {
 
   const handleAddNodeOutput = (item) => {
     const newNode = {
-      id: `${item.type || 'output'}-${item.id}-${Date.now()}`,
+      id: `${item.type || "output"}-${item.id}-${Date.now()}`,
       type: "default",
       position: { x: Math.random() * 200, y: Math.random() * 200 },
-      data: { 
+      data: {
         label: item.name,
-        type: item.type || 'output',
-        actionType: item.actionType // Store the specific action type
+        type: item.type || "output",
+        actionType: item.actionType, // Store the specific action type
       },
-      style: item.type === 'action' ? {
-        ...item.style,
-        minWidth: '150px',
-        minHeight: '50px',
-      } : {
-        border: "1px solid red",
-        boxShadow: "0 0 2px red",
-        fontWeight: "bold",
-        padding: "10px",
-      },
+      style:
+        item.type === "action"
+          ? {
+              ...item.style,
+              minWidth: "150px",
+              minHeight: "50px",
+            }
+          : {
+              border: "1px solid red",
+              boxShadow: "0 0 2px red",
+              fontWeight: "bold",
+              padding: "10px",
+            },
     };
     setNodes((nds) => nds.concat(newNode));
   };
@@ -138,7 +135,6 @@ const FlowDiagrams = () => {
     setSelectedEdge(null);
     setSelectedNode(null);
     setSidebarToggle(true);
-    
   };
 
   const onNodeClick = (event, node) => {

@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "csvtojson": "^2.0.10",
-    "zustand": "^5.0.3"
-  }
-}

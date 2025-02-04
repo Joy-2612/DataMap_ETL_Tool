@@ -23,6 +23,9 @@ const RightSideBar = ({
   const [nodeType, setNodeType] = useState("regular");
   const [isHidden, setIsHidden] = useState(true);
 
+  // NEW: Control modal visibility
+  const [showModal, setShowModal] = useState(false);
+
   const actionOptions = [
     {
       id: "concatenate",
@@ -52,6 +55,22 @@ const RightSideBar = ({
     },
   ];
 
+  // Determine if the currently selected node is an action node
+  const isActionNode = selectedNode?.data?.type === "action";
+  // Find which action node it is
+  const selectedAction = isActionNode
+    ? actionOptions.find((action) => action.id === selectedNode.data.actionType)
+    : null;
+
+  // Whenever the selectedNode changes, decide whether to show the modal
+  useEffect(() => {
+    if (isActionNode && selectedAction) {
+      setShowModal(true);
+    } else {
+      setShowModal(false);
+    }
+  }, [isActionNode, selectedAction]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -75,11 +94,6 @@ const RightSideBar = ({
     }
   }, [userId]);
 
-  const isActionNode = selectedNode?.data?.type === "action";
-  const selectedAction = isActionNode
-    ? actionOptions.find((action) => action.id === selectedNode.data.actionType)
-    : null;
-
   const handleDragStart = (event, item) => {
     event.dataTransfer.setData("text/plain", item.id);
     event.dataTransfer.setData("text/name", item.name);
@@ -92,18 +106,17 @@ const RightSideBar = ({
     }
   };
 
+  // Render the correct action component in the modal
   const renderActionComponent = () => {
     if (!selectedAction?.component) return null;
 
     const ActionComponent = selectedAction.component;
     return (
-      <div className={styles.actionComponentContainer}>
-        <ActionComponent
-          nodeId={selectedNode.id}
-          isHidden={isHidden}
-          // Add other props needed by your action components
-        />
-      </div>
+      <ActionComponent
+        nodeId={selectedNode.id}
+        isHidden={isHidden}
+        // Pass additional props if needed
+      />
     );
   };
 
@@ -203,52 +216,49 @@ const RightSideBar = ({
     </div>
   );
 
-  if (isActionNode) {
-    // If an action node is selected, display the action header with the activeTab as "action"
-    return (
-      <div className={styles.sidebar}>
-        <div className={styles.actionHeader}>
-          {activeTab === "action" && (
-            <div
-              className={styles.backButton}
-              onClick={() => {
-                setActiveTab("datasets"); // Go back to the datasets tab
-                setSelectedItem(null); // Clear the selected action
-              }}
-            >
-              Back
-            </div>
-          )}
-          <div
-            className={`${styles.tab} ${activeTab === "action" ? styles.tab : ""}`}
-            onClick={() => setActiveTab("action")}
-          >
-            {selectedNode.data.label}
-          </div>
-        </div>
-        {renderActionComponent()}
-      </div>
-    );
-  }
-
-  // Default behavior when no action node is selected
   return (
     <div className={styles.sidebar}>
+      {/* Modal for action forms */}
+      {showModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            {/* Optional modal header */}
+            <div className={styles.modalHeader}>
+              <h3>{selectedAction?.name}</h3>
+              <button
+                className={styles.closeButton}
+                onClick={() => setShowModal(false)}
+              >
+                &times;
+              </button>
+            </div>
+            {/* Render the action form inside the modal */}
+            <div className={styles.modalBody}>{renderActionComponent()}</div>
+          </div>
+        </div>
+      )}
+
       <div className={styles.tabHeader}>
         <div
-          className={`${styles.tab} ${activeTab === "datasets" ? styles.activeTab : ""}`}
+          className={`${styles.tab} ${
+            activeTab === "datasets" ? styles.activeTab : ""
+          }`}
           onClick={() => setActiveTab("datasets")}
         >
           Datasets
         </div>
         <div
-          className={`${styles.tab} ${activeTab === "results" ? styles.activeTab : ""}`}
+          className={`${styles.tab} ${
+            activeTab === "results" ? styles.activeTab : ""
+          }`}
           onClick={() => setActiveTab("results")}
         >
           Results
         </div>
         <div
-          className={`${styles.tab} ${activeTab === "addNode" ? styles.activeTab : ""}`}
+          className={`${styles.tab} ${
+            activeTab === "addNode" ? styles.activeTab : ""
+          }`}
           onClick={() => setActiveTab("addNode")}
         >
           Add Node
