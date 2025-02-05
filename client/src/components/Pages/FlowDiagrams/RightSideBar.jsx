@@ -1,41 +1,54 @@
 import React, { useState, useEffect } from "react";
 import styles from "./RightSideBar.module.css";
-import { FaDatabase, FaPlus, FaChevronDown, FaChevronRight, FaArrowLeft } from "react-icons/fa";
+import {
+  FaDatabase,
+  FaPlus,
+  FaChevronDown,
+  FaChevronRight,
+  FaArrowLeft,
+} from "react-icons/fa";
 import SidebarConcatenate from "./SidebarActions/SidebarConcatenate";
 import SidebarSplit from "./SidebarActions/SidebarSplit";
 import SidebarStandardize from "./SidebarActions/SidebarStandardize";
 import SidebarMerge from "./SidebarActions/SidebarMerge";
 
-const RightSideBar = ({
-  onAddNode,
-  onAddNodeOutput,
-  userId,
-  selectedNode,
-}) => {
+const RightSideBar = ({ onAddNode, onAddNodeOutput, userId, selectedNode }) => {
   const [datasets, setDatasets] = useState([]);
   const [results, setResults] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [newNodeName, setNewNodeName] = useState("");
   const [activeTab, setActiveTab] = useState("datasets");
-  const [isLoadedOpen, setIsLoadedOpen] = useState(true);
-  const [isResultsOpen, setIsResultsOpen] = useState(true);
+  const [isLoadedOpen, setIsLoadedOpen] = useState(false);
+  const [isResultsOpen, setIsResultsOpen] = useState(false);
   const [isAddNodeOpen, setIsAddNodeOpen] = useState(true);
   const [isActionsOpen, setIsActionsOpen] = useState(true);
   const [selectedAction, setSelectedAction] = useState(null);
   const [showParametersView, setShowParametersView] = useState(false);
 
   const actionOptions = [
-    { id: "concatenate", name: "Concatenate", color: "blue", component: SidebarConcatenate },
+    {
+      id: "concatenate",
+      name: "Concatenate",
+      color: "blue",
+      component: SidebarConcatenate,
+    },
     { id: "split", name: "Split", color: "blue", component: SidebarSplit },
     { id: "merge", name: "Merge", color: "blue", component: SidebarMerge },
-    { id: "standardize", name: "Standardize", color: "blue", component: SidebarStandardize }
+    {
+      id: "standardize",
+      name: "Standardize",
+      color: "blue",
+      component: SidebarStandardize,
+    },
   ];
 
   // Effect to handle selected node from flow diagram
   useEffect(() => {
     if (selectedNode) {
-      if (selectedNode.data?.type === 'action') {
-        const action = actionOptions.find(opt => opt.id === selectedNode.data.actionType);
+      if (selectedNode.data?.type === "action") {
+        const action = actionOptions.find(
+          (opt) => opt.id === selectedNode.data.actionType
+        );
         if (action) {
           setSelectedAction(action);
           setShowParametersView(true);
@@ -67,21 +80,22 @@ const RightSideBar = ({
     if (userId) {
       fetchData();
     }
-  }, [userId],[selectedNode]);
-  
-    
-    const handleDragStart = (event, item) => {
-        event.dataTransfer.setData("text/plain", item.id);
-        event.dataTransfer.setData("text/name", item.name);
-        event.dataTransfer.effectAllowed = "move";
-      };
-    
-      const handleDoubleClick = (item) => {
-        if (onAddNode) {
-          onAddNode(item);
-        }
-      };
-    
+  }, [selectedNode]);
+
+  const handleDragStart = (event, item) => {
+    console.log("Dragging item : ", item);
+    event.dataTransfer.setData("text/id", item._id);
+    event.dataTransfer.setData("text/name", item.name);
+    event.dataTransfer.setData("text/size", item.size);
+    event.dataTransfer.setData("text/type", item.type);
+    event.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDoubleClick = (item) => {
+    if (onAddNode) {
+      onAddNode(item);
+    }
+  };
 
   // Rest of the fetch data useEffect remains the same...
 
@@ -101,7 +115,7 @@ const RightSideBar = ({
         fontWeight: "bold",
         overflow: "hidden",
         textOverflow: "ellipsis",
-        whiteSpace: "nowrap"
+        whiteSpace: "nowrap",
       },
     });
   };
@@ -111,8 +125,7 @@ const RightSideBar = ({
     setSelectedAction(null);
   };
 
-
-    const renderItems = (items) => (
+  const renderItems = (items) => (
     <div className={styles.itemsContainer}>
       {items.length === 0 ? (
         <div className={styles.emptyState}>No items found</div>
@@ -137,8 +150,8 @@ const RightSideBar = ({
 
   const renderAddNodeAccordion = () => (
     <div className={styles.accordion}>
-      <div 
-        className={styles.accordionHeader} 
+      <div
+        className={styles.accordionHeader}
         onClick={() => setIsAddNodeOpen(!isAddNodeOpen)}
       >
         Custom Node {isAddNodeOpen ? <FaChevronDown /> : <FaChevronRight />}
@@ -156,7 +169,10 @@ const RightSideBar = ({
             className={styles.addNodeButton}
             onClick={() => {
               if (newNodeName && onAddNodeOutput) {
-                onAddNodeOutput({ id: Date.now().toString(), name: newNodeName });
+                onAddNodeOutput({
+                  id: Date.now().toString(),
+                  name: newNodeName,
+                });
                 setNewNodeName("");
               }
             }}
@@ -170,8 +186,8 @@ const RightSideBar = ({
 
   const renderActionsAccordion = () => (
     <div className={styles.accordion}>
-      <div 
-        className={styles.accordionHeader} 
+      <div
+        className={styles.accordionHeader}
         onClick={() => setIsActionsOpen(!isActionsOpen)}
       >
         Action Nodes {isActionsOpen ? <FaChevronDown /> : <FaChevronRight />}
@@ -194,11 +210,11 @@ const RightSideBar = ({
     </div>
   );
 
-
   const renderParametersView = () => {
+    console.log("Selected : ", selectedAction);
     if (!selectedAction?.component) return null;
     const ActionComponent = selectedAction.component;
-    
+
     return (
       <div className={styles.parametersView}>
         <div className={styles.parametersHeader}>
@@ -206,8 +222,7 @@ const RightSideBar = ({
             <FaArrowLeft />
           </button>
           <div className={styles.parametersTitle}>
-          <h2 >{selectedAction.name}</h2>
-
+            <h2>{selectedAction.name}</h2>
           </div>
         </div>
         <div className={styles.parametersContent}>
@@ -222,13 +237,17 @@ const RightSideBar = ({
     <>
       <div className={styles.tabHeader}>
         <div
-          className={`${styles.tab} ${activeTab === "datasets" ? styles.activeTab : ""}`}
+          className={`${styles.tab} ${
+            activeTab === "datasets" ? styles.activeTab : ""
+          }`}
           onClick={() => setActiveTab("datasets")}
         >
           <FaDatabase title="Datasets" className={styles.icon} />
         </div>
         <div
-          className={`${styles.tab} ${activeTab === "addNode" ? styles.activeTab : ""}`}
+          className={`${styles.tab} ${
+            activeTab === "addNode" ? styles.activeTab : ""
+          }`}
           onClick={() => setActiveTab("addNode")}
         >
           <FaPlus title="Add Node" className={styles.icon} />
@@ -239,14 +258,22 @@ const RightSideBar = ({
         {activeTab === "datasets" && (
           <>
             <div className={styles.accordion}>
-              <div className={styles.accordionHeader} onClick={() => setIsLoadedOpen(!isLoadedOpen)}>
-                Loaded Datasets {isLoadedOpen ? <FaChevronDown /> : <FaChevronRight />}
+              <div
+                className={styles.accordionHeader}
+                onClick={() => setIsLoadedOpen(!isLoadedOpen)}
+              >
+                Loaded Datasets{" "}
+                {isLoadedOpen ? <FaChevronDown /> : <FaChevronRight />}
               </div>
               {isLoadedOpen && renderItems(datasets)}
             </div>
             <div className={styles.accordion}>
-              <div className={styles.accordionHeader} onClick={() => setIsResultsOpen(!isResultsOpen)}>
-                Result Datasets {isResultsOpen ? <FaChevronDown /> : <FaChevronRight />}
+              <div
+                className={styles.accordionHeader}
+                onClick={() => setIsResultsOpen(!isResultsOpen)}
+              >
+                Result Datasets{" "}
+                {isResultsOpen ? <FaChevronDown /> : <FaChevronRight />}
               </div>
               {isResultsOpen && renderItems(results)}
             </div>

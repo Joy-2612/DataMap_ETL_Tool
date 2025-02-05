@@ -1,4 +1,4 @@
- .container {
+.container {
   display: flex;
   height: 500px;
   width: 100%;
@@ -6,8 +6,13 @@
 
 .flowContainer {
   flex: 1;
+  height: 560px;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 5px;
 }
 
+/* Example button classes (existing or optional) */
 .addNodeButton {
   margin-bottom: 10px;
   padding: 10px 20px;
@@ -28,11 +33,3 @@
 .addNodeButton:active {
   background-color: #003f7f;
 }
-
-.flowContainer {
-  height: 560px;
-  width: 100%;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-  
