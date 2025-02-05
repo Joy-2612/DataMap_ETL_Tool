@@ -1,77 +1,52 @@
 import React, { useState, useEffect } from "react";
 import styles from "./RightSideBar.module.css";
-import Concatenate from "../../Features/Concatenate/Concatenate";
-import Split from "../../Features/Split/Split";
-import Standardize from "../../Features/Standardize/Standardize";
-import Merge from "../../Features/Merge/Merge";
-import Convert from "../../Features/Convert/Convert";
-import ConvertBack from "../../Features/ConvertBack/ConvertBack";
+import { FaDatabase, FaPlus, FaChevronDown, FaChevronRight, FaArrowLeft } from "react-icons/fa";
+import SidebarConcatenate from "./SidebarActions/SidebarConcatenate";
+import SidebarSplit from "./SidebarActions/SidebarSplit";
+import SidebarStandardize from "./SidebarActions/SidebarStandardize";
+import SidebarMerge from "./SidebarActions/SidebarMerge";
 
 const RightSideBar = ({
   onAddNode,
   onAddNodeOutput,
   userId,
-  selectedEdge,
   selectedNode,
-  setEdges,
 }) => {
   const [datasets, setDatasets] = useState([]);
   const [results, setResults] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [newNodeName, setNewNodeName] = useState("");
-  const [activeTab, setActiveTab] = useState("datasets"); // Default to "datasets"
-  const [nodeType, setNodeType] = useState("regular");
-  const [isHidden, setIsHidden] = useState(true);
-
-  // NEW: Control modal visibility
-  const [showModal, setShowModal] = useState(false);
+  const [activeTab, setActiveTab] = useState("datasets");
+  const [isLoadedOpen, setIsLoadedOpen] = useState(true);
+  const [isResultsOpen, setIsResultsOpen] = useState(true);
+  const [isAddNodeOpen, setIsAddNodeOpen] = useState(true);
+  const [isActionsOpen, setIsActionsOpen] = useState(true);
+  const [selectedAction, setSelectedAction] = useState(null);
+  const [showParametersView, setShowParametersView] = useState(false);
 
   const actionOptions = [
-    {
-      id: "concatenate",
-      name: "Concatenate",
-      color: "blue",
-      component: Concatenate,
-    },
-    { id: "split", name: "Split", color: "blue", component: Split },
-    { id: "merge", name: "Merge", color: "blue", component: Merge },
-    {
-      id: "standardize",
-      name: "Standardize",
-      color: "blue",
-      component: Standardize,
-    },
-    {
-      id: "convertCSV",
-      name: "Convert to CSV",
-      color: "blue",
-      component: Convert,
-    },
-    {
-      id: "convertXML",
-      name: "Convert to XML/JSON",
-      color: "blue",
-      component: ConvertBack,
-    },
+    { id: "concatenate", name: "Concatenate", color: "blue", component: SidebarConcatenate },
+    { id: "split", name: "Split", color: "blue", component: SidebarSplit },
+    { id: "merge", name: "Merge", color: "blue", component: SidebarMerge },
+    { id: "standardize", name: "Standardize", color: "blue", component: SidebarStandardize }
   ];
 
-  // Determine if the currently selected node is an action node
-  const isActionNode = selectedNode?.data?.type === "action";
-  // Find which action node it is
-  const selectedAction = isActionNode
-    ? actionOptions.find((action) => action.id === selectedNode.data.actionType)
-    : null;
-
-  // Whenever the selectedNode changes, decide whether to show the modal
+  // Effect to handle selected node from flow diagram
   useEffect(() => {
-    if (isActionNode && selectedAction) {
-      setShowModal(true);
-    } else {
-      setShowModal(false);
+    if (selectedNode) {
+      if (selectedNode.data?.type === 'action') {
+        const action = actionOptions.find(opt => opt.id === selectedNode.data.actionType);
+        if (action) {
+          setSelectedAction(action);
+          setShowParametersView(true);
+        }
+      } else {
+        setSelectedAction(null);
+        setShowParametersView(false);
+        setActiveTab("datasets");
+      }
     }
-  }, [isActionNode, selectedAction]);
 
-  useEffect(() => {
     const fetchData = async () => {
       try {
         const [datasetsResponse, resultsResponse] = await Promise.all([
@@ -92,35 +67,52 @@ const RightSideBar = ({
     if (userId) {
       fetchData();
     }
-  }, [userId]);
+  }, [userId],[selectedNode]);
+  
+    
+    const handleDragStart = (event, item) => {
+        event.dataTransfer.setData("text/plain", item.id);
+        event.dataTransfer.setData("text/name", item.name);
+        event.dataTransfer.effectAllowed = "move";
+      };
+    
+      const handleDoubleClick = (item) => {
+        if (onAddNode) {
+          onAddNode(item);
+        }
+      };
+    
 
-  const handleDragStart = (event, item) => {
-    event.dataTransfer.setData("text/plain", item.id);
-    event.dataTransfer.setData("text/name", item.name);
-    event.dataTransfer.effectAllowed = "move";
+  // Rest of the fetch data useEffect remains the same...
+
+  const handleActionSelect = (action) => {
+    setSelectedAction(action);
+    setShowParametersView(true);
+    onAddNodeOutput({
+      id: Date.now().toString(),
+      name: action.name,
+      type: "action",
+      actionType: action.id,
+      style: {
+        border: "2px solid blue",
+        padding: "15px",
+        borderRadius: "4px",
+        backgroundColor: "#f8f9fa",
+        fontWeight: "bold",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap"
+      },
+    });
   };
 
-  const handleDoubleClick = (item) => {
-    if (onAddNode) {
-      onAddNode(item);
-    }
+  const handleBackClick = () => {
+    setShowParametersView(false);
+    setSelectedAction(null);
   };
 
-  // Render the correct action component in the modal
-  const renderActionComponent = () => {
-    if (!selectedAction?.component) return null;
 
-    const ActionComponent = selectedAction.component;
-    return (
-      <ActionComponent
-        nodeId={selectedNode.id}
-        isHidden={isHidden}
-        // Pass additional props if needed
-      />
-    );
-  };
-
-  const renderItems = (items) => (
+    const renderItems = (items) => (
     <div className={styles.itemsContainer}>
       {items.length === 0 ? (
         <div className={styles.emptyState}>No items found</div>
@@ -143,19 +135,16 @@ const RightSideBar = ({
     </div>
   );
 
-  const renderAddNodeTab = () => (
-    <div className={styles.addNodeContainer}>
-      <select
-        className={styles.nodeTypeSelect}
-        value={nodeType}
-        onChange={(e) => setNodeType(e.target.value)}
+  const renderAddNodeAccordion = () => (
+    <div className={styles.accordion}>
+      <div 
+        className={styles.accordionHeader} 
+        onClick={() => setIsAddNodeOpen(!isAddNodeOpen)}
       >
-        <option value="regular">Regular Node</option>
-        <option value="action">Action Node</option>
-      </select>
-
-      {nodeType === "regular" ? (
-        <>
+        Custom Node {isAddNodeOpen ? <FaChevronDown /> : <FaChevronRight />}
+      </div>
+      {isAddNodeOpen && (
+        <div className={styles.accordionContent}>
           <input
             type="text"
             placeholder="Enter node name"
@@ -163,113 +152,120 @@ const RightSideBar = ({
             onChange={(e) => setNewNodeName(e.target.value)}
             className={styles.nodeInput}
           />
-          {newNodeName && (
-            <button
-              className={styles.addNodeButton}
-              onClick={() => {
-                if (onAddNodeOutput) {
-                  onAddNodeOutput({
-                    id: Date.now().toString(),
-                    name: newNodeName,
-                  });
-                }
+          <button
+            className={styles.addNodeButton}
+            onClick={() => {
+              if (newNodeName && onAddNodeOutput) {
+                onAddNodeOutput({ id: Date.now().toString(), name: newNodeName });
                 setNewNodeName("");
-              }}
-            >
-              Add Node
-            </button>
-          )}
-        </>
-      ) : (
-        <div className={styles.actionNodeSelect}>
-          <select
-            className={styles.actionSelect}
-            onChange={(e) => {
-              const selectedAction = actionOptions.find(
-                (action) => action.id === e.target.value
-              );
-              if (selectedAction) {
-                onAddNodeOutput({
-                  id: Date.now().toString(),
-                  name: selectedAction.name,
-                  type: "action",
-                  actionType: selectedAction.id,
-                  style: {
-                    border: "2px solid blue",
-                    borderRadius: "4px",
-                    padding: "10px",
-                    backgroundColor: "#f8f9fa",
-                  },
-                });
               }
             }}
           >
-            <option value="">Select Action</option>
-            {actionOptions.map((action) => (
-              <option key={action.id} value={action.id}>
-                {action.name}
-              </option>
-            ))}
-          </select>
+            Add Node
+          </button>
         </div>
       )}
     </div>
   );
 
-  return (
-    <div className={styles.sidebar}>
-      {/* Modal for action forms */}
-      {showModal && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent}>
-            {/* Optional modal header */}
-            <div className={styles.modalHeader}>
-              <h3>{selectedAction?.name}</h3>
-              <button
-                className={styles.closeButton}
-                onClick={() => setShowModal(false)}
-              >
-                &times;
-              </button>
+  const renderActionsAccordion = () => (
+    <div className={styles.accordion}>
+      <div 
+        className={styles.accordionHeader} 
+        onClick={() => setIsActionsOpen(!isActionsOpen)}
+      >
+        Action Nodes {isActionsOpen ? <FaChevronDown /> : <FaChevronRight />}
+      </div>
+      {isActionsOpen && (
+        <div className={styles.accordionContent}>
+          {actionOptions.map((action) => (
+            <div
+              key={action.id}
+              className={`${styles.actionItem} ${
+                selectedAction?.id === action.id ? styles.selectedAction : ""
+              }`}
+              onClick={() => handleActionSelect(action)}
+            >
+              {action.name}
             </div>
-            {/* Render the action form inside the modal */}
-            <div className={styles.modalBody}>{renderActionComponent()}</div>
-          </div>
+          ))}
         </div>
       )}
+    </div>
+  );
 
+
+  const renderParametersView = () => {
+    if (!selectedAction?.component) return null;
+    const ActionComponent = selectedAction.component;
+    
+    return (
+      <div className={styles.parametersView}>
+        <div className={styles.parametersHeader}>
+          <button onClick={handleBackClick} className={styles.backButton}>
+            <FaArrowLeft />
+          </button>
+          <div className={styles.parametersTitle}>
+          <h2 >{selectedAction.name}</h2>
+
+          </div>
+        </div>
+        <div className={styles.parametersContent}>
+          <ActionComponent nodeId={selectedNode?.id} />
+        </div>
+      </div>
+    );
+  };
+
+  // Regular view content
+  const regularContent = (
+    <>
       <div className={styles.tabHeader}>
         <div
-          className={`${styles.tab} ${
-            activeTab === "datasets" ? styles.activeTab : ""
-          }`}
+          className={`${styles.tab} ${activeTab === "datasets" ? styles.activeTab : ""}`}
           onClick={() => setActiveTab("datasets")}
         >
-          Datasets
+          <FaDatabase title="Datasets" className={styles.icon} />
         </div>
         <div
-          className={`${styles.tab} ${
-            activeTab === "results" ? styles.activeTab : ""
-          }`}
-          onClick={() => setActiveTab("results")}
-        >
-          Results
-        </div>
-        <div
-          className={`${styles.tab} ${
-            activeTab === "addNode" ? styles.activeTab : ""
-          }`}
+          className={`${styles.tab} ${activeTab === "addNode" ? styles.activeTab : ""}`}
           onClick={() => setActiveTab("addNode")}
         >
-          Add Node
+          <FaPlus title="Add Node" className={styles.icon} />
         </div>
       </div>
 
       <div className={styles.tabContent}>
-        {activeTab === "datasets" && renderItems(datasets)}
-        {activeTab === "results" && renderItems(results)}
-        {activeTab === "addNode" && renderAddNodeTab()}
+        {activeTab === "datasets" && (
+          <>
+            <div className={styles.accordion}>
+              <div className={styles.accordionHeader} onClick={() => setIsLoadedOpen(!isLoadedOpen)}>
+                Loaded Datasets {isLoadedOpen ? <FaChevronDown /> : <FaChevronRight />}
+              </div>
+              {isLoadedOpen && renderItems(datasets)}
+            </div>
+            <div className={styles.accordion}>
+              <div className={styles.accordionHeader} onClick={() => setIsResultsOpen(!isResultsOpen)}>
+                Result Datasets {isResultsOpen ? <FaChevronDown /> : <FaChevronRight />}
+              </div>
+              {isResultsOpen && renderItems(results)}
+            </div>
+          </>
+        )}
+
+        {activeTab === "addNode" && (
+          <div className={styles.addNodeSection}>
+            {renderAddNodeAccordion()}
+            {renderActionsAccordion()}
+          </div>
+        )}
       </div>
+    </>
+  );
+
+  return (
+    <div className={styles.sidebar}>
+      {showParametersView ? renderParametersView() : regularContent}
     </div>
   );
 };

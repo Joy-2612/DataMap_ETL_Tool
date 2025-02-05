@@ -1,356 +1,309 @@
-/* Sidebar container styling */
 .sidebar {
-  width: 250px;
-  height: 560px;
-  background-color: white;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin-right: 2px;
-  border-radius: 8px;
-  transition: width 0.3s ease;
+  width: 300px;
+  height: 100%;
+  background-color: #ffffff;
+  border-left: 1px solid #e0e0e0;
+  overflow-y: auto;
+  padding: 8px;
 }
 
-/* Handle responsiveness for small screens */
-@media (max-width: 768px) {
-  .sidebar {
-    width: 200px;
-  }
-}
-
-/* Handle very small screens (for mobile) */
-@media (max-width: 480px) {
-  .sidebar {
-    width: 100%;
-    margin-right: 0;
-    box-shadow: none;
-  }
-
-  .tab {
-    font-size: 0.8rem;
-  }
-
-  .tabContent {
-    padding: 8px;
-  }
-
-  .draggableItem {
-    font-size: 0.8rem;
-  }
-
-  .actionOption {
-    font-size: 0.8rem;
-  }
-
-  .button {
-    font-size: 0.8rem;
-  }
-}
-
-/* Tab Header Styling */
 .tabHeader {
   display: flex;
-  background-color: #f4f4f4;
-  border-bottom: 1px solid #ddd;
-  border-radius: 8px 8px 0 0;
-  flex-wrap: wrap;
+  border-bottom: 1px solid #e0e0e0;
+  border-top: 1px solid #e0e0e0;
+  background-color: #fff;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  gap: 3px;
 }
 
 .tab {
   flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px;
+  padding: 12px;
   text-align: center;
   cursor: pointer;
-  font-weight: bold;
-  font-size: 0.9rem;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   background-color: white;
-  border-radius: 4px;
-  margin: 4px;
+  color: #333;
+  border-radius: 6px;
 }
 
 .tab:hover {
-  background-color: #000000;
-  color: rgb(255, 255, 255);
+  background-color: #000;
+  color: white;
 }
 
 .activeTab {
-  background-color: #333;
-  color: #fff;
+  background-color: #000;
+  color: white;
+  border-top: 1px solid #e0e0e0;
+  border-bottom: 2px solid #000;
+  border-radius:6px
 }
 
-/* Tab Content Styling */
-.tabContent {
-  flex: 1;
-  overflow-y: auto;
-  padding: 10px;
-  background-color: white;
-  border-radius: 0 0 8px 8px;
+.icon {
+  font-size: 1.2rem;
 }
 
-/* Collapsible Section Styling */
-.collapsibleSection {
-  margin: 10px 0;
-  background-color: #f5f5f5;
-  border-radius: 4px;
+.accordion {
+  margin-bottom: 16px;
+  border-radius: 8px;
   overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
 }
 
-.collapsibleHeader {
-  padding: 10px;
+.accordionHeader {
+  padding: 14px 16px;
+  background-color: #f5f5f5;
+  color: #000;
+  cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  cursor: pointer;
-  background-color: #e0e0e0;
-  transition: background-color 0.3s;
-}
-
-.headerText {
-  font-weight: bold;
-  font-size: 0.9rem;
-}
-
-.collapsibleContent {
-  padding: 10px;
-  background-color: white;
-}
-
-/* Input and Button Styling */
-.input {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 10px;
-  border-radius: 4px;
-  border: 1px solid #ddd;
-}
-
-.button {
-  width: 100%;
-  padding: 8px;
-  background-color: #333;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.button:hover {
-  background-color: #444;
-}
-
-/* Action Options Styling */
-.actionOption {
-  padding: 8px;
-  margin: 4px 0;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.3s;
-  background-color: #ffffff;
-  border: 1px solid black;
-  font-weight: bold;
-  font-size: 0.9rem;
-}
-
-.actionOption:hover {
-  background-color: #f0f0f0;
-}
-
-/* Draggable Items Styling */
-.itemsContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.draggableItem {
-  padding: 8px 12px;
-  background-color: #e0e0e0;
-  cursor: grab;
-  border-radius: 12px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-weight: bold;
-  font-size: 0.9rem;
+  font-weight: 500;
+  font-size: 1.1rem;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-weight: bold;
+
 }
 
-.draggableItem:hover {
-  background-color: #333;
-  color: #ffffff;
-  transform: scale(1.02);
+.accordionHeader:hover {
+  background-color: #000;
+  color: white;
 }
 
-.selectedItem {
-  background-color: white;
-  color: #333;
-  border: 1px solid black;
-  border-radius: 4px;
-}
-
-.emptyState {
-  text-align: center;
-  color: #888;
-  padding: 20px;
+.accordionHeader svg {
   font-size: 0.9rem;
+  transition: transform 0.3s ease;
 }
 
-/* Icon Styling */
-.chevronIcon {
-  min-width: 20px;
-  min-height: 20px;
+.accordionContent {
+  padding: 12px;
+  background-color: white;
 }
 
-/* Add Node Container */
-.addNodeContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.actionHeaderContainer {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  background-color: #f4f4f4;
+.itemsContainer {
+  max-height: 300px;
+  overflow-y: auto;
   padding: 4px;
 }
 
-.backButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  margin-right: 4px;
-  border-radius: 4px;
-  transition: background-color 0.3s ease;
-}
-
-.backButton:hover {
-  background-color: rgba(0, 0, 0, 0.1);
-}
-
-.actionComponentContainer {
-  height: 100%;
-  overflow-y: auto;
-  padding: 10px;
-}
-
-/* Update existing tab styles to accommodate action header */
-.tab {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px;
-  text-align: center;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 0.9rem;
-  transition: all 0.3s ease;
-  background-color: white;
-  border-radius: 4px;
-  margin: 4px;
-}
-
-.tab:hover {
-  background-color: #000000;
-  color: rgb(255, 255, 255);
-}
-
-.activeTab {
-  background-color: #333;
-  color: #fff;
-}
-/* Other styles remain unchanged */
-/* Other styles remain unchanged */
-
-/* Back button style */
-.backButton {
-  padding: 5px 10px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 14px;
-  color: #007bff;
-  transition: background-color 0.3s;
-}
-
-.backButton:hover {
-  background-color: #f1f1f1;
-}
-
-/* Concatenate header style */
-.actionHeader {
-  display: flex;
-}
-
-/* .actionHeader:hover {
-  background-color: black;
-  color: white;
-}  */
-
-/* Existing styles above ... */
-
-/* Modal Overlay */
-.modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+/* Common styles for all draggable/clickable items */
+.draggableItem,
+.actionItem {
   display: flex;
   justify-content: center;
-  align-items: center;
-  z-index: 999; /* Make sure it's on top of everything */
-}
-
-/* Modal Content Container */
-.modalContent {
+  padding: 10px 14px;
+  margin: 8px 0;
   background-color: #fff;
-  width: 600px; /* adjust as needed */
-  max-height: 80vh;
-  border-radius: 8px;
-  overflow-y: auto;
-  position: relative;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-/* Modal Header */
-.modalHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  border-bottom: 1px solid #ddd;
-}
-
-/* Close Button */
-.closeButton {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
   cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  color: #333;
+  font-weight: bold;
 }
 
-/* Modal Body */
-.modalBody {
+.draggableItem:hover,
+.actionItem:hover {
+  background-color: #000;
+  color: white;
+  border-color: #000;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.selectedItem,
+.selectedAction {
+  display: flex;
+  justify-content: center;
+  font-weight: bold;
+  border-color: #000;
+  color: #000;
+}
+
+.selectedItem:hover,
+.selectedAction:hover {
+  background-color: #000;
+  color: white;
+}
+
+.nodeInput {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.nodeInput:focus {
+  outline: none;
+  border-color: #000;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+.addNodeButton {
+  width: 100%;
+  padding: 10px;
+  background-color: #000;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.addNodeButton:hover {
+  background-color: #333;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.addNodeButton:active {
+  transform: translateY(0);
+}
+
+.actionParameters {
   padding: 16px;
+  border-top: 1px solid #e0e0e0;
+  background-color: #fff;
+  border-radius: 0 0 8px 8px;
 }
 
-/* (Optionally) Adjust for responsiveness */
-@media (max-width: 768px) {
-  .modalContent {
-    width: 90%;
-    max-height: 80vh;
+.actionParameters h3 {
+  margin: 0 0 16px 0;
+  font-size: 1.1rem;
+  color: #000;
+  font-weight: 600;
+}
+
+.addNodeSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.emptyState {
+  padding: 16px;
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  background-color: #f9f9f9;
+  border-radius: 6px;
+  margin: 8px 0;
+}
+
+/* Scrollbar styling */
+.itemsContainer::-webkit-scrollbar {
+  width: 6px;
+}
+
+.itemsContainer::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border-radius: 3px;
+}
+
+.itemsContainer::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.itemsContainer::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* Animation for accordion chevron */
+.accordionHeader svg {
+  transform-origin: center;
+}
+
+.accordionHeader[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+
+/* For drag and drop visual feedback */
+.draggableItem.dragging {
+  opacity: 0.5;
+  background-color: #f5f5f5;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    max-width: 300px;
   }
+}
+
+/* Add these new styles to your existing CSS module */
+
+.parametersView {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.parametersHeader {
+  padding: 8px;
+  border-top: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center; 
+  justify-content: center;
+  position: relative;
+  background-color: #000;
+  border-radius: 6px;
+}
+
+
+.parametersTitle h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #000;
+  border-radius: 6px;
+  padding:5px;
+  margin-left: 5px;
+  color:white;
+  
+}
+.backButton {
+  position: absolute;
+  left: 1px;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  gap: 8px;
+ 
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border-radius: 100%;
+}
+
+.backButton:hover {
+  background-color:#333;
+ 
+}
+
+.parametersContent {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+/* Update existing styles */
+.tabHeader {
+  margin-top: 0;
+  border-top: none;
 }

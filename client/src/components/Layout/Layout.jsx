@@ -145,7 +145,7 @@ const Layout = () => {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
                 >
-                  <FlowDiagrams />
+                  <FlowDiagrams/>
                 </motion.div>
               }
             />
