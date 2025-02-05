@@ -1,0 +1,209 @@
+.concatenateContainer {
+  text-align: left;
+  margin: 2rem;
+  padding: 2rem;
+  background-color: #232f3e0d;
+  border-radius: 10px;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.title {
+  font-size: 2em;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.formGroup {
+  display: flex;
+  margin-bottom: 18px;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.formGroup label {
+  font-weight: bold;
+}
+
+select,
+input {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+button {
+  padding: 12px;
+  border: none;
+  border-radius: 5px;
+  background-color: black;
+  color: white;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+button:disabled {
+  background-color: #ddd;
+  cursor: not-allowed;
+}
+
+button:hover {
+  background-color: black;
+}
+
+.previewButton {
+  margin-top: 1rem;
+  padding: 12px;
+  border: none;
+  border-radius: 5px;
+  background-color: #4caf50;
+  color: white;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.previewButton:hover {
+  background-color: #45a049;
+}
+
+.selectedColumns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.selectedColumn {
+  background-color: #e0e0e0;
+  padding: 5px 10px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: bold;
+}
+
+/* Modal styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(8px);
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  /* opacity: 0; */
+  transition: opacity 0.3s ease-in-out;
+}
+
+.modalOverlayVisible {
+  opacity: 1;
+}
+
+.modalContent {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 10px;
+  width: 80%;
+  max-width: 900px;
+  overflow-y: auto;
+  position: relative;
+  transform: scale(0.9);
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.descModalContent {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 10px;
+  width: 500px;
+  overflow-y: auto;
+  position: relative;
+  /* opacity: 0; */
+  transform: scale(0.9);
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.modalContentVisible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.modalTitle {
+  font-size: 1.5rem;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.closeButton {
+  cursor: pointer;
+  font-size: 1.5rem;
+}
+
+.buttonGroup {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.cancelButton {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 5px;
+  background-color: #aaa;
+  color: #ffffff;
+  transition: background-color 0.3s ease;
+}
+
+.cancelButton:hover {
+  background-color: #888;
+}
+
+.submitButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 5px;
+  background-color: black;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.submitButton:hover {
+  background-color: #0000009b;
+}
+
+/* Loader Spinner */
+.loader {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #333;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.labelContainer {
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+}

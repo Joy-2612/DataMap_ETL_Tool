@@ -1,0 +1,56 @@
+.container {
+  display: flex;
+  height: 100vh;
+}
+
+.sidebar {
+  width: 250px;
+  height: 100vh;
+  background-color: #ffffffe3;
+  border-right: 2px solid #e0e0e070;
+  position: sticky;
+  top: 0;
+}
+
+.mainContent {
+  background-color: #ffffffe3;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.datasetDetailsContainer {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.datasetDetailsButton {
+  display: flex;
+  align-items: center;
+  color: #b87501;
+  flex-shrink: 0;
+}
+
+.datasetDetailsButton h3 {
+  margin: 0;
+  cursor: pointer;
+}
+
+.datasetDetails {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex-grow: 1;
+}
+
+.datasetDetails h2 {
+  margin: 0;
+  margin-bottom: 20px;
+}
+
+.datasetTable {
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px,
+    rgba(17, 17, 26, 0.1) 0px 8px 24px, rgba(17, 17, 26, 0.1) 0px 16px 48px;
+}

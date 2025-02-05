@@ -1,0 +1,348 @@
+/* Merge container styling */
+.mergeContainer {
+  display: flex;
+  text-align: left;
+  flex-direction: column;
+  margin: 2rem;
+  padding: 20px;
+  border-radius: 10px;
+  background-color: #232f3e0d;
+  font-family: "Arial", sans-serif;
+}
+
+/* Title styling */
+.title {
+  text-align: left;
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #333;
+}
+
+.mergeInput {
+  display: flex;
+  gap: 10px;
+}
+
+/* Form group layout */
+.formGroup {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.datasetAndColumnInput {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Select dropdown styling */
+select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+  background-color: #f9f9f9;
+  transition: all 0.2s;
+}
+
+select:focus {
+  outline: none;
+  border-color: #4a90e2;
+  background-color: #ffffff;
+}
+
+/* Button styling */
+button {
+  padding: 12px 20px;
+  background-color: black;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: black;
+}
+
+button:disabled {
+  background-color: #ddd;
+  cursor: not-allowed;
+}
+
+/* Modal overlay styling */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6); /* Increase overlay opacity */
+  backdrop-filter: blur(8px); /* Increase blur effect */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* Ensure modal overlay is on top */
+  transition: opacity 0.3s ease-in-out;
+}
+
+.modalOverlayVisible {
+  opacity: 1;
+  /* Adding outline for debugging */
+  outline: 2px solid red;
+}
+
+/* Modal content styling */
+.modalContent {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  width: 80%;
+  overflow-y: auto;
+  position: relative;
+  transform: scale(0.9);
+  z-index: 1001; /* Make sure content is above the overlay */
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.modalContentVisible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Modal title and close button */
+.modalTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.closeButton {
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #333;
+  transition: color 0.3s ease;
+}
+
+.closeButton:hover {
+  color: #ff0000;
+}
+
+/* Responsive behavior */
+@media (max-width: 768px) {
+  .mergeContainer {
+    width: 90%;
+  }
+
+  .modalContent {
+    width: 90%;
+  }
+}
+
+/* Modal overlay transition */
+.descModalOverlay {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.descModalOverlayVisible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Modal content transition */
+.descModalContent {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.descModalContentVisible label {
+  font-weight: bold;
+  margin-bottom: 0px !important;
+}
+
+.descModalContentVisible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.descModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.descModalOverlayVisible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.descModalContent {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 500px;
+  max-width: 80%;
+  color: black;
+  transform: scale(0.9);
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.descModalContentVisible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.descModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  opacity: 0;
+  animation: fadeIn 0.3s forwards;
+}
+
+.modal.closing {
+  animation: fadeOut 0.3s forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.descModalContent {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 10px;
+  width: 500px;
+  max-width: 80%;
+  color: black;
+  transform: translateY(-20px);
+  animation: slideIn 0.3s forwards;
+}
+
+.descModalContent.closing {
+  animation: slideOut 0.3s forwards;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+.descModalContent h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+.descModalContent .formGroup {
+  margin-bottom: 1rem;
+}
+
+.descModalContent .formGroup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: black;
+}
+
+.descModalContent .formGroup input,
+.descModalContent .formGroup textarea {
+  width: 96%;
+  padding: 0.5rem;
+  border: 1px solid gray;
+  border-radius: 5px;
+  font-size: 1rem;
+  background-color: white;
+  color: black;
+}
+
+.descModalContent .buttonGroup {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.cancelButton {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  background-color: #aaa;
+  color: #ffffff;
+  transition: background-color 0.3s ease;
+}
+
+.cancelButton:hover {
+  background-color: #888;
+}
+
+.modalButtons .submitButton {
+  background-color: black;
+}
+
+.modalButtons .submitButton:hover {
+  background-color: #0000009b;
+}

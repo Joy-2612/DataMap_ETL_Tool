@@ -1,0 +1,163 @@
+.container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.title {
+  display: flex;
+  justify-content: space-between;
+  text-align: left;
+  font-size: 1.2rem;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.tableHeader,
+.tableData {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  color: #333;
+}
+
+.tableHeader {
+  background-color: #9cabc226;
+  font-weight: bold;
+}
+
+.tableRow:hover {
+  background-color: #f7f7f7;
+}
+
+.iconButton {
+  padding: 10px 7px;
+  margin: 5px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.4rem;
+}
+
+.viewButton {
+  color: rgb(0, 132, 255);
+}
+
+.deleteButton {
+  color: red;
+}
+
+/* Modal overlay styles with animation */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(8px);
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.modalOverlayVisible {
+  opacity: 1;
+}
+
+.modalContent {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  width: 70%;
+  overflow-y: auto;
+  position: relative;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.modalContentVisible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.modalTitle {
+  display: flex;
+  justify-content: space-between;
+}
+
+.closeButton {
+  cursor: pointer;
+}
+
+.addDatasetButton {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 1rem;
+  justify-content: center;
+  font-weight: bold;
+  box-sizing: border-box;
+  width: 200px;
+  padding: 10px;
+  background-color: black;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.addDatasetButton:hover {
+  background-color: #333;
+}
+
+.exportButton {
+  margin: 5px;
+  padding: 5px 10px;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.exportCsv {
+  background-color: #4caf50;
+  color: white;
+}
+
+.exportCsv:hover {
+  background-color: #45a049;
+}
+
+.exportPdf {
+  background-color: #f44336;
+  color: white;
+}
+
+.exportPdf:hover {
+  background-color: #e53935;
+}
+
+.datasetName {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.datasetDescription {
+  font-size: 0.9rem;
+  font-style: italic;
+}
