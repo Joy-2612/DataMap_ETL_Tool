@@ -31,7 +31,7 @@ const Login = () => {
         localStorage.setItem("token", data.token);
         localStorage.setItem("userId", data.user.id); // Save userId in local storage
         setUserId(data.user.id); // Set userId in context
-        navigate("/home"); // Redirect to dashboard
+        navigate("/home/dashboard"); // Redirect to dashboard
       } else {
         // Handle errors (e.g., show error message)
         toast.error(data.message);

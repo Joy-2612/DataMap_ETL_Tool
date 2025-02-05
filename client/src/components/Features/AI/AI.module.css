@@ -1,5 +1,12 @@
+.mainContainer {
+  display: flex;
+  gap: 20px;
+  height: 85vh;
+}
+
 .chatContainer {
   display: flex;
+  flex: 1;
   flex-direction: column;
   height: 85vh;
   margin: 10px;
@@ -34,6 +41,31 @@
   flex-direction: column;
   padding: 0 50px;
   overflow-y: auto;
+}
+
+/* Webkit browsers (Chrome, Edge, Safari) */
+.chatBody::-webkit-scrollbar {
+  width: 6px; /* Narrow width */
+}
+
+.chatBody::-webkit-scrollbar-track {
+  background: #1a1a1a; /* Dark background */
+  border-radius: 10px;
+}
+
+.chatBody::-webkit-scrollbar-thumb {
+  background: #000; /* Pure black scrollbar */
+  border-radius: 10px;
+}
+
+.chatBody::-webkit-scrollbar-thumb:hover {
+  background: #333; /* Slightly lighter on hover */
+}
+
+/* Firefox */
+.chatBody {
+  scrollbar-width: thin;
+  scrollbar-color: black transparent;
 }
 
 .chatFooter {
@@ -191,4 +223,35 @@
 
 .messageBotLoading {
   background-color: transparent;
+}
+
+.noChats {
+  text-align: center;
+  padding-top: 160px;
+}
+
+.noChats h3 {
+  font-size: 1.5rem;
+}
+
+.chatHeaderNoChats {
+  font-family: "Google Sans", "Helvetica Neue", sans-serif;
+  font-size: 1.8rem;
+  margin-bottom: 16px;
+  font-weight: bold;
+  background: rgb(2, 0, 36);
+  background: linear-gradient(
+    90deg,
+    rgba(2, 0, 36, 1) 40%,
+    rgba(136, 5, 157, 1) 50%,
+    rgba(0, 212, 255, 1) 60%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.noChatsFooter {
+  display: flex;
+  padding: 0 200px;
 }

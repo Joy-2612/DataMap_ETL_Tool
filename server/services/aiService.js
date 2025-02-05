@@ -30,18 +30,27 @@ const geminiModel = googleAI.getGenerativeModel({
  * runChainOfThought
  * Orchestrates the conversation with Gemini and streams thoughts and final answers.
  * @param {string} userPrompt - The user's input prompt.
- * @param {function} onUpdate - Callback to stream updates (thoughts, answers).
+ * @param {string} previousChats - The full previous conversation (including all observations and actions).
+ * @param {function} onUpdate - Callback to stream updates (thoughts, answers, observations).
  */
-async function runChainOfThought(userPrompt, onUpdate) {
+async function runChainOfThought(userPrompt, previousChats, onUpdate) {
   console.log("User Prompt:", userPrompt);
 
+  // Read system instructions from an XML file.
   const systemInstructions = fs.readFileSync(
     path.join(__dirname, "prompt.xml"),
     "utf-8"
   );
 
+  // Build the conversation context. When previousChats is provided, include a header.
   let conversation = [
     { role: "system", content: systemInstructions },
+    {
+      role: "user",
+      content:
+        "Here is our previous conversation including the thoughts:\n" +
+        previousChats,
+    },
     { role: "user", content: userPrompt },
   ];
 
@@ -64,30 +73,33 @@ async function runChainOfThought(userPrompt, onUpdate) {
       return;
     }
 
-    // Stream thoughts to the client
+    // Stream any "thought" from Gemini to the client
     if (parsed.steps?.thought) {
       console.log("Thought:", parsed.steps.thought);
       onUpdate("thought", { thought: parsed.steps.thought });
     }
 
-    // If the LLM provides a final answer
+    // If a final answer is provided, send it and exit.
     if (parsed.answer || parsed.steps?.answer) {
       onUpdate("answer", { answer: parsed.answer || parsed.steps.answer });
       return;
     }
 
-    // Handle action and provide observation
+    // If an action is provided, handle it and stream the observation.
     if (parsed.steps?.action) {
       const observation = await handleAction(parsed.steps.action);
       console.log("Observation:", observation);
 
       onUpdate("observation", { observation });
 
+      // Append the observation into the conversation so that Gemini sees it next round.
       conversation.push({
         role: "assistant",
         content: `<observation>${observation}</observation>`,
       });
 
+      // If the observation indicates that an operation completed successfully,
+      // return it as the final answer.
       if (
         observation.includes("Operation done successfully!") ||
         observation.includes("fileId:")
@@ -112,12 +124,10 @@ async function callGeminiLLM(conversation) {
   try {
     const prompt = conversation.map((msg) => msg.content).join("\n");
     const result = await geminiModel.generateContent(prompt);
-
     const responseText = result.response?.text();
     if (!responseText) {
       return "Thought: [No valid response from Gemini]\n";
     }
-
     return responseText;
   } catch (error) {
     console.error("Error calling Gemini LLM:", error);
@@ -204,14 +214,12 @@ async function handleAction(actionString) {
 
     case "split":
       const [fileId, splitsJson, outputFileNameSplit, descriptionSplit] = args;
-
       let parsedSplits;
       try {
         parsedSplits = JSON.parse(splitsJson);
       } catch (err) {
         return "Invalid splits JSON format. Provide a valid JSON for splits.";
       }
-
       try {
         const newFile = await splitColsService({
           fileId,
@@ -232,7 +240,6 @@ async function handleAction(actionString) {
         outputFileNameStd,
         descriptionStd,
       ] = args;
-
       let parsedMappings;
       try {
         const rawMappings = JSON.parse(mappingsJson);
@@ -253,7 +260,6 @@ async function handleAction(actionString) {
       } catch (err) {
         return "Invalid mappings JSON. Provide valid JSON for 'mappings'.";
       }
-
       try {
         const newFile = await standardizeColumnService({
           datasetId,

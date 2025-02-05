@@ -1,8 +1,11 @@
 const { runChainOfThought } = require("../services/aiService");
+const Chat = require("../models/Chat");
 
 const askAI = async (req, res) => {
   try {
-    const { prompt } = req.body;
+    console.log("Body : ", req.body);
+    const { previousChats, prompt } = req.body;
+    console.log("Prompt:", prompt);
 
     if (!prompt || typeof prompt !== "string") {
       return res
@@ -10,13 +13,14 @@ const askAI = async (req, res) => {
         .json({ message: "Prompt is required and must be a string." });
     }
 
+    // Set up the SSE headers.
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
 
     try {
-      await runChainOfThought(prompt, (eventType, data) => {
+      await runChainOfThought(prompt, previousChats, (eventType, data) => {
         res.write(`event: ${eventType}\ndata: ${JSON.stringify(data)}\n\n`);
       });
     } catch (chainError) {
@@ -35,6 +39,45 @@ const askAI = async (req, res) => {
   }
 };
 
+const saveChat = async (req, res) => {
+  try {
+    const { userId, messages } = req.body;
+
+    // Save all messages along with any extra metadata (such as chain-of-thought flags).
+    const newChat = new Chat({
+      user: userId,
+      messages: messages.map((msg) => ({
+        text: msg.text,
+        sender: msg.sender,
+        isThought: msg.isThought || false,
+        approved: msg.approved || false,
+        ...(msg.datasetData && { datasetData: msg.datasetData }),
+      })),
+    });
+
+    await newChat.save();
+    res.status(201).json({ success: true, chat: newChat });
+  } catch (error) {
+    console.error("Error saving chat:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+const getChats = async (req, res) => {
+  try {
+    const chats = await Chat.find({ user: req.params.userId })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json({ success: true, chats });
+  } catch (error) {
+    console.error("Error fetching chats:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 module.exports = {
   askAI,
+  saveChat,
+  getChats,
 };

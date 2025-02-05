@@ -1,3 +1,4 @@
+// src/components/AI/AI.jsx
 import React, { useState, useEffect, useContext, useRef } from "react";
 import { UserContext } from "../../../context/UserContext";
 import { FaArrowUp, FaCheck } from "react-icons/fa";
@@ -7,7 +8,7 @@ import Papa from "papaparse";
 import DataTable from "../../UI/DataTable/DataTable";
 import "react-loading-skeleton/dist/skeleton.css";
 import styles from "./AI.module.css";
-
+import RightSidebar from "./RightSidebar/RightSidebar";
 // Import toastify
 import { toast } from "sonner";
 import "react-toastify/dist/ReactToastify.css";
@@ -57,7 +58,7 @@ const AI = () => {
     const cursorIndex = e.target.selectionStart;
     setCursorPosition(cursorIndex);
 
-    // Filtering logic for dropdown
+    // Filtering logic for dropdown (for @dataset references)
     const lastAtIndex = value.lastIndexOf("@");
     if (lastAtIndex >= 0 && cursorIndex > lastAtIndex) {
       const query = value.slice(lastAtIndex + 1, cursorIndex).toLowerCase();
@@ -143,12 +144,12 @@ const AI = () => {
       const start = match.index;
       const end = fileIdRegex.lastIndex;
 
-      // text before fileId:
+      // Text before fileId:
       if (start > lastIndex) {
         newMessages.push({ text: text.slice(lastIndex, start), sender: "bot" });
       }
 
-      // fetch dataset:
+      // Fetch dataset:
       const fetchedResult = await fetchDatasetById(fileId);
       if (fetchedResult) {
         if (fetchedResult.parsedData) {
@@ -201,12 +202,9 @@ const AI = () => {
       }
     });
 
-    if (!eventType) return; // Ignore if there's no valid "event" line
+    if (!eventType) return; // Ignore if no valid "event" line
 
     if (eventType === "thought") {
-      // 1. Remove the skeleton if it exists at the end
-      // 2. Add the new 'thought' message
-      // 3. Re-add a skeleton at the end
       if (eventData && typeof eventData.thought === "string") {
         setMessages((prev) => {
           const newMessages = [...prev];
@@ -218,7 +216,7 @@ const AI = () => {
             newMessages.pop();
           }
 
-          // Add the new "thought"
+          // Add the new "thought" (marking it with isThought)
           newMessages.push({
             text: eventData.thought,
             sender: "bot",
@@ -236,13 +234,8 @@ const AI = () => {
         });
       }
     } else if (eventType === "answer") {
-      // The final answer from the AI
-      // 1. Remove the skeleton
-      // 2. Parse the final answer for any fileIds
-      // 3. Append the final answer messages
       setMessages((prev) => {
         const newMessages = [...prev];
-        // Remove any trailing skeleton
         if (
           newMessages.length > 0 &&
           newMessages[newMessages.length - 1].isLoading
@@ -260,7 +253,7 @@ const AI = () => {
         if (parsedMessages.length > 0) {
           for (let i = parsedMessages.length - 1; i >= 0; i--) {
             if (parsedMessages[i].text) {
-              parsedMessages[i].isFinal = true; // This is our final answer
+              parsedMessages[i].isFinal = true;
               break;
             }
           }
@@ -268,7 +261,6 @@ const AI = () => {
         setMessages((prev) => [...prev, ...parsedMessages]);
       }
     } else if (eventType === "error") {
-      // Remove the skeleton, show an error
       setMessages((prev) => {
         const newMessages = [...prev];
         if (
@@ -291,6 +283,28 @@ const AI = () => {
     }
   };
 
+  // Replace @datasetName references with fileId references
+  function replaceDatasetReferences(text, datasets) {
+    let newText = text;
+    const regex = /@(\S+)/g;
+    let match;
+
+    while ((match = regex.exec(text)) !== null) {
+      const datasetName = match[1];
+      const foundDataset = datasets.find(
+        (ds) => ds.name.toLowerCase() === datasetName.toLowerCase()
+      );
+      if (foundDataset) {
+        newText = newText.replace(
+          `@${datasetName}`,
+          `fileId:${foundDataset._id}`
+        );
+      }
+    }
+
+    return newText;
+  }
+
   /**
    * Main function to send the user's prompt to your SSE endpoint
    * and handle incremental "thought" + final "answer".
@@ -298,36 +312,40 @@ const AI = () => {
   const handleSend = async () => {
     if (!prompt.trim()) return;
 
-    // Convert all @datasetName references to fileId:xxx
-    let finalPrompt = prompt;
-    const regex = /@(\S+)/g;
-    let match;
-    while ((match = regex.exec(prompt)) !== null) {
-      const datasetName = match[1];
-      const foundDataset = datasets.find(
-        (ds) => ds.name.toLowerCase() === datasetName.toLowerCase()
-      );
-      if (foundDataset) {
-        finalPrompt = finalPrompt.replace(
-          `@${datasetName}`,
-          `fileId:${foundDataset._id}`
-        );
-      }
-    }
+    // Reconstruct the full conversation history, preserving chain-of-thought details.
+    const previousChat = messages
+      .filter((msg) => !msg.isLoading)
+      .map((msg) => {
+        // If this is a chain-of-thought message (or already contains observation markers), return as-is.
+        if (
+          msg.sender === "bot" &&
+          (msg.isThought || msg.text?.includes("<observation>"))
+        ) {
+          return msg.text;
+        }
+        // Otherwise, prefix with "User:" or "Bot:" as appropriate.
+        return `${
+          msg.sender === "user" ? "User:" : "Bot:"
+        } ${replaceDatasetReferences(msg.text, datasets)}`;
+      })
+      .join("\n");
 
-    // Add user's message
+    // Convert any @dataset references in the current prompt
+    const finalPrompt = replaceDatasetReferences(prompt, datasets);
+
+    // Append the new user message
     setMessages((prev) => [
       ...prev,
       { text: prompt, sender: "user", isLoading: false },
     ]);
 
-    // Add an initial skeleton at the end
+    // Add a skeleton for the upcoming bot response
     setMessages((prev) => [
       ...prev,
       { text: "", sender: "bot", isLoading: true },
     ]);
 
-    // Clear prompt
+    // Clear the prompt input
     setPrompt("");
     setShowDropdown(false);
 
@@ -335,14 +353,20 @@ const AI = () => {
       const response = await fetch("http://localhost:5000/api/ai/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: finalPrompt }),
+        body: JSON.stringify({
+          // Include the entire previous conversation with chain-of-thought context.
+          previousChat:
+            "Here is our previous conversation including all intermediate observations and actions:\n" +
+            previousChat,
+          prompt: finalPrompt,
+        }),
       });
 
       if (!response.body) {
         throw new Error("No response body from the SSE endpoint.");
       }
 
-      // Read the response via a reader to handle SSE
+      // Process the SSE stream
       const reader = response.body.getReader();
       const decoder = new TextDecoder("utf-8");
       let buffer = "";
@@ -352,22 +376,18 @@ const AI = () => {
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
-        // SSE messages are separated by double newlines (\n\n)
         const parts = buffer.split("\n\n");
 
-        // Process all but the last part (which might be incomplete)
         for (let i = 0; i < parts.length - 1; i++) {
           await handleSSEChunk(parts[i]);
         }
         buffer = parts[parts.length - 1];
       }
-      // Process any leftover
       if (buffer.trim().length > 0) {
         await handleSSEChunk(buffer);
       }
     } catch (error) {
       console.error("Error sending prompt with SSE:", error);
-      // Remove the loading skeleton if present
       setMessages((prev) => {
         const newMessages = [...prev];
         if (
@@ -395,40 +415,46 @@ const AI = () => {
     }
   };
 
-  // Approve the final answer
+  // Approve the final answer and save the chat
   const handleApprove = async (messageIndex) => {
-    // OPTIONAL: Save to DB
-    // await fetch("http://localhost:5000/api/ai/save", {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify({ content: messages[messageIndex].text }),
-    // });
+    try {
+      const response = await fetch("http://localhost:5000/api/ai/chats", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          messages: messages.filter((msg) => !msg.isLoading),
+        }),
+      });
 
-    // Mark as approved to hide the buttons
-    setMessages((prev) => {
-      const newMessages = [...prev];
-      newMessages[messageIndex].approved = true;
-      return newMessages;
-    });
+      if (!response.ok) throw new Error("Failed to save chat");
 
-    toast.success("File saved in the database.");
+      const data = await response.json();
+      if (data.success) {
+        setMessages((prev) => {
+          const newMessages = [...prev];
+          newMessages[messageIndex].approved = true;
+          return newMessages;
+        });
+        toast.success("Chat saved successfully!");
+      }
+    } catch (error) {
+      console.error("Error saving chat:", error);
+      toast.error("Failed to save chat");
+    }
   };
 
-  // Reject the final answer
+  // Reject the final answer and allow a revised prompt
   const handleReject = (messageIndex) => {
-    // Mark as rejected to hide the buttons
     setMessages((prev) => {
       const newMessages = [...prev];
       newMessages[messageIndex].rejected = true;
       return newMessages;
     });
-
-    // Set the prompt to "rejection prompt: " and focus
     setPrompt("rejection prompt: ");
     setTimeout(() => {
       if (inputRef.current) {
         inputRef.current.focus();
-        // Place cursor at end of new prompt
         inputRef.current.setSelectionRange(
           "rejection prompt: ".length,
           "rejection prompt: ".length
@@ -453,173 +479,189 @@ const AI = () => {
   }
 
   return (
-    <div className={styles.chatContainer}>
-      <div className={styles.chatHeader}>AI Agent</div>
+    <div className={styles.mainContainer}>
+      <div className={styles.chatContainer}>
+        {messages.length === 0 && (
+          <div className={styles.noChats}>
+            <div className={styles.chatHeaderNoChats}>AI Agent</div>
+            <h3>How can I help you today?</h3>
+          </div>
+        )}
+        {messages.length > 0 && (
+          <>
+            <div className={styles.chatHeader}>AI Agent</div>
+            <div className={styles.chatBody} ref={chatBodyRef}>
+              {messages.map((msg, index) => {
+                const isBotMessage = msg.sender === "bot";
+                const prevMessage = messages[index - 1];
+                const showIcon =
+                  isBotMessage &&
+                  (!prevMessage || prevMessage.sender !== "bot");
 
-      <div className={styles.chatBody} ref={chatBodyRef}>
-        {messages.map((msg, index) => {
-          // Determine if we should show the icon:
-          const isBotMessage = msg.sender === "bot";
-          const prevMessage = messages[index - 1];
-          const showIcon =
-            isBotMessage && (!prevMessage || prevMessage.sender !== "bot");
-
-          if (isBotMessage) {
-            // If it's a CSV dataset message:
-            if (msg.datasetData) {
-              return (
-                <div className={styles.messageBotContainer} key={index}>
-                  {showIcon ? (
-                    <img
-                      src="https://static.vecteezy.com/system/resources/previews/049/889/441/non_2x/generate-ai-abstract-symbol-artificial-intelligence-colorful-stars-icon-vector.jpg"
-                      alt="AI Icon"
-                      className={styles.aiIcon}
-                    />
-                  ) : (
-                    <div className={styles.aiIcon} />
-                  )}
-                  <div className={styles.messageBot}>
-                    <DataTable
-                      title="CSV Data"
-                      columns={
-                        msg.datasetData.length > 0
-                          ? Object.keys(msg.datasetData[0]).map((key) => ({
-                              label: key,
-                              key: key,
-                            }))
-                          : []
-                      }
-                      data={msg.datasetData}
-                      getRowId={(row, i) => i}
-                    />
-                  </div>
-                </div>
-              );
-            }
-
-            // Skeleton or loading messages
-            if (msg.isLoading) {
-              return (
-                <div className={styles.messageBotContainer} key={index}>
-                  {showIcon ? (
-                    <img
-                      src="https://static.vecteezy.com/system/resources/previews/049/889/441/non_2x/generate-ai-abstract-symbol-artificial-intelligence-colorful-stars-icon-vector.jpg"
-                      alt="AI Icon"
-                      className={styles.aiIcon}
-                    />
-                  ) : (
-                    <div className={styles.aiIcon} />
-                  )}
-                  <div
-                    className={`${styles.messageBot} ${
-                      msg.isLoading ? styles.messageBotLoading : ""
-                    }`}
-                  >
-                    <Skeleton
-                      count={3}
-                      height="20px"
-                      baseColor="#bfe5f2"
-                      highlightColor="#f4cdfa"
-                      width="100%"
-                      wrapper={Box}
-                      style={{ marginBottom: "0.3rem" }}
-                    />
-                  </div>
-                </div>
-              );
-            }
-
-            // Normal (non-loading) bot messages (includes partial "thought" + final answer)
-            return (
-              <div className={styles.messageBotContainer} key={index}>
-                {showIcon ? (
-                  <img
-                    src="https://static.vecteezy.com/system/resources/previews/049/889/441/non_2x/generate-ai-abstract-symbol-artificial-intelligence-colorful-stars-icon-vector.jpg"
-                    alt="AI Icon"
-                    className={styles.aiIcon}
-                  />
-                ) : (
-                  <div className={styles.aiIcon} />
-                )}
-                <div
-                  className={styles.messageBot}
-                  style={{
-                    fontStyle: msg.isThought ? "italic" : "normal",
-                    opacity: msg.isThought ? 0.7 : 1,
-                  }}
-                >
-                  {msg.text}
-
-                  {/* If this is a final answer (not a "thought"), show Approve/Reject if not already handled */}
-                  {msg.isFinal && !msg.approved && !msg.rejected && (
-                    <div className={styles.approveRejectButtons}>
-                      <div
-                        className={styles.approveButton}
-                        onClick={() => handleApprove(index)}
-                      >
-                        <FaCheck />
-                        Approve
+                if (isBotMessage) {
+                  // Render CSV dataset messages if available
+                  if (msg.datasetData) {
+                    return (
+                      <div className={styles.messageBotContainer} key={index}>
+                        {showIcon ? (
+                          <img
+                            src="https://static.vecteezy.com/system/resources/previews/049/889/441/non_2x/generate-ai-abstract-symbol-artificial-intelligence-colorful-stars-icon-vector.jpg"
+                            alt="AI Icon"
+                            className={styles.aiIcon}
+                          />
+                        ) : (
+                          <div className={styles.aiIcon} />
+                        )}
+                        <div className={styles.messageBot}>
+                          <DataTable
+                            title="CSV Data"
+                            columns={
+                              msg.datasetData.length > 0
+                                ? Object.keys(msg.datasetData[0]).map(
+                                    (key) => ({
+                                      label: key,
+                                      key: key,
+                                    })
+                                  )
+                                : []
+                            }
+                            data={msg.datasetData}
+                            getRowId={(row, i) => i}
+                          />
+                        </div>
                       </div>
+                    );
+                  }
+
+                  // Render loading (skeleton) messages
+                  if (msg.isLoading) {
+                    return (
+                      <div className={styles.messageBotContainer} key={index}>
+                        {showIcon ? (
+                          <img
+                            src="https://static.vecteezy.com/system/resources/previews/049/889/441/non_2x/generate-ai-abstract-symbol-artificial-intelligence-colorful-stars-icon-vector.jpg"
+                            alt="AI Icon"
+                            className={styles.aiIcon}
+                          />
+                        ) : (
+                          <div className={styles.aiIcon} />
+                        )}
+                        <div
+                          className={`${styles.messageBot} ${
+                            msg.isLoading ? styles.messageBotLoading : ""
+                          }`}
+                        >
+                          <Skeleton
+                            count={3}
+                            height="20px"
+                            baseColor="#bfe5f2"
+                            highlightColor="#f4cdfa"
+                            width="100%"
+                            wrapper={Box}
+                            style={{ marginBottom: "0.3rem" }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // Render normal bot messages (including thoughts and final answers)
+                  return (
+                    <div className={styles.messageBotContainer} key={index}>
+                      {showIcon ? (
+                        <img
+                          src="https://static.vecteezy.com/system/resources/previews/049/889/441/non_2x/generate-ai-abstract-symbol-artificial-intelligence-colorful-stars-icon-vector.jpg"
+                          alt="AI Icon"
+                          className={styles.aiIcon}
+                        />
+                      ) : (
+                        <div className={styles.aiIcon} />
+                      )}
                       <div
-                        className={styles.rejectButton}
-                        onClick={() => handleReject(index)}
+                        className={styles.messageBot}
+                        style={{
+                          fontStyle: msg.isThought ? "italic" : "normal",
+                          opacity: msg.isThought ? 0.7 : 1,
+                        }}
                       >
-                        <IoCloseSharp />
-                        Reject
+                        {msg.text}
+                        {msg.isFinal && !msg.approved && !msg.rejected && (
+                          <div className={styles.approveRejectButtons}>
+                            <div
+                              className={styles.approveButton}
+                              onClick={() => handleApprove(index)}
+                            >
+                              <FaCheck />
+                              Approve
+                            </div>
+                            <div
+                              className={styles.rejectButton}
+                              onClick={() => handleReject(index)}
+                            >
+                              <IoCloseSharp />
+                              Reject
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  )}
-                </div>
-              </div>
-            );
+                  );
+                }
+
+                // Render user messages
+                return (
+                  <div className={styles.messageUser} key={index}>
+                    {msg.text}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        <div
+          className={
+            messages.length > 0 ? styles.chatFooter : styles.noChatsFooter
           }
+        >
+          <div className={styles.inputWrapper}>
+            <input
+              ref={inputRef}
+              className={
+                prompt.startsWith("rejection prompt:")
+                  ? `${styles.promptInput} ${styles.rejected}`
+                  : styles.promptInput
+              }
+              type="text"
+              value={prompt}
+              placeholder="Type your prompt here..."
+              onChange={handlePromptChange}
+              onKeyDown={handleKeyDown}
+            />
 
-          // User messages
-          return (
-            <div className={styles.messageUser} key={index}>
-              {msg.text}
-            </div>
-          );
-        })}
-      </div>
-
-      <div className={styles.chatFooter}>
-        <div className={styles.inputWrapper}>
-          <input
-            ref={inputRef}
-            className={
-              prompt.startsWith("rejection prompt:")
-                ? `${styles.promptInput} ${styles.rejected}`
-                : styles.promptInput
-            }
-            type="text"
-            value={prompt}
-            placeholder="Type your prompt here..."
-            onChange={handlePromptChange}
-            onKeyDown={handleKeyDown}
-          />
-
-          {showDropdown && (
-            <div
-              className={styles.dropdown}
-              style={{ left: `${cursorPosition * 7}px` }}
-            >
-              {filteredDatasets.map((dataset, index) => (
-                <div
-                  key={index}
-                  className={styles.dropdownItem}
-                  onClick={() => handleDatasetClick(dataset)}
-                >
-                  {dataset.name}
-                </div>
-              ))}
-            </div>
-          )}
-          <button className={styles.sendButton} onClick={handleSend}>
-            <FaArrowUp />
-          </button>
+            {showDropdown && (
+              <div
+                className={styles.dropdown}
+                style={{ left: `${cursorPosition * 7}px` }}
+              >
+                {filteredDatasets.map((dataset, index) => (
+                  <div
+                    key={index}
+                    className={styles.dropdownItem}
+                    onClick={() => handleDatasetClick(dataset)}
+                  >
+                    {dataset.name}
+                  </div>
+                ))}
+              </div>
+            )}
+            <button className={styles.sendButton} onClick={handleSend}>
+              <FaArrowUp />
+            </button>
+          </div>
         </div>
       </div>
+      <RightSidebar onSelectChat={(msgs) => setMessages(msgs)} />
     </div>
   );
 };
