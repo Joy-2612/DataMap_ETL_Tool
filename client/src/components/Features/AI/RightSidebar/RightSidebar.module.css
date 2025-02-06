@@ -46,6 +46,7 @@
 .chatList {
   flex: 1;
   overflow-y: auto;
+  height: 72vh;
   padding: 16px;
 }
 

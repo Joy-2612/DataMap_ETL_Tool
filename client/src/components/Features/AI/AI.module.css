@@ -199,7 +199,7 @@
 }
 
 .rejectButton {
-  display: flex;
+  display: none;
   justify-content: center;
   gap: 4px;
   background-color: #dc35450d;

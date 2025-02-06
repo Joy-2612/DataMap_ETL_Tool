@@ -1,7 +1,6 @@
-// src/components/AI/AI.jsx
 import React, { useState, useEffect, useContext, useRef } from "react";
 import { UserContext } from "../../../context/UserContext";
-import { FaArrowUp, FaCheck } from "react-icons/fa";
+import { FaArrowUp } from "react-icons/fa";
 import { IoCloseSharp } from "react-icons/io5";
 import Skeleton from "react-loading-skeleton";
 import Papa from "papaparse";
@@ -9,7 +8,6 @@ import DataTable from "../../UI/DataTable/DataTable";
 import "react-loading-skeleton/dist/skeleton.css";
 import styles from "./AI.module.css";
 import RightSidebar from "./RightSidebar/RightSidebar";
-// Import toastify
 import { toast } from "sonner";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -21,9 +19,11 @@ const AI = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [filteredDatasets, setFilteredDatasets] = useState([]);
   const [cursorPosition, setCursorPosition] = useState(0);
+  const [activeChatId, setActiveChatId] = useState(null);
   const inputRef = useRef(null);
   const chatBodyRef = useRef(null);
 
+  // Fetch user datasets
   useEffect(() => {
     if (userId) {
       const fetchDatasets = async () => {
@@ -44,21 +44,20 @@ const AI = () => {
     }
   }, [userId]);
 
+  // Always scroll to bottom when messages change
   useEffect(() => {
-    // Always scroll to bottom when messages change
     if (chatBodyRef.current) {
       chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
     }
   }, [messages]);
 
+  // Handle prompt changes (for dataset mentions with '@')
   const handlePromptChange = (e) => {
     const value = e.target.value;
     setPrompt(value);
-
     const cursorIndex = e.target.selectionStart;
     setCursorPosition(cursorIndex);
 
-    // Filtering logic for dropdown (for @dataset references)
     const lastAtIndex = value.lastIndexOf("@");
     if (lastAtIndex >= 0 && cursorIndex > lastAtIndex) {
       const query = value.slice(lastAtIndex + 1, cursorIndex).toLowerCase();
@@ -72,12 +71,12 @@ const AI = () => {
     }
   };
 
+  // When user picks a dataset from the dropdown
   const handleDatasetClick = (dataset) => {
     const lastAtIndex = prompt.lastIndexOf("@");
-    const beforeAtUser = prompt.slice(0, lastAtIndex + 1); // include "@"
+    const beforeAtUser = prompt.slice(0, lastAtIndex + 1);
     const afterAtUser = prompt.slice(cursorPosition);
     const updatedPrompt = `${beforeAtUser}${dataset.name} ${afterAtUser}`;
-
     setPrompt(updatedPrompt);
     setShowDropdown(false);
 
@@ -95,11 +94,11 @@ const AI = () => {
     }, 0);
   };
 
+  // Parse CSV file data from the buffer
   const parseCsvFile = (fileBuffer) => {
     return new Promise((resolve, reject) => {
       const uint8Array = new Uint8Array(fileBuffer);
       const text = new TextDecoder("utf-8").decode(uint8Array);
-
       Papa.parse(text, {
         header: true,
         dynamicTyping: true,
@@ -113,6 +112,7 @@ const AI = () => {
     });
   };
 
+  // Fetch dataset by ID
   const fetchDatasetById = async (id) => {
     try {
       const response = await fetch(
@@ -121,7 +121,6 @@ const AI = () => {
       const data = await response.json();
       const dataset = data?.data;
       if (!dataset) return null;
-
       if (dataset.type === "text/csv") {
         const parsedData = await parseCsvFile(dataset.file.data);
         return { dataset, parsedData };
@@ -133,8 +132,9 @@ const AI = () => {
     }
   };
 
+  // Handle fileId references in the bot's response
   const handleFileIdsInBotResponse = async (text) => {
-    const fileIdRegex = /fileId:([\w\d]+)/g;
+    const fileIdRegex = /fileId.*?([a-f0-9]{24})/g;
     let match;
     let newMessages = [];
     let lastIndex = 0;
@@ -144,12 +144,10 @@ const AI = () => {
       const start = match.index;
       const end = fileIdRegex.lastIndex;
 
-      // Text before fileId:
       if (start > lastIndex) {
         newMessages.push({ text: text.slice(lastIndex, start), sender: "bot" });
       }
 
-      // Fetch dataset:
       const fetchedResult = await fetchDatasetById(fileId);
       if (fetchedResult) {
         if (fetchedResult.parsedData) {
@@ -171,21 +169,43 @@ const AI = () => {
           sender: "bot",
         });
       }
+
       lastIndex = end;
     }
 
     if (lastIndex < text.length) {
       newMessages.push({ text: text.slice(lastIndex), sender: "bot" });
     }
-
     return newMessages;
   };
 
-  /**
-   * Handle one SSE "chunk" (corresponding to a single event block).
-   */
+  // Automatically save chat to the server
+  const autoSaveChat = async (messagesToSave) => {
+    try {
+      // We only save once the final response is done
+      const response = await fetch("http://localhost:5000/api/ai/chats", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          messages: messagesToSave.filter((msg) => !msg.isLoading),
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to save chat");
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success("Chat saved successfully!");
+      }
+    } catch (error) {
+      console.error("Error saving chat:", error);
+      toast.error("Failed to save chat");
+    }
+  };
+
+  // Process each chunk of SSE
   const handleSSEChunk = async (chunk) => {
-    // Each chunk could contain multiple lines: ["event: thought", "data: {...}", ...]
     const lines = chunk.split("\n");
     let eventType = null;
     let eventData = null;
@@ -202,38 +222,42 @@ const AI = () => {
       }
     });
 
-    if (!eventType) return; // Ignore if no valid "event" line
+    if (!eventType) return;
 
+    // If the server sends a chatSession event, set active chat ID
+    if (eventType === "chatSession") {
+      if (eventData && eventData.chatId) {
+        setActiveChatId(eventData.chatId);
+      }
+      return;
+    }
+
+    // If the server sends a "thought" event
     if (eventType === "thought") {
       if (eventData && typeof eventData.thought === "string") {
         setMessages((prev) => {
           const newMessages = [...prev];
-          // Remove trailing skeleton if present
           if (
             newMessages.length > 0 &&
             newMessages[newMessages.length - 1].isLoading
           ) {
             newMessages.pop();
           }
-
-          // Add the new "thought" (marking it with isThought)
           newMessages.push({
             text: eventData.thought,
             sender: "bot",
             isLoading: false,
             isThought: true,
           });
-
-          // Re-add skeleton after the thought
-          newMessages.push({
-            text: "",
-            sender: "bot",
-            isLoading: true,
-          });
+          newMessages.push({ text: "", sender: "bot", isLoading: true });
           return newMessages;
         });
       }
-    } else if (eventType === "answer") {
+    }
+
+    // If the server sends the final "answer" event
+    else if (eventType === "answer") {
+      // Remove loading placeholder
       setMessages((prev) => {
         const newMessages = [...prev];
         if (
@@ -249,7 +273,8 @@ const AI = () => {
         const parsedMessages = await handleFileIdsInBotResponse(
           eventData.answer
         );
-        // Mark the last text portion as the final AI message
+
+        // Mark the last text message in parsedMessages as final
         if (parsedMessages.length > 0) {
           for (let i = parsedMessages.length - 1; i >= 0; i--) {
             if (parsedMessages[i].text) {
@@ -258,9 +283,19 @@ const AI = () => {
             }
           }
         }
-        setMessages((prev) => [...prev, ...parsedMessages]);
+
+        // Add the final messages to state, then automatically save the chat
+        setMessages((prev) => {
+          const newMessages = [...prev, ...parsedMessages];
+          autoSaveChat(newMessages); // <--- auto-save once final answer is set
+          return newMessages;
+        });
       }
-    } else if (eventType === "error") {
+    }
+
+    // If there's an "error" event
+    else if (eventType === "error") {
+      // Remove loading placeholder if it exists
       setMessages((prev) => {
         const newMessages = [...prev];
         if (
@@ -271,6 +306,8 @@ const AI = () => {
         }
         return newMessages;
       });
+
+      // Display error
       setMessages((prev) => [
         ...prev,
         {
@@ -283,12 +320,11 @@ const AI = () => {
     }
   };
 
-  // Replace @datasetName references with fileId references
+  // Replace dataset references with fileId references
   function replaceDatasetReferences(text, datasets) {
     let newText = text;
     const regex = /@(\S+)/g;
     let match;
-
     while ((match = regex.exec(text)) !== null) {
       const datasetName = match[1];
       const foundDataset = datasets.find(
@@ -301,51 +337,29 @@ const AI = () => {
         );
       }
     }
-
     return newText;
   }
 
-  /**
-   * Main function to send the user's prompt to your SSE endpoint
-   * and handle incremental "thought" + final "answer".
-   */
+  // Send prompt to server (SSE streaming)
   const handleSend = async () => {
     if (!prompt.trim()) return;
 
-    // Reconstruct the full conversation history, preserving chain-of-thought details.
-    const previousChat = messages
-      .filter((msg) => !msg.isLoading)
-      .map((msg) => {
-        // If this is a chain-of-thought message (or already contains observation markers), return as-is.
-        if (
-          msg.sender === "bot" &&
-          (msg.isThought || msg.text?.includes("<observation>"))
-        ) {
-          return msg.text;
-        }
-        // Otherwise, prefix with "User:" or "Bot:" as appropriate.
-        return `${
-          msg.sender === "user" ? "User:" : "Bot:"
-        } ${replaceDatasetReferences(msg.text, datasets)}`;
-      })
-      .join("\n");
-
-    // Convert any @dataset references in the current prompt
+    // Replace any @datasetName with fileId:...
     const finalPrompt = replaceDatasetReferences(prompt, datasets);
 
-    // Append the new user message
+    // User's message
     setMessages((prev) => [
       ...prev,
       { text: prompt, sender: "user", isLoading: false },
     ]);
 
-    // Add a skeleton for the upcoming bot response
+    // Bot's loading placeholder
     setMessages((prev) => [
       ...prev,
       { text: "", sender: "bot", isLoading: true },
     ]);
 
-    // Clear the prompt input
+    // Reset prompt
     setPrompt("");
     setShowDropdown(false);
 
@@ -354,11 +368,9 @@ const AI = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          // Include the entire previous conversation with chain-of-thought context.
-          previousChat:
-            "Here is our previous conversation including all intermediate observations and actions:\n" +
-            previousChat,
+          userId,
           prompt: finalPrompt,
+          chatId: activeChatId,
         }),
       });
 
@@ -366,7 +378,6 @@ const AI = () => {
         throw new Error("No response body from the SSE endpoint.");
       }
 
-      // Process the SSE stream
       const reader = response.body.getReader();
       const decoder = new TextDecoder("utf-8");
       let buffer = "";
@@ -374,10 +385,8 @@ const AI = () => {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-
         buffer += decoder.decode(value, { stream: true });
         const parts = buffer.split("\n\n");
-
         for (let i = 0; i < parts.length - 1; i++) {
           await handleSSEChunk(parts[i]);
         }
@@ -388,6 +397,8 @@ const AI = () => {
       }
     } catch (error) {
       console.error("Error sending prompt with SSE:", error);
+
+      // Remove loading placeholder
       setMessages((prev) => {
         const newMessages = [...prev];
         if (
@@ -398,6 +409,8 @@ const AI = () => {
         }
         return newMessages;
       });
+
+      // Show error message
       setMessages((prev) => [
         ...prev,
         {
@@ -408,6 +421,7 @@ const AI = () => {
     }
   };
 
+  // Send on Enter
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -415,42 +429,14 @@ const AI = () => {
     }
   };
 
-  // Approve the final answer and save the chat
-  const handleApprove = async (messageIndex) => {
-    try {
-      const response = await fetch("http://localhost:5000/api/ai/chats", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId,
-          messages: messages.filter((msg) => !msg.isLoading),
-        }),
-      });
-
-      if (!response.ok) throw new Error("Failed to save chat");
-
-      const data = await response.json();
-      if (data.success) {
-        setMessages((prev) => {
-          const newMessages = [...prev];
-          newMessages[messageIndex].approved = true;
-          return newMessages;
-        });
-        toast.success("Chat saved successfully!");
-      }
-    } catch (error) {
-      console.error("Error saving chat:", error);
-      toast.error("Failed to save chat");
-    }
-  };
-
-  // Reject the final answer and allow a revised prompt
+  // Reject the answer (keep the logic as is)
   const handleReject = (messageIndex) => {
     setMessages((prev) => {
       const newMessages = [...prev];
       newMessages[messageIndex].rejected = true;
       return newMessages;
     });
+    // Focus input with rejection prompt
     setPrompt("rejection prompt: ");
     setTimeout(() => {
       if (inputRef.current) {
@@ -463,16 +449,10 @@ const AI = () => {
     }, 0);
   };
 
-  // A small wrapper for Skeleton lines
+  // Simple wrapper for skeleton layout
   function Box({ children }) {
     return (
-      <div
-        style={{
-          lineHeight: 1.5,
-          margin: "0rem",
-          marginBottom: "0.2rem",
-        }}
-      >
+      <div style={{ lineHeight: 1.5, margin: "0rem", marginBottom: "0.2rem" }}>
         {children}
       </div>
     );
@@ -487,6 +467,7 @@ const AI = () => {
             <h3>How can I help you today?</h3>
           </div>
         )}
+
         {messages.length > 0 && (
           <>
             <div className={styles.chatHeader}>AI Agent</div>
@@ -498,8 +479,8 @@ const AI = () => {
                   isBotMessage &&
                   (!prevMessage || prevMessage.sender !== "bot");
 
+                // BOT messages displaying CSV data
                 if (isBotMessage) {
-                  // Render CSV dataset messages if available
                   if (msg.datasetData) {
                     return (
                       <div className={styles.messageBotContainer} key={index}>
@@ -533,7 +514,7 @@ const AI = () => {
                     );
                   }
 
-                  // Render loading (skeleton) messages
+                  // BOT messages still loading (skeleton)
                   if (msg.isLoading) {
                     return (
                       <div className={styles.messageBotContainer} key={index}>
@@ -565,7 +546,7 @@ const AI = () => {
                     );
                   }
 
-                  // Render normal bot messages (including thoughts and final answers)
+                  // BOT final or normal text messages
                   return (
                     <div className={styles.messageBotContainer} key={index}>
                       {showIcon ? (
@@ -577,6 +558,7 @@ const AI = () => {
                       ) : (
                         <div className={styles.aiIcon} />
                       )}
+
                       <div
                         className={styles.messageBot}
                         style={{
@@ -585,15 +567,9 @@ const AI = () => {
                         }}
                       >
                         {msg.text}
-                        {msg.isFinal && !msg.approved && !msg.rejected && (
-                          <div className={styles.approveRejectButtons}>
-                            <div
-                              className={styles.approveButton}
-                              onClick={() => handleApprove(index)}
-                            >
-                              <FaCheck />
-                              Approve
-                            </div>
+                        {/* Show only the Reject button for the final message */}
+                        {msg.isFinal && !msg.rejected && (
+                          <div className={styles.rejectButtonContainer}>
                             <div
                               className={styles.rejectButton}
                               onClick={() => handleReject(index)}
@@ -608,7 +584,7 @@ const AI = () => {
                   );
                 }
 
-                // Render user messages
+                // USER messages
                 return (
                   <div className={styles.messageUser} key={index}>
                     {msg.text}
@@ -619,6 +595,7 @@ const AI = () => {
           </>
         )}
 
+        {/* Prompt input and dropdown */}
         <div
           className={
             messages.length > 0 ? styles.chatFooter : styles.noChatsFooter
@@ -638,7 +615,6 @@ const AI = () => {
               onChange={handlePromptChange}
               onKeyDown={handleKeyDown}
             />
-
             {showDropdown && (
               <div
                 className={styles.dropdown}
@@ -661,7 +637,14 @@ const AI = () => {
           </div>
         </div>
       </div>
-      <RightSidebar onSelectChat={(msgs) => setMessages(msgs)} />
+
+      {/* Right Sidebar with chat history */}
+      <RightSidebar
+        onSelectChat={(msgs, id) => {
+          setMessages(msgs);
+          setActiveChatId(id || null);
+        }}
+      />
     </div>
   );
 };

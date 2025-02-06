@@ -1,17 +1,15 @@
-// src/components/AI/RightSidebar/RightSidebar.jsx
 import React, { useContext, useEffect, useState } from "react";
 import { UserContext } from "../../../../context/UserContext";
 import styles from "./RightSidebar.module.css";
 
 const ChatHistory = ({ chats, onSelectChat, activeChatId }) => {
-  console.log("Active Chat Id : ", activeChatId);
   return (
     <div className={styles.chatHistory}>
       <div className={styles.header}>
         <div className={styles.headerContent}>
           <button
             className={styles.newChatButton}
-            onClick={() => onSelectChat([])}
+            onClick={() => onSelectChat([], null)}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
               <path
@@ -24,7 +22,6 @@ const ChatHistory = ({ chats, onSelectChat, activeChatId }) => {
           </button>
         </div>
       </div>
-
       <div className={styles.chatList}>
         {chats.map((chat) => (
           <div

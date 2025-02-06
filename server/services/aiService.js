@@ -1,3 +1,4 @@
+// services/aiService.js
 require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
@@ -29,9 +30,6 @@ const geminiModel = googleAI.getGenerativeModel({
 /**
  * runChainOfThought
  * Orchestrates the conversation with Gemini and streams thoughts and final answers.
- * @param {string} userPrompt - The user's input prompt.
- * @param {string} previousChats - The full previous conversation (including all observations and actions).
- * @param {function} onUpdate - Callback to stream updates (thoughts, answers, observations).
  */
 async function runChainOfThought(userPrompt, previousChats, onUpdate) {
   console.log("User Prompt:", userPrompt);
@@ -42,7 +40,7 @@ async function runChainOfThought(userPrompt, previousChats, onUpdate) {
     "utf-8"
   );
 
-  // Build the conversation context. When previousChats is provided, include a header.
+  // Build the conversation context.
   let conversation = [
     { role: "system", content: systemInstructions },
     {
@@ -73,7 +71,7 @@ async function runChainOfThought(userPrompt, previousChats, onUpdate) {
       return;
     }
 
-    // Stream any "thought" from Gemini to the client
+    // Stream any "thought" from Gemini
     if (parsed.steps?.thought) {
       console.log("Thought:", parsed.steps.thought);
       onUpdate("thought", { thought: parsed.steps.thought });
@@ -89,17 +87,11 @@ async function runChainOfThought(userPrompt, previousChats, onUpdate) {
     if (parsed.steps?.action) {
       const observation = await handleAction(parsed.steps.action);
       console.log("Observation:", observation);
-
       onUpdate("observation", { observation });
-
-      // Append the observation into the conversation so that Gemini sees it next round.
       conversation.push({
         role: "assistant",
         content: `<observation>${observation}</observation>`,
       });
-
-      // If the observation indicates that an operation completed successfully,
-      // return it as the final answer.
       if (
         observation.includes("Operation done successfully!") ||
         observation.includes("fileId:")
@@ -118,7 +110,7 @@ async function runChainOfThought(userPrompt, previousChats, onUpdate) {
 
 /**
  * callGeminiLLM
- * Sends the conversation array to Google’s Gemini LLM for content generation.
+ * Sends the conversation to Gemini and returns its response.
  */
 async function callGeminiLLM(conversation) {
   try {

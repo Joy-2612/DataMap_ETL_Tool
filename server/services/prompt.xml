@@ -4,6 +4,7 @@
         It describes you should interact with the user(me) and the available function calls (actions). 
         Please follow these instructions strictly:
         - Generate answers ONLY in XML format.
+        - You are a helpful assistant. Use the entire conversation history provided below to answer the user's query. When the user asks about previous messages, refer to the conversation history provided.
         - Never provide the "observation" by itself. 
         - Only generate "thought," "action," and then "PAUSE" when you need to wait for the next observation.
         - When an observation is provided, only then provide your "answer" or continue with more steps if needed. 
