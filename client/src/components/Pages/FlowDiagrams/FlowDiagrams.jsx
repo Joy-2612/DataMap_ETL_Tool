@@ -26,6 +26,41 @@ const nodeTypes = {
   actionNode: ActionNode,
 };
 
+// Function to update the action nodes with their source nodes
+function updateActionNodesWithSourceData(nodes, edges) {
+  const actionNodesMap = new Map();
+
+  edges.forEach((edge) => {
+    const sourceNode = nodes.find((node) => node.id === edge.source);
+    const targetNode = nodes.find((node) => node.id === edge.target);
+
+    if (sourceNode && targetNode && sourceNode.type === "datasetNode" && targetNode.type === "actionNode") {
+      const actionNodeId = targetNode.id;
+
+      if (!actionNodesMap.has(actionNodeId)) {
+        actionNodesMap.set(actionNodeId, {
+          ...targetNode,
+          data: {
+            ...targetNode.data,
+            sourcenodes: []
+          }
+        });
+      }
+
+      const actionNode = actionNodesMap.get(actionNodeId);
+      actionNode.data.sourcenodes.push({ id: sourceNode.id, name: sourceNode.data.name });
+    }
+  });
+
+  return nodes.map((node) => (actionNodesMap.has(node.id) ? actionNodesMap.get(node.id) : node));
+}
+
+
+
+// Extract source nodes for action nodes based on stored dataset IDs in sourcenodes
+
+
+
 const FlowDiagrams = () => {
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -33,7 +68,25 @@ const FlowDiagrams = () => {
   const [selectedEdge, setSelectedEdge] = useState(null);
   const [selectedNode, setSelectedNode] = useState(null);
   const [sidebarToggle, setSidebarToggle] = useState(false);
+  const [datasets, setDatasets] = useState([]);
   const userId = localStorage.getItem("userId");
+
+  const updateSidebarMergeWithSourceData = (actionNode) => {
+    if (!actionNode?.data?.sourcenodes || actionNode.data.sourcenodes.length === 0) {
+      setSelectedNode(actionNode);
+      setDatasets([]); // No datasets available
+      return;
+    }
+  
+    const datasets = actionNode.data.sourcenodes.map((source) => ({
+      name: source.name,
+      id: source.id, // Assuming id info is necessary for column fetching
+    }));
+  
+    setSelectedNode(actionNode);
+    setDatasets(datasets);
+  };
+  
 
   // Deletion callback for custom nodes
   const handleDeleteNode = useCallback(
@@ -48,7 +101,14 @@ const FlowDiagrams = () => {
       const targetNode = nodes.find((node) => node.id === params.target);
       if (targetNode?.data?.type === "action") {
         setEdges((eds) => addEdge(params, eds));
-      } else {
+        // Update action nodes with source nodes data
+      const updatedNodes = updateActionNodesWithSourceData(nodes, [...edges, params]);
+      setNodes(updatedNodes); // Apply the updated nodes state
+      console.log(updatedNodes);
+      } 
+
+      
+      else {
         const hasExistingConnection = edges.some(
           (edge) => edge.target === params.target
         );
@@ -74,7 +134,7 @@ const FlowDiagrams = () => {
       const itemType = event.dataTransfer.getData("text/type");
       const itemSize = event.dataTransfer.getData("text/size");
 
-      console.log("Data : ", itemId, itemName, itemType, itemSize);
+      // console.log("Data : ", itemId, itemName, itemType, itemSize);
 
       if (!reactFlowInstance) return;
 
@@ -198,6 +258,13 @@ const FlowDiagrams = () => {
     setSelectedEdge(null);
     setSelectedNode(node);
     setSidebarToggle(true);
+
+    if (node.type === "actionNode") {
+      updateSidebarMergeWithSourceData(node);  // Updated to use the correct source nodes
+    } else {
+      setDatasets([]);  // Clear datasets if a non-action node is selected
+    }
+
     console.log(node);
   };
 
@@ -221,34 +288,36 @@ const FlowDiagrams = () => {
   const handleRun = async () => {
     const flowJSON = generateFlowJSON(); // Generate flow data
     toast.info("Processing flow...");
+    console.log("Final JSON: ", flowJSON);
   
-    try {
-      const result = await runOperation(flowJSON); // Send data to backend
-      console.log("Backend Response:", result);
+  //   try {
+  //     const result = await runOperation(flowJSON); // Send data to backend
+  //     console.log("Backend Response:", result);
   
-      // Update output nodes with dataset details from backend response
-      const updatedNodes = nodes.map((node) => {
-        if (node.type === "outputNode") {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              name: result.datasetName,
-              _id: result.datasetId,
-              type: result.datasetType,
-              size: result.datasetSize,
-            },
-          };
-        }
-        return node;
-      });
+  //     // Update output nodes with dataset details from backend response
+  //     const updatedNodes = nodes.map((node) => {
+  //       if (node.type === "outputNode") {
+  //         return {
+  //           ...node,
+  //           data: {
+  //             ...node.data,
+  //             name: result.datasetName,
+  //             _id: result.datasetId,
+  //             type: result.datasetType,
+  //             size: result.datasetSize,
+  //           },
+  //         };
+  //       }
+  //       return node;
+  //     });
   
-      setNodes(updatedNodes); // Update the state with new dataset details
-      toast.success(`Dataset created: ${result.datasetName} (ID: ${result.datasetId})`);
-    } catch (error) {
-      console.error("Error running operation:", error);
-      toast.error("Failed to create dataset. Please try again.");
-    }
+  //     setNodes(updatedNodes); // Update the state with new dataset details
+  //     toast.success(`Dataset created: ${result.datasetName} (ID: ${result.datasetId})`);
+  //   } catch (error) {
+  //     console.error("Error running operation:", error);
+  //     toast.error("Failed to create dataset. Please try again.");
+  //   }
+  // 
   };
   
 
@@ -296,6 +365,8 @@ const FlowDiagrams = () => {
           nodes={nodes}
           setNodes={setNodes}
           sidebarToggle={sidebarToggle}
+          datasets_source={datasets} // Pass datasets
+  setDatasets_source={setDatasets} // Pass setDatasets function
         />
       </div>
     </ReactFlowProvider>

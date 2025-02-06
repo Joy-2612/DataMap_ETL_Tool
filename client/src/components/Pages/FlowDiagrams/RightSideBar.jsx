@@ -12,8 +12,8 @@ import SidebarSplit from "./SidebarActions/SidebarSplit";
 import SidebarStandardize from "./SidebarActions/SidebarStandardize";
 import SidebarMerge from "./SidebarActions/SidebarMerge";
 
-const RightSideBar = ({ onAddNode, onAddActionNode,onAddNodeOutput, userId, selectedNode,nodes,setNodes }) => {
-  const [datasets, setDatasets] = useState([]);
+const RightSideBar = ({ onAddNode, onAddActionNode,onAddNodeOutput, userId, selectedNode,nodes,setNodes,datasets_source,setDatasets_source }) => {
+  const [datasets1, setDatasets1] = useState([]);
   const [results, setResults] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [newNodeName, setNewNodeName] = useState("");
@@ -71,7 +71,7 @@ const RightSideBar = ({ onAddNode, onAddActionNode,onAddNodeOutput, userId, sele
         const datasetsData = await datasetsResponse.json();
         const resultsData = await resultsResponse.json();
 
-        setDatasets(datasetsData.data || []);
+        setDatasets1(datasetsData.data || []);
         setResults(resultsData.data || []);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -239,7 +239,7 @@ const RightSideBar = ({ onAddNode, onAddActionNode,onAddNodeOutput, userId, sele
   );
 
   const renderParametersView = () => {
-    console.log("Selected : ", selectedAction);
+    // console.log("Selected : ", selectedAction);
     if (!selectedAction?.component) return null;
     const ActionComponent = selectedAction.component;
 
@@ -258,6 +258,8 @@ const RightSideBar = ({ onAddNode, onAddActionNode,onAddNodeOutput, userId, sele
           nodeId={selectedNode?.id} // Pass the selected node's ID
         nodes={nodes} // Pass the nodes array
         setNodes={setNodes} // Pass the setNodes function
+        datasets_source={datasets_source}
+        setDatasets_source={setDatasets_source}
       />
         </div>
       </div>
@@ -297,7 +299,7 @@ const RightSideBar = ({ onAddNode, onAddActionNode,onAddNodeOutput, userId, sele
                 Loaded Datasets{" "}
                 {isLoadedOpen ? <FaChevronDown /> : <FaChevronRight />}
               </div>
-              {isLoadedOpen && renderItems(datasets)}
+              {isLoadedOpen && renderItems(datasets1)}
             </div>
             <div className={styles.accordion}>
               <div
