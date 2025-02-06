@@ -1,18 +1,20 @@
 .container {
-  display: flex;
+  display: flex; 
   height: 500px;
   width: 100%;
 }
-
+.react-flow__minimap svg {
+  width: 100px;
+  height: 75px;
+}
 .flowContainer {
   flex: 1;
-  height: 560px;
+  height: 460px;
   width: 100%;
   border: 1px solid #ccc;
   border-radius: 5px;
 }
 
-/* Example button classes (existing or optional) */
 .addNodeButton {
   margin-bottom: 10px;
   padding: 10px 20px;
@@ -32,4 +34,39 @@
 
 .addNodeButton:active {
   background-color: #003f7f;
+}
+
+.runButtonContainer {
+  display: flex;
+  justify-content: flex-start;
+  padding: 7px 5px;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #eaeaea;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.runButton {
+  padding: 10px 24px;
+  background-color: black;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.runButton:hover {
+  background-color: #333;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.runButton:active {
+  transform: translateY(0);
+  box-shadow: none;
 }

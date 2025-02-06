@@ -12,16 +12,17 @@ import SidebarSplit from "./SidebarActions/SidebarSplit";
 import SidebarStandardize from "./SidebarActions/SidebarStandardize";
 import SidebarMerge from "./SidebarActions/SidebarMerge";
 
-const RightSideBar = ({ onAddNode, onAddNodeOutput, userId, selectedNode }) => {
+const RightSideBar = ({ onAddNode, onAddActionNode,onAddNodeOutput, userId, selectedNode,nodes,setNodes }) => {
   const [datasets, setDatasets] = useState([]);
   const [results, setResults] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [newNodeName, setNewNodeName] = useState("");
+  const [newNodeDesc, setNewNodeDesc] = useState("");
   const [activeTab, setActiveTab] = useState("datasets");
   const [isLoadedOpen, setIsLoadedOpen] = useState(false);
   const [isResultsOpen, setIsResultsOpen] = useState(false);
-  const [isAddNodeOpen, setIsAddNodeOpen] = useState(true);
-  const [isActionsOpen, setIsActionsOpen] = useState(true);
+  const [isAddNodeOpen, setIsAddNodeOpen] = useState(false);
+  const [isActionsOpen, setIsActionsOpen] = useState(false);
   const [selectedAction, setSelectedAction] = useState(null);
   const [showParametersView, setShowParametersView] = useState(false);
 
@@ -92,33 +93,51 @@ const RightSideBar = ({ onAddNode, onAddNodeOutput, userId, selectedNode }) => {
   };
 
   const handleDoubleClick = (item) => {
+    console.log("item: ",item);
     if (onAddNode) {
-      onAddNode(item);
+        const nodeData = {
+            id: item._id,
+            name: item.name,
+            size: item.size,
+            type: item.type
+        };
+        console.log("data is: ",nodeData);
+        onAddNode(nodeData);
     }
-  };
+};
 
   // Rest of the fetch data useEffect remains the same...
 
   const handleActionSelect = (action) => {
     setSelectedAction(action);
     setShowParametersView(true);
-    onAddNodeOutput({
+
+    onAddActionNode({
       id: Date.now().toString(),
       name: action.name,
       type: "action",
       actionType: action.id,
-      style: {
-        border: "2px solid blue",
-        padding: "15px",
-        borderRadius: "4px",
-        backgroundColor: "#f8f9fa",
-        fontWeight: "bold",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
-      },
     });
+  
   };
+
+    // onAddNodeOutput({
+    //   id: Date.now().toString(),
+    //   // name: action.name,
+    //   type: "output",
+    //   style: {
+    //     border: "2px solid ",
+    //     padding: "15px",
+    //     borderRadius: "4px",
+    //     backgroundColor: "#f8f9fa",
+    //     fontWeight: "bold",
+    //     overflow: "hidden",
+    //     textOverflow: "ellipsis",
+    //     whiteSpace: "nowrap",
+    //   },
+    // });
+  
+  
 
   const handleBackClick = () => {
     setShowParametersView(false);
@@ -154,26 +173,35 @@ const RightSideBar = ({ onAddNode, onAddNodeOutput, userId, selectedNode }) => {
         className={styles.accordionHeader}
         onClick={() => setIsAddNodeOpen(!isAddNodeOpen)}
       >
-        Custom Node {isAddNodeOpen ? <FaChevronDown /> : <FaChevronRight />}
+        Output Node {isAddNodeOpen ? <FaChevronDown /> : <FaChevronRight />}
       </div>
       {isAddNodeOpen && (
         <div className={styles.accordionContent}>
           <input
             type="text"
-            placeholder="Enter node name"
+            placeholder="Enter node name (output file name)"
             value={newNodeName}
             onChange={(e) => setNewNodeName(e.target.value)}
             className={styles.nodeInput}
-          />
+          />  
+          <input
+            type="text"
+            placeholder="Enter node description (output file desc.)"
+            value={newNodeDesc}
+            onChange={(e) => setNewNodeDesc(e.target.value)}
+            className={styles.nodeInput}
+          />  
           <button
             className={styles.addNodeButton}
             onClick={() => {
-              if (newNodeName && onAddNodeOutput) {
+              if (newNodeName && newNodeDesc && onAddNodeOutput) {
                 onAddNodeOutput({
                   id: Date.now().toString(),
                   name: newNodeName,
+                  desc: newNodeDesc,
                 });
                 setNewNodeName("");
+                setNewNodeDesc("");
               }
             }}
           >
@@ -226,7 +254,11 @@ const RightSideBar = ({ onAddNode, onAddNodeOutput, userId, selectedNode }) => {
           </div>
         </div>
         <div className={styles.parametersContent}>
-          <ActionComponent nodeId={selectedNode?.id} />
+          <ActionComponent 
+          nodeId={selectedNode?.id} // Pass the selected node's ID
+        nodes={nodes} // Pass the nodes array
+        setNodes={setNodes} // Pass the setNodes function
+      />
         </div>
       </div>
     );

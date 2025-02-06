@@ -116,10 +116,11 @@
   }
   
   .splitColumnsInput {
-    display: grid;
-    gap: 15px;
-    grid-template-columns: 1fr 1fr 1fr;
-    margin: 15px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    /* grid-template-rows: 1fr; */
+    margin: 15px 0px;
   }
   
   /* Modal Overlay */

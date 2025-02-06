@@ -2,10 +2,11 @@ import React, { useState,useEffect} from "react";
 import { FaTimes } from "react-icons/fa";
 import Papa from "papaparse";
 import Dropdown from "../../../UI/Dropdown/Dropdown";
+import { toast } from "sonner";
 import styles from "./SidebarConcatenate.module.css";
 
 
-const SidebarConcatenate = () =>{
+const SidebarConcatenate = ({ nodeId, nodes, setNodes }) =>{
    const [datasets, setDatasets] = useState([]);
      const [dataset1, setDataset1] = useState(null);
      const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -17,6 +18,22 @@ const SidebarConcatenate = () =>{
       const [columns1, setColumns1] = useState([]);
        const [isLoading, setIsLoading] = useState(false);
        const userId = localStorage.getItem("userId");
+
+       const selectedNode = nodes.find((node) => node.id === nodeId);
+
+
+       useEffect(() => {
+        if (selectedNode && selectedNode.data.parameters) {
+          const { dataset, columns, delimiter, finalColumnName } = selectedNode.data.parameters;
+          setDataset1(dataset);
+          setSelectedColumns(columns || []);
+          setDelimiter(delimiter || ",");
+          setFinalColumnName(finalColumnName || "");
+          if (dataset) {
+            fetchColumn(dataset);
+          }
+        }
+      }, [selectedNode]);
 
 
        useEffect(() => {
@@ -33,6 +50,36 @@ const SidebarConcatenate = () =>{
            };
            fetchDatasets();
          }, [userId]);
+
+
+
+         const handleSubmit = () => {
+          const parameters = {
+            dataset: dataset1,
+            columns: selectedColumns,
+            delimiter,
+            finalColumnName,
+          };
+
+          // Update the node with the new parameters
+    const updatedNodes = nodes.map((node) => {
+      if (node.id === nodeId) {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            parameters,
+          },
+        };
+      }
+      return node;
+    });
+    setNodes(updatedNodes);
+    setIsLoading(false);
+    console.log("Concatenate Parameters Saved:", parameters);
+    toast.success("Concatenate parameters saved successfully!");
+  };
+
 
      const handleColumnRemove = (column) => {
         setSelectedColumns(selectedColumns.filter((c) => c !== column));
@@ -151,11 +198,11 @@ return (
             placeholder="Final Column Name"
             />
         </div>
-        <button
+        <button onClick={handleSubmit}
           
           disabled={selectedColumns.length === 0 || isLoading}
           >
-          {isLoading ? <span className={styles.loader}></span> : "Concatenate"}
+          {isLoading ? <span className={styles.loader}></span> : "Submit"}
         </button>
         </div>
     </div>

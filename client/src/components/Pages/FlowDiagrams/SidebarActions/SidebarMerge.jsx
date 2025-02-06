@@ -1,16 +1,10 @@
 import React, { useState, useEffect } from "react";
 import Papa from "papaparse";
-import { IoMdClose } from "react-icons/io";
-import { toast } from "sonner";
-import DataTable from "../../../UI/DataTable/DataTable";
 import Dropdown from "../../../UI/Dropdown/Dropdown";
+import { toast } from "sonner";
 import styles from "./SidebarMerge.module.css";
 
-const SidebarMerge = () => {
-  const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [outputFileName, setOutputFileName] = useState("");
-  const [description, setDescription] = useState("");
+const SidebarMerge = ({ nodeId, nodes, setNodes }) => {
   const [datasets, setDatasets] = useState([]);
   const [dataset1, setDataset1] = useState(null);
   const [dataset2, setDataset2] = useState(null);
@@ -18,16 +12,8 @@ const SidebarMerge = () => {
   const [columns2, setColumns2] = useState([]);
   const [selectedColumn1, setSelectedColumn1] = useState("");
   const [selectedColumn2, setSelectedColumn2] = useState("");
-  const [selectedCsvData, setSelectedCsvData] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Separate states for each dropdown's visibility
   const [isDropdown1Open, setIsDropdown1Open] = useState(false);
   const [isDropdown2Open, setIsDropdown2Open] = useState(false);
-
-  // Modal states for output file details
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [isDetailsModalClosing, setIsDetailsModalClosing] = useState(false);
 
   const userId = localStorage.getItem("userId");
 
@@ -46,6 +32,31 @@ const SidebarMerge = () => {
 
     fetchDatasets();
   }, [userId]);
+
+  useEffect(() => {
+    const selectedNode = nodes.find((node) => node.id === nodeId);
+
+    if (selectedNode && selectedNode.data.parameters) {
+      const {
+        dataset1: storedDataset1,
+        dataset2: storedDataset2,
+        selectedColumn1: storedColumn1,
+        selectedColumn2: storedColumn2,
+      } = selectedNode.data.parameters;
+
+      setDataset1(storedDataset1);
+      setDataset2(storedDataset2);
+      setSelectedColumn1(storedColumn1);
+      setSelectedColumn2(storedColumn2);
+
+      if (storedDataset1) {
+        fetchColumns(storedDataset1.name, setColumns1);
+      }
+      if (storedDataset2) {
+        fetchColumns(storedDataset2.name, setColumns2);
+      }
+    }
+  }, [nodeId, nodes]);
 
   const parseCsvFile = (file) => {
     return new Promise((resolve, reject) => {
@@ -77,82 +88,32 @@ const SidebarMerge = () => {
     }
   };
 
-  const handleCsvView = async (dataset) => {
-    const selectedDataset = datasets.find((d) => d.name === dataset.name);
-    if (selectedDataset) {
-      const csvData = await parseCsvFile(selectedDataset.file);
-      setSelectedCsvData(csvData);
-      setIsCsvModalOpen(true);
-      setTimeout(() => setModalVisible(true), 10); // Trigger animation
-    }
-  };
+  const handleSubmit = () => {
+    const parameters = {
+      dataset1,
+      dataset2,
+      selectedColumn1,
+      selectedColumn2
+    };
 
-  const handleDetailsSubmit = async () => {
-    if (!selectedColumn1 || !selectedColumn2) {
-      toast.error("Please select columns from both datasets.");
-      return;
-    }
+    
 
-    try {
-      setIsLoading(true);
-      const response = await fetch("http://localhost:5000/api/file/merge", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          dataset1: dataset1?._id,
-          dataset2: dataset2?._id,
-          column1: selectedColumn1,
-          column2: selectedColumn2,
-          outputFileName,
-          description,
-        }),
-      });
-
-      const data = await response.json();
-      setIsLoading(false);
-
-      if (response.ok) {
-        toast.success(
-          `Datasets merged successfully! New file ID: ${data.newFileId}`
-        );
-        setDataset1(null);
-        setDataset2(null);
-        setColumns1([]);
-        setColumns2([]);
-        setOutputFileName("");
-        setDescription("");
-      } else {
-        toast.error(`Error: ${data.message}`);
+    const updatedNodes = nodes.map((node) => {
+      if (node.id === nodeId) {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            parameters,
+          },
+        };
       }
-    } catch (error) {
-      setIsLoading(false);
-      toast.error("An error occurred while merging datasets.");
-    } finally {
-      closeDetailsModal();
-    }
-  };
+      return node;
+    });
 
-  const handleCloseModal = () => {
-    setModalVisible(false);
-    setTimeout(() => {
-      setIsCsvModalOpen(false);
-      setSelectedCsvData([]);
-    }, 300);
-  };
-
-  const openDetailsModal = () => {
-    console.log("Opening details modal"); // Debugging step
-    setIsDetailsModalOpen(true);
-  };
-
-  const closeDetailsModal = () => {
-    setIsDetailsModalClosing(true);
-    setTimeout(() => {
-      setIsDetailsModalOpen(false);
-      setIsDetailsModalClosing(false);
-    }, 300);
+    setNodes(updatedNodes);
+    console.log("Merge Parameters:", parameters);
+    toast.success("Merge parameters saved successfully!");
   };
 
   return (
@@ -168,7 +129,6 @@ const SidebarMerge = () => {
                 fetchColumns(dataset.name, setColumns1);
                 setIsDropdown1Open(false);
               }}
-              onView={handleCsvView}
               isOpen={isDropdown1Open}
               setIsOpen={setIsDropdown1Open}
             />
@@ -185,7 +145,7 @@ const SidebarMerge = () => {
             ))}
           </select>
         </div>
-        <hr className={styles.linebreak}/>
+        <hr className={styles.linebreak} />
         <div className={styles.datasetAndColumnInput}>
           <div className={styles.mergeInput}>
             <Dropdown
@@ -196,12 +156,10 @@ const SidebarMerge = () => {
                 fetchColumns(dataset.name, setColumns2);
                 setIsDropdown2Open(false);
               }}
-              onView={handleCsvView}
               isOpen={isDropdown2Open}
               setIsOpen={setIsDropdown2Open}
             />
           </div>
-
           <select
             value={selectedColumn2}
             onChange={(e) => setSelectedColumn2(e.target.value)}
@@ -215,97 +173,12 @@ const SidebarMerge = () => {
           </select>
         </div>
         <button
-          onClick={openDetailsModal}
-          disabled={
-            !dataset1 ||
-            !dataset2 ||
-            !selectedColumn1 ||
-            !selectedColumn2 ||
-            isLoading
-          }
+          onClick={handleSubmit}
+          disabled={!dataset1 || !dataset2 || !selectedColumn1 || !selectedColumn2}
         >
-          {isLoading ? "Merging..." : "Merge"}
+          Submit
         </button>
       </div>
-
-      {isDetailsModalOpen && (
-        <div
-          className={`${styles.descModalOverlay} ${styles.descModalOverlayVisible}`}
-        >
-          <div
-            className={`${styles.descModalContent} ${styles.descModalContentVisible}`}
-          >
-            <h2>Enter Output File Details</h2>
-            <div className={styles.formGroup}>
-              <label>Output File Name</label>
-              <input
-                type="text"
-                value={outputFileName}
-                onChange={(e) => setOutputFileName(e.target.value)}
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label>Description (Optional)</label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </div>
-            <div className={`${styles.buttonGroup} ${styles.modalButtons}`}>
-              <button
-                className={styles.submitButton}
-                onClick={handleDetailsSubmit}
-              >
-                Submit
-              </button>
-              <button
-                className={styles.cancelButton}
-                onClick={closeDetailsModal}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isCsvModalOpen && (
-        <div
-          className={`${styles.modalOverlay} ${
-            modalVisible ? styles.modalOverlayVisible : ""
-          }`}
-          onClick={handleCloseModal}
-        >
-          <div
-            className={`${styles.modalContent} ${
-              modalVisible ? styles.modalContentVisible : ""
-            }`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className={styles.modalTitle}>
-              CSV Data
-              <IoMdClose
-                className={styles.closeButton}
-                onClick={handleCloseModal}
-              />
-            </div>
-
-            {selectedCsvData.length > 0 ? (
-              <DataTable
-                title="CSV Data"
-                columns={Object.keys(selectedCsvData[0]).map((key) => ({
-                  label: key,
-                  key: key,
-                }))}
-                data={selectedCsvData}
-                getRowId={(row, index) => index}
-              />
-            ) : (
-              <p>No data available</p>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

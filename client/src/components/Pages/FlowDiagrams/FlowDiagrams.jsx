@@ -7,162 +7,23 @@ import ReactFlow, {
   useEdgesState,
   addEdge,
   ReactFlowProvider,
-  Handle,
-  Position,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import { CiSettings } from "react-icons/ci";
-import { FaDatabase } from "react-icons/fa6";
-
+import DatasetNode from "./Nodes/DatasetNode";
+import OutputNode from "./Nodes/OutputNode";
+import ActionNode from "./Nodes/ActionNode";
 import RightSideBar from "./RightSideBar";
 import styles from "./FlowDiagrams.module.css";
+import { toast } from "sonner"; // For showing toast notifications
+import "react-toastify/dist/ReactToastify.css"; // Toast styles
 
 const initialNodes = [];
 const initialEdges = [];
 
-/**
- * 1. Define a custom node component.
- *
- *    - Renders the node label
- *    - If the node is selected, show an options button (⋮)
- *    - When clicked, show a small tooltip with a "Delete" button
- */
-function DatasetNode({ id, data, selected }) {
-  const [showTooltip, setShowTooltip] = useState(false);
-
-  const handleOptionsClick = (event) => {
-    event.stopPropagation(); // Prevent triggering onNodeClick
-    setShowTooltip((prev) => !prev);
-  };
-
-  return (
-    <div
-      style={{
-        position: "relative",
-        backgroundColor: "rgb(24 144 28 / 8%)",
-        textAlign: "left",
-        color: "#333",
-        padding: "16px",
-        border: "2px solid rgb(24 144 28 / 76%)",
-        borderRadius: "8px",
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-        minWidth: 150,
-        overflow: "visible",
-      }}
-    >
-      {/* Add a target handle at the top */}
-      <Handle
-        type="target"
-        position={Position.Top}
-        style={{ background: "#555", width: "8px", height: "8px" }}
-      />
-
-      {/* Main content of the node */}
-      <div style={{ color: "black", marginBottom: "8px" }}>
-        <FaDatabase />
-      </div>
-      <div style={{ marginBottom: "8px" }}>
-        <div
-          style={{
-            fontSize: "16px",
-            fontWeight: "bold",
-            marginBottom: "4px",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-          title={data.name}
-        >
-          {data.name}
-        </div>
-        <div style={{ fontSize: "12px", color: "#666" }}>ID: {data._id}</div>
-        <div
-          style={{
-            fontSize: "12px",
-            color: "#666",
-            marginTop: "4px",
-            display: "flex",
-            justifyContent: "space-between",
-          }}
-        >
-          <span>Type: {data.type}</span>
-          <span>Size: {data.size}</span>
-        </div>
-      </div>
-
-      {/* Add a source handle at the bottom */}
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        style={{ background: "#555", width: "8px", height: "8px" }}
-      />
-
-      {selected && (
-        <div style={{ position: "absolute", top: "8px", right: "8px" }}>
-          {/* Options Icon */}
-          <button
-            onClick={(event) => {
-              event.stopPropagation();
-              setShowTooltip(!showTooltip);
-            }}
-            style={{
-              background: "none",
-              padding: 0,
-              border: "none",
-              color: "#333",
-              cursor: "pointer",
-              fontSize: "16px",
-            }}
-            title="Options"
-          >
-            <CiSettings />
-          </button>
-
-          {/* Tooltip with "Delete" Button */}
-          {showTooltip && (
-            <div
-              style={{
-                position: "absolute",
-                top: "-35px",
-                right: "0",
-                fontSize: "10px",
-                background: "#fff",
-                color: "#333",
-                borderRadius: "4px",
-                padding: "4px 6px",
-                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                zIndex: 999,
-              }}
-            >
-              <button
-                style={{
-                  background: "red",
-                  color: "white",
-                  border: "none",
-                  fontSize: "10px",
-                  borderRadius: "4px",
-                  padding: "2px 6px",
-                  cursor: "pointer",
-                }}
-                onClick={() => data.onDelete(id)}
-              >
-                Delete
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/**
- * 2. Register custom node types for ReactFlow.
- *    You could add more keys if you need different custom node UIs.
- */
 const nodeTypes = {
   datasetNode: DatasetNode,
+  outputNode: OutputNode,
+  actionNode: ActionNode,
 };
 
 const FlowDiagrams = () => {
@@ -174,7 +35,7 @@ const FlowDiagrams = () => {
   const [sidebarToggle, setSidebarToggle] = useState(false);
   const userId = localStorage.getItem("userId");
 
-  // 3. Deletion callback for custom nodes
+  // Deletion callback for custom nodes
   const handleDeleteNode = useCallback(
     (nodeId) => {
       setNodes((nds) => nds.filter((node) => node.id !== nodeId));
@@ -222,7 +83,6 @@ const FlowDiagrams = () => {
         y: event.clientY - reactFlowBounds.top,
       });
 
-      // 4. Use our custom node type + pass in handleDeleteNode
       const newNode = {
         id: `item-${itemId}-${Date.now()}`,
         type: "datasetNode", // <-- custom node
@@ -232,10 +92,14 @@ const FlowDiagrams = () => {
           _id: itemId,
           type: itemType,
           size: itemSize,
+          nodeType: "Dataset",
           onDelete: handleDeleteNode,
         },
         style: {
-          // Additional inline styles you prefer
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          padding: "10px",
         },
       };
 
@@ -244,22 +108,21 @@ const FlowDiagrams = () => {
     [reactFlowInstance, setNodes, handleDeleteNode]
   );
 
-  /**
-   * Example add-node functions, updated to use the `datasetNode` type
-   * and pass `onDelete`.
-   */
   const handleAddNode = (item) => {
     const newNode = {
-      id: `item-${item.id}-${Date.now()}`,
+      id: `${item.type || "dataset"} -${item.id}-${Date.now()}`,
       type: "datasetNode", // Use our custom node
       position: { x: Math.random() * 200, y: Math.random() * 200 },
       data: {
+        name: item.name,
+        _id: item.id,
+        type: item.type,
+        size: item.size,
+        nodeType: "Dataset",
         label: item.name,
         onDelete: handleDeleteNode, // So this node can delete itself
       },
       style: {
-        // You can keep or enhance your style here as desired:
-        fontWeight: "bold",
         overflow: "hidden",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
@@ -272,29 +135,47 @@ const FlowDiagrams = () => {
   const handleAddNodeOutput = (item) => {
     const newNode = {
       id: `${item.type || "output"}-${item.id}-${Date.now()}`,
-      type: "datasetNode",
+      type: "outputNode",
       position: { x: Math.random() * 200, y: Math.random() * 200 },
       data: {
+        name: item.name,
         label: item.name,
-        type: item.type || "output",
+        type: item.type,
+        nodeType: "Output",
+        description: item.desc,
         actionType: item.actionType, // Store the specific action type
         onDelete: handleDeleteNode,
       },
-      style:
-        item.type === "action"
-          ? {
-              ...item.style,
-              minWidth: "150px",
-              minHeight: "50px",
-            }
-          : {
-              border: "2px solid red",
-              fontWeight: "bold",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-              padding: "10px",
-            },
+      style: {
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        padding: "10px",
+      },
+    };
+    setNodes((nds) => nds.concat(newNode));
+    console.log("o/p node: ", newNode);
+  };
+
+  const handleAddActionNode = (item) => {
+    const newNode = {
+      id: `${item.type || "action"}-${item.id}-${Date.now()}`,
+      type: "actionNode", // Use the new ActionNode type
+      position: { x: Math.random() * 200, y: Math.random() * 200 },
+      data: {
+        label: item.name,
+        type: item.type || "action",
+        nodeType: "Action",
+        actionType: item.actionType, // Store the specific action type
+        onDelete: handleDeleteNode,
+        parameters:{},
+      },
+      style: {
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        padding: "10px",
+      },
     };
     setNodes((nds) => nds.concat(newNode));
   };
@@ -320,9 +201,68 @@ const FlowDiagrams = () => {
     console.log(node);
   };
 
+  const generateFlowJSON = () => {
+    const flowData = {
+      nodes: nodes.map((node) => ({
+        id: node.id,
+        type: node.type,
+        data: node.data,
+        position: node.position,
+      })),
+      edges: edges.map((edge) => ({
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+      })),
+    };
+    return flowData;
+  };
+  
+  const handleRun = async () => {
+    const flowJSON = generateFlowJSON(); // Generate flow data
+    toast.info("Processing flow...");
+  
+    try {
+      const result = await runOperation(flowJSON); // Send data to backend
+      console.log("Backend Response:", result);
+  
+      // Update output nodes with dataset details from backend response
+      const updatedNodes = nodes.map((node) => {
+        if (node.type === "outputNode") {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              name: result.datasetName,
+              _id: result.datasetId,
+              type: result.datasetType,
+              size: result.datasetSize,
+            },
+          };
+        }
+        return node;
+      });
+  
+      setNodes(updatedNodes); // Update the state with new dataset details
+      toast.success(`Dataset created: ${result.datasetName} (ID: ${result.datasetId})`);
+    } catch (error) {
+      console.error("Error running operation:", error);
+      toast.error("Failed to create dataset. Please try again.");
+    }
+  };
+  
+
   return (
     <ReactFlowProvider>
+      <div className={styles.runButtonContainer}>
+          <button onClick={handleRun} className={styles.runButton}>
+            Run
+          </button>
+        </div>
       <div className={styles.container}>
+        {/* Run Button at the top of the flow diagram */}
+        
+
         <div className={styles.flowContainer}>
           <ReactFlow
             nodes={nodes}
@@ -337,9 +277,9 @@ const FlowDiagrams = () => {
             onNodeClick={onNodeClick}
             fitView
             onInit={setReactFlowInstance}
-            nodeTypes={nodeTypes} // 5. Make sure to supply your custom node types
+            nodeTypes={nodeTypes}
           >
-            <MiniMap style={{ transformOrigin: "top left" }} />
+            <MiniMap style={{ transformOrigin: "top left"}} />
             <Controls style={{ transformOrigin: "top left" }} />
             <Background variant="dots" gap={12} size={1} />
           </ReactFlow>
@@ -349,9 +289,12 @@ const FlowDiagrams = () => {
           userId={userId}
           onAddNode={handleAddNode}
           onAddNodeOutput={handleAddNodeOutput}
+          onAddActionNode={handleAddActionNode}
           selectedEdge={selectedEdge}
           selectedNode={selectedNode}
           setEdges={setEdges}
+          nodes={nodes}
+          setNodes={setNodes}
           sidebarToggle={sidebarToggle}
         />
       </div>
