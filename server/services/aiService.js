@@ -31,83 +31,94 @@ const geminiModel = googleAI.getGenerativeModel({
  * runChainOfThought
  * Orchestrates the conversation with Gemini and streams thoughts and final answers.
  */
-async function runChainOfThought(userPrompt, previousChats, onUpdate) {
+async function runChainOfThought(userPrompt, chatHistory, onUpdate) {
   console.log("User Prompt:", userPrompt);
 
-  // Read system instructions from an XML file.
+  // Read system instructions from an XML file
   const systemInstructions = fs.readFileSync(
     path.join(__dirname, "prompt.xml"),
     "utf-8"
   );
 
-  // Build the conversation context.
-  let conversation = [
-    { role: "system", content: systemInstructions },
-    {
-      role: "user",
-      content:
-        "Here is our previous conversation including the thoughts:\n" +
-        previousChats,
-    },
-    { role: "user", content: userPrompt },
-  ];
+  try {
+    // Convert database format to Gemini's chat history format
+    const formattedHistory = chatHistory.map((msg) => ({
+      role: msg.sender === "user" ? "user" : "model",
+      parts: [{ text: msg.text }],
+    }));
 
-  const maxIterations = 20;
+    // Start chat session with history and system instructions
+    const chatSession = geminiModel.startChat({
+      history: formattedHistory,
+      systemInstruction: {
+        role: "system",
+        parts: [{ text: systemInstructions }],
+      },
+    });
 
-  for (let i = 0; i < maxIterations; i++) {
-    const llmText = await callGeminiLLM(conversation);
+    let response = await chatSession.sendMessage(userPrompt);
+    let responseText = response.response.text();
+    let maxIterations = 10;
 
-    let parsed;
-    try {
-      const parser = new XMLParser({
-        ignoreAttributes: false,
-        attributeNamePrefix: "@_",
-      });
-      parsed = parser.parse(llmText);
-      console.log("Parsed LLM response:", parsed);
-    } catch (error) {
-      console.error("Error parsing LLM response:", error);
-      onUpdate("error", { error: "Error parsing LLM response" });
-      return;
-    }
+    while (maxIterations-- > 0) {
+      const parsed = parseResponse(responseText);
 
-    // Stream any "thought" from Gemini
-    if (parsed.steps?.thought) {
-      console.log("Thought:", parsed.steps.thought);
-      onUpdate("thought", { thought: parsed.steps.thought });
-    }
+      // Stream thoughts
+      if (parsed.thought) {
+        onUpdate("thought", { thought: parsed.thought });
+      }
 
-    // If a final answer is provided, send it and exit.
-    if (parsed.answer || parsed.steps?.answer) {
-      onUpdate("answer", { answer: parsed.answer || parsed.steps.answer });
-      return;
-    }
-
-    // If an action is provided, handle it and stream the observation.
-    if (parsed.steps?.action) {
-      const observation = await handleAction(parsed.steps.action);
-      console.log("Observation:", observation);
-      onUpdate("observation", { observation });
-      conversation.push({
-        role: "assistant",
-        content: `<observation>${observation}</observation>`,
-      });
-      if (
-        observation.includes("Operation done successfully!") ||
-        observation.includes("fileId:")
-      ) {
-        onUpdate("answer", { answer: observation });
+      // Final answer
+      if (parsed.answer) {
+        onUpdate("answer", { answer: parsed.answer });
         return;
       }
-    } else {
-      onUpdate("error", { error: "No action or answer found" });
-      return;
-    }
-  }
 
-  onUpdate("error", { error: "Maximum iterations reached without an answer" });
+      // Handle actions
+      if (parsed.action) {
+        const observation = await handleAction(parsed.action);
+        onUpdate("observation", { observation });
+
+        // Send observation back to continue conversation
+        response = await chatSession.sendMessage(
+          `<observation>${observation}</observation>`
+        );
+        responseText = response.response.text();
+      } else {
+        break;
+      }
+    }
+
+    if (maxIterations <= 0) {
+      onUpdate("error", {
+        error: "Maximum iterations reached without resolution",
+      });
+    }
+  } catch (error) {
+    console.error("Error in chat session:", error);
+    onUpdate("error", { error: error.message });
+  }
 }
 
+// Helper function to parse LLM response
+function parseResponse(responseText) {
+  const parser = new XMLParser({
+    ignoreAttributes: false,
+    attributeNamePrefix: "@_",
+  });
+
+  try {
+    const parsed = parser.parse(responseText);
+    return {
+      thought: parsed.steps?.thought,
+      action: parsed.steps?.action,
+      answer: parsed.answer || parsed.steps?.answer,
+    };
+  } catch (error) {
+    console.error("Error parsing response:", error);
+    return { error: "Invalid response format from AI" };
+  }
+}
 /**
  * callGeminiLLM
  * Sends the conversation to Gemini and returns its response.

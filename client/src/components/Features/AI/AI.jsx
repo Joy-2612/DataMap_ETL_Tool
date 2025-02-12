@@ -134,7 +134,7 @@ const AI = () => {
 
   // Handle fileId references in the bot's response
   const handleFileIdsInBotResponse = async (text) => {
-    const fileIdRegex = /fileId.*?([a-f0-9]{24})/g;
+    const fileIdRegex = /.*?([a-f0-9]{24})/g;
     let match;
     let newMessages = [];
     let lastIndex = 0;

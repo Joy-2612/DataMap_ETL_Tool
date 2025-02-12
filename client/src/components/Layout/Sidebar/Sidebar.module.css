@@ -9,6 +9,9 @@
 
 .collapsed {
   width: 70px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .collapsed .menuItem span {
@@ -57,13 +60,14 @@
 
 .mainMenuContainer {
   display: flex;
+  text-align: left;
   align-items: center; /* Align the button and text vertically */
   /* margin-left: 20px; */
-  justify-content: center;
+  justify-content: flex-start;
   transition: background-color 0.3s ease;
   border-radius: 0.7rem;
   cursor: pointer;
-  margin: 10px;
+  margin: 0;
   gap: 10px;
 }
 

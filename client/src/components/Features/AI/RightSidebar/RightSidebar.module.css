@@ -1,4 +1,3 @@
-/* RightSidebar.module.css */
 .sidebar {
   width: 280px;
   height: 92vh;
@@ -7,16 +6,42 @@
   display: flex;
   flex-direction: column;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05);
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+.sidebar.collapsed {
+  width: 60px;
+}
+
+.toggleButton {
+  color: black;
+  font-size: 30px;
+  background: transparent;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
 
 .header {
   border-bottom: 1px solid #e5e7eb;
-  padding: 16px 0;
+  padding: 16px;
+  display: flex;
+  background: #f8fafc;
+}
+
+.headerCollapsed {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
   background: #f8fafc;
 }
 
 .headerContent {
-  padding: 0 16px;
+  width: 100%;
 }
 
 .newChatButton {
@@ -31,7 +56,18 @@
   border-radius: 8px;
   font-weight: 500;
   transition: all 0.2s;
-  margin-top: 12px;
+  white-space: nowrap;
+}
+
+.newChatButton.collapsedButton {
+  padding: 12px;
+  width: 36px;
+  height: 36px;
+  margin: 0 auto;
+}
+
+.newChatButton.collapsedButton span {
+  display: none;
 }
 
 .newChatButton:hover {
@@ -49,6 +85,8 @@
   height: 72vh;
   padding: 16px;
 }
+
+/* Rest of the existing styles remain the same */
 
 .chatItem {
   display: flex;

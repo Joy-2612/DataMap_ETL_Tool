@@ -1,14 +1,36 @@
 import React, { useContext, useEffect, useState } from "react";
 import { UserContext } from "../../../../context/UserContext";
 import styles from "./RightSidebar.module.css";
+import { TbLayoutSidebarLeftExpandFilled } from "react-icons/tb";
+import { TbLayoutSidebarLeftCollapseFilled } from "react-icons/tb";
 
-const ChatHistory = ({ chats, onSelectChat, activeChatId }) => {
+const ChatHistory = ({
+  chats,
+  onSelectChat,
+  activeChatId,
+  isCollapsed,
+  setIsCollapsed,
+}) => {
   return (
     <div className={styles.chatHistory}>
-      <div className={styles.header}>
+      <div
+        className={`${isCollapsed ? styles.headerCollapsed : styles.header}`}
+      >
+        <button
+          className={styles.toggleButton}
+          onClick={() => setIsCollapsed(!isCollapsed)}
+        >
+          {isCollapsed ? (
+            <TbLayoutSidebarLeftExpandFilled />
+          ) : (
+            <TbLayoutSidebarLeftCollapseFilled />
+          )}
+        </button>
         <div className={styles.headerContent}>
           <button
-            className={styles.newChatButton}
+            className={`${styles.newChatButton} ${
+              isCollapsed ? styles.collapsedButton : ""
+            }`}
             onClick={() => onSelectChat([], null)}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -18,43 +40,46 @@ const ChatHistory = ({ chats, onSelectChat, activeChatId }) => {
                 strokeWidth="2"
               />
             </svg>
-            New Chat
+            {!isCollapsed && "New Chat"}
           </button>
         </div>
       </div>
-      <div className={styles.chatList}>
-        {chats.map((chat) => (
-          <div
-            key={chat._id}
-            className={`${styles.chatItem} ${
-              activeChatId === chat._id ? styles.activeChat : ""
-            }`}
-            onClick={() => onSelectChat(chat.messages, chat._id)}
-          >
-            <div className={styles.chatContent}>
-              <div className={styles.chatPreview}>
-                {chat.messages[0]?.text || "New conversation"}
-              </div>
-              <div className={styles.chatMeta}>
-                <span className={styles.chatDate}>
-                  {new Date(chat.createdAt).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </span>
-                {chat.unread && <span className={styles.unreadBadge}></span>}
+      {!isCollapsed && (
+        <div className={styles.chatList}>
+          {chats.map((chat) => (
+            <div
+              key={chat._id}
+              className={`${styles.chatItem} ${
+                activeChatId === chat._id ? styles.activeChat : ""
+              }`}
+              onClick={() => onSelectChat(chat.messages, chat._id)}
+            >
+              <div className={styles.chatContent}>
+                <div className={styles.chatPreview}>
+                  {chat.messages[0]?.text || "New conversation"}
+                </div>
+                <div className={styles.chatMeta}>
+                  <span className={styles.chatDate}>
+                    {new Date(chat.createdAt).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </span>
+                  {chat.unread && <span className={styles.unreadBadge}></span>}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
 
-const RightSidebar = ({ onSelectChat }) => {
+const RightSidebar = ({ onSelectChat, activeChatId }) => {
   const { userId } = useContext(UserContext);
   const [chats, setChats] = useState([]);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
     const fetchChats = async () => {
@@ -75,8 +100,14 @@ const RightSidebar = ({ onSelectChat }) => {
   }, [userId]);
 
   return (
-    <div className={styles.sidebar}>
-      <ChatHistory chats={chats} onSelectChat={onSelectChat} />
+    <div className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
+      <ChatHistory
+        chats={chats}
+        onSelectChat={onSelectChat}
+        activeChatId={activeChatId}
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
+      />
     </div>
   );
 };

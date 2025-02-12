@@ -4,122 +4,47 @@ const Chat = require("../models/Chat");
 
 const askAI = async (req, res) => {
   try {
-    console.log("Request Body:", req.body);
     const { prompt, userId, chatId } = req.body;
 
     if (!prompt || typeof prompt !== "string") {
-      return res
-        .status(400)
-        .json({ message: "Prompt is required and must be a string." });
+      return res.status(400).json({ message: "Invalid prompt" });
     }
 
-    // IMPORTANT: Set SSE headers immediately
+    // SSE setup
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
 
-    // Retrieve or create the chat session
-    let chatSession;
-    if (chatId) {
-      chatSession = await Chat.findById(chatId);
-      if (!chatSession) {
-        chatSession = new Chat({ user: userId, messages: [] });
-        await chatSession.save();
-        res.write(
-          `event: chatSession\ndata: ${JSON.stringify({
-            chatId: chatSession._id,
-          })}\n\n`
-        );
-      }
-    } else {
-      chatSession = new Chat({ user: userId, messages: [] });
-      await chatSession.save();
-      res.write(
-        `event: chatSession\ndata: ${JSON.stringify({
-          chatId: chatSession._id,
-        })}\n\n`
-      );
+    // Retrieve or create chat session
+    let chatSession = await manageChatSession(userId, chatId);
+    if (!chatSession) {
+      return res
+        .status(500)
+        .json({ error: "Failed to initialize chat session" });
     }
 
-    // Append the new user prompt to the chat session and save
-    chatSession.messages.push({
-      text: prompt,
-      sender: "user",
-      isThought: false,
-    });
+    // Add user message to history
+    chatSession.messages.push(createMessage(prompt, "user"));
     await chatSession.save();
 
-    // Build the conversation history string from all saved messages
-    const previousChatsString = chatSession.messages
-      .map((m) =>
-        m.sender === "user" ? `User: ${m.text}` : `Assistant: ${m.text}`
-      )
-      .join("\n");
+    // Prepare proper chat history
+    const chatHistory = chatSession.messages
+      .filter((msg) => msg.sender !== "system")
+      .map((msg) => ({
+        sender: msg.sender,
+        text: msg.text,
+        isThought: msg.isThought,
+      }));
 
-    console.log("Previous Chats:", previousChatsString);
-
-    // Run the chain-of-thought and stream updates
-    await runChainOfThought(
-      prompt,
-      previousChatsString,
-      async (eventType, data) => {
-        // Send each SSE update to the client
-        res.write(`event: ${eventType}\ndata: ${JSON.stringify(data)}\n\n`);
-
-        // Determine the new message to append based on the event type
-
-        let newMessage;
-        if (eventType === "thought") {
-          let thought = data.thought;
-          if (typeof thought === "object") {
-            // If we know the actual field is "response":
-            thought = thought.response || JSON.stringify(thought);
-          }
-          newMessage = {
-            text: thought,
-            sender: "bot",
-            isThought: true,
-          };
-        } else if (eventType === "observation") {
-          newMessage = {
-            text: data.observation,
-            sender: "bot",
-            isThought: false,
-          };
-        } else if (eventType === "answer") {
-          let answer = data.answer;
-          if (typeof answer === "object") {
-            // If the LLM gave you { response: "some string" }:
-            answer = answer.response || JSON.stringify(answer);
-          }
-          newMessage = {
-            text: answer,
-            sender: "bot",
-            isThought: false,
-          };
-        } else if (eventType === "error") {
-          newMessage = {
-            text: data.error,
-            sender: "bot",
-            isThought: false,
-          };
-        }
-
-        if (newMessage) {
-          // Update the in-memory chat session and then update the DB atomically.
-          chatSession.messages.push(newMessage);
-          await Chat.updateOne(
-            { _id: chatSession._id },
-            { $push: { messages: newMessage } }
-          );
-        }
-      }
-    );
+    // Process with Gemini
+    await runChainOfThought(prompt, chatHistory, async (eventType, data) => {
+      handleSSEEvent(eventType, data, res, chatSession);
+    });
 
     res.end();
   } catch (error) {
-    console.error("Uncaught Error in askAI:", error);
+    console.error("AskAI error:", error);
     if (res.headersSent) {
       res.write(
         `event: error\ndata: ${JSON.stringify({ error: error.message })}\n\n`
@@ -130,6 +55,29 @@ const askAI = async (req, res) => {
     }
   }
 };
+
+async function manageChatSession(userId, chatId) {
+  if (chatId) {
+    const existingChat = await Chat.findById(chatId);
+    if (existingChat) return existingChat;
+  }
+
+  const newChat = new Chat({
+    user: userId,
+    messages: [createMessage("System initialized", "system")],
+  });
+  await newChat.save();
+  return newChat;
+}
+
+function createMessage(text, sender, isThought = false) {
+  return {
+    text,
+    sender,
+    isThought,
+    timestamp: new Date(),
+  };
+}
 
 const saveChat = async (req, res) => {
   try {
@@ -163,6 +111,27 @@ const getChats = async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 };
+
+let lastSavePromise = Promise.resolve();
+
+function handleSSEEvent(eventType, data, res, chatSession) {
+  // Send SSE event
+  res.write(`event: ${eventType}\ndata: ${JSON.stringify(data)}\n\n`);
+
+  // Save to database
+  if (eventType === "thought") {
+    chatSession.messages.push(createMessage(data.thought, "bot", true));
+  } else if (eventType === "answer") {
+    chatSession.messages.push(createMessage(data.answer, "bot"));
+  } else if (eventType === "observation") {
+    chatSession.messages.push(createMessage(data.observation, "bot"));
+  }
+
+  // Save asynchronously
+  lastSavePromise = lastSavePromise
+    .then(() => chatSession.save())
+    .catch(console.error);
+}
 
 module.exports = {
   askAI,
