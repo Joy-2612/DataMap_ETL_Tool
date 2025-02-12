@@ -16,6 +16,7 @@ import RightSideBar from "./RightSideBar";
 import styles from "./FlowDiagrams.module.css";
 import { toast } from "sonner"; // For showing toast notifications
 import "react-toastify/dist/ReactToastify.css"; // Toast styles
+import Modal from "./Modal"; // Import the Modal component
 
 const initialNodes = [];
 const initialEdges = [];
@@ -75,6 +76,8 @@ const FlowDiagrams = () => {
   const [selectedNode, setSelectedNode] = useState(null);
   const [sidebarToggle, setSidebarToggle] = useState(false);
   const [datasets, setDatasets] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
+  const [flowJSON, setFlowJSON] = useState(null); // State to store the flow JSON
   const userId = localStorage.getItem("userId");
 
   const updateSidebarMergeWithSourceData = (actionNode) => {
@@ -295,37 +298,44 @@ const FlowDiagrams = () => {
 
   const handleRun = async () => {
     const flowJSON = generateFlowJSON(); // Generate flow data
+    setFlowJSON(flowJSON); // Store the flow JSON in state
+    setIsModalOpen(true); // Open the modal
     toast.info("Processing flow...");
     console.log("Final JSON: ", flowJSON);
+  };
 
-    //   try {
-    //     const result = await runOperation(flowJSON); // Send data to backend
-    //     console.log("Backend Response:", result);
+  //   try {
+  //     const result = await runOperation(flowJSON); // Send data to backend
+  //     console.log("Backend Response:", result);
 
-    //     // Update output nodes with dataset details from backend response
-    //     const updatedNodes = nodes.map((node) => {
-    //       if (node.type === "outputNode") {
-    //         return {
-    //           ...node,
-    //           data: {
-    //             ...node.data,
-    //             name: result.datasetName,
-    //             _id: result.datasetId,
-    //             type: result.datasetType,
-    //             size: result.datasetSize,
-    //           },
-    //         };
-    //       }
-    //       return node;
-    //     });
+  //     // Update output nodes with dataset details from backend response
+  //     const updatedNodes = nodes.map((node) => {
+  //       if (node.type === "outputNode") {
+  //         return {
+  //           ...node,
+  //           data: {
+  //             ...node.data,
+  //             name: result.datasetName,
+  //             _id: result.datasetId,
+  //             type: result.datasetType,
+  //             size: result.datasetSize,
+  //           },
+  //         };
+  //       }
+  //       return node;
+  //     });
 
-    //     setNodes(updatedNodes); // Update the state with new dataset details
-    //     toast.success(`Dataset created: ${result.datasetName} (ID: ${result.datasetId})`);
-    //   } catch (error) {
-    //     console.error("Error running operation:", error);
-    //     toast.error("Failed to create dataset. Please try again.");
-    //   }
-    //
+  //     setNodes(updatedNodes); // Update the state with new dataset details
+  //     toast.success(`Dataset created: ${result.datasetName} (ID: ${result.datasetId})`);
+  //   } catch (error) {
+  //     console.error("Error running operation:", error);
+  //     toast.error("Failed to create dataset. Please try again.");
+  //   }
+  //
+  // };
+
+  const closeModal = () => {
+    setIsModalOpen(false); // Close the modal
   };
 
   return (
@@ -375,6 +385,10 @@ const FlowDiagrams = () => {
           setDatasets_source={setDatasets} // Pass setDatasets function
         />
       </div>
+      {/* Modal to display the JSON */}
+      <Modal isOpen={isModalOpen} onClose={closeModal}>
+        <pre>{JSON.stringify(flowJSON, null, 2)}</pre>
+      </Modal>
     </ReactFlowProvider>
   );
 };
