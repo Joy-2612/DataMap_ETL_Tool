@@ -5,7 +5,7 @@ import Multiselect from "multiselect-react-dropdown";
 import Dropdown from "../../../UI/Dropdown/Dropdown";
 import styles from "./SidebarStandardize.module.css";
 
-const Standardize = ({ nodeId, nodes, setNodes }) => {
+const SidebarStandardize = ({ nodeId, nodes, setNodes }) => {
   const [outputFileName, setOutputFileName] = useState("");
   const [description, setDescription] = useState("");
   const [datasets, setDatasets] = useState([]);
@@ -65,7 +65,9 @@ const Standardize = ({ nodeId, nodes, setNodes }) => {
     if (selectedColumn && csvData.length > 0) {
       const values = csvData.map((row) => row[selectedColumn]);
       const uniqueVals = [
-        ...new Set(values.filter((value) => value !== undefined && value !== null)),
+        ...new Set(
+          values.filter((value) => value !== undefined && value !== null)
+        ),
       ];
       setUniqueValues(uniqueVals);
     } else {
@@ -86,10 +88,6 @@ const Standardize = ({ nodeId, nodes, setNodes }) => {
       }
       setSelectedColumn(column || "");
       setMappings(mappings || [{ before: [], after: "" }]);
-
-
-
-      
     }
   }, [nodeId, nodes, datasets]);
 
@@ -112,36 +110,28 @@ const Standardize = ({ nodeId, nodes, setNodes }) => {
     );
 
     setGlobalSelectedValues([...updatedGlobalSelectedValues]);
-
-
-    
-
   };
 
   // Filter selectable values
   const getFilteredValues = () => {
-    return uniqueValues.filter((value) => !globalSelectedValues.includes(value));
+    return uniqueValues.filter(
+      (value) => !globalSelectedValues.includes(value)
+    );
   };
 
-  // Submit Parameters (Save in Node JSON)
   const handleSubmit = () => {
-
-    
-
-    
-    
     if (!selectedDataset || !selectedColumn) {
       toast.error("Please select a dataset and column.");
       return;
     }
-
+  
     const parameters = {
       datasetId: selectedDataset._id,
       datasetName: selectedDataset.name, // ✅ Store dataset name for display
       column: selectedColumn,
       mappings: mappings,
     };
-
+    
     const updatedNodes = nodes.map((node) => {
       if (node.id === nodeId) {
         return {
@@ -154,8 +144,7 @@ const Standardize = ({ nodeId, nodes, setNodes }) => {
       }
       return node;
     });
-    setNodes(updatedNodes);    
-    console.log("Standardize Parameters:", parameters);
+    setNodes(updatedNodes);
     toast.success("Standardize Parameters saved successfully!");
   };
 
@@ -175,14 +164,16 @@ const Standardize = ({ nodeId, nodes, setNodes }) => {
           isOpen={isDropdownOpen}
           setIsOpen={setIsDropdownOpen}
         />
-       
       </div>
 
       {/* Select Column */}
       {columns.length > 0 && (
         <div className={styles.formGroup}>
           <label>Select Column</label>
-          <select value={selectedColumn} onChange={(e) => setSelectedColumn(e.target.value)}>
+          <select
+            value={selectedColumn}
+            onChange={(e) => setSelectedColumn(e.target.value)}
+          >
             <option value="">Choose a Column</option>
             {columns.map((column, index) => (
               <option key={index} value={column}>
@@ -205,8 +196,12 @@ const Standardize = ({ nodeId, nodes, setNodes }) => {
                     options={getFilteredValues()}
                     selectedValues={mapping.before}
                     isObject={false}
-                    onSelect={(selectedList) => handleSelectChange(index, selectedList)}
-                    onRemove={(selectedList) => handleSelectChange(index, selectedList)}
+                    onSelect={(selectedList) =>
+                      handleSelectChange(index, selectedList)
+                    }
+                    onRemove={(selectedList) =>
+                      handleSelectChange(index, selectedList)
+                    }
                     placeholder="Select values"
                   />
                 )}
@@ -215,7 +210,9 @@ const Standardize = ({ nodeId, nodes, setNodes }) => {
                 type="text"
                 placeholder="After"
                 value={mapping.after}
-                onChange={(e) => handleMappingChange(index, "after", e.target.value)}
+                onChange={(e) =>
+                  handleMappingChange(index, "after", e.target.value)
+                }
               />
             </div>
           ))}
@@ -232,4 +229,4 @@ const Standardize = ({ nodeId, nodes, setNodes }) => {
   );
 };
 
-export default Standardize;
+export default SidebarStandardize;
