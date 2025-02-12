@@ -51,6 +51,7 @@ const getDatasetByDatasetId = async (req, res) => {
   try {
     const { datasetId } = req.params;
     const dataset = await getDatasetByDatasetIdService(datasetId);
+    console.log("Dataset Obtained: ",dataset);
 
     if (!dataset) {
       return res.status(404).json({ message: "Dataset not found" });
@@ -180,7 +181,7 @@ const concatenateColumns = async (req, res) => {
     });
   } catch (error) {
     console.error("Error concatenating columns:", error);
-    return res.status(500).json({ message: "Failed to concatenate columns" });
+    return res.status(500).json({ message: "Failed to concatenate columns1" });
   }
 };
 

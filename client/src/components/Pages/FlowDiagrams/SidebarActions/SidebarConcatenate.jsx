@@ -77,7 +77,7 @@ const SidebarConcatenate = ({ nodeId, nodes, setNodes }) =>{
     setNodes(updatedNodes);
     setIsLoading(false);
     console.log("Concatenate Parameters Saved:", parameters);
-    toast.success("Concatenate parameters saved successfully!");
+    toast.success("Concatenation parameters saved successfully!");
   };
 
 

@@ -86,6 +86,8 @@ const concatenateColumnsService = async ({
   outputFileName,
   description,
 }) => {
+
+  console.log("para: ", dataset,    columns,    finalColumnName,    delimiter,    outputFileName,    description);
   // Find the file
   const file = await File.findOne({ _id: dataset });
   if (!file) throw new Error("File not found");
