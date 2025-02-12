@@ -138,6 +138,29 @@ async function callGeminiLLM(conversation) {
   }
 }
 
+async function getTitle(messages) {
+  const titleSystemInstructions = fs.readFileSync(
+    path.join(__dirname, "titlePrompt.xml"),
+    "utf-8"
+  );
+  const formattedHistory = messages.map((msg) => ({
+    role: msg.sender === "user" ? "user" : "model",
+    parts: [{ text: msg.text }],
+  }));
+
+  const prompt = formattedHistory
+    .map((msg) => msg.parts.map((part) => part.text).join(" "))
+    .join("\n");
+
+  const promptWithInstructions = `${titleSystemInstructions}\n${prompt}`;
+
+  const response = await geminiModel.generateContent(promptWithInstructions);
+
+  console.log("response:", response);
+
+  return response.response?.text();
+}
+
 /**
  * handleAction
  * Executes the action parsed from the LLM response.
@@ -283,4 +306,5 @@ async function handleAction(actionString) {
 
 module.exports = {
   runChainOfThought,
+  getTitle,
 };

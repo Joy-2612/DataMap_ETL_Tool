@@ -29,6 +29,7 @@
   border-bottom: 1px solid #e5e7eb;
   padding: 16px;
   display: flex;
+  gap: 16px;
   background: #f8fafc;
 }
 
@@ -50,7 +51,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px;
+  padding: 8px 0px;
   background: black;
   color: white;
   border-radius: 8px;
@@ -60,10 +61,11 @@
 }
 
 .newChatButton.collapsedButton {
-  padding: 12px;
-  width: 36px;
-  height: 36px;
-  margin: 0 auto;
+  padding: 0;
+  width: 30px;
+  color: black;
+  background: transparent;
+  height: 44px;
 }
 
 .newChatButton.collapsedButton span {
@@ -86,10 +88,9 @@
   padding: 16px;
 }
 
-/* Rest of the existing styles remain the same */
-
 .chatItem {
   display: flex;
+  align-items: center;
   gap: 12px;
   padding: 12px;
   border-radius: 8px;
@@ -160,4 +161,21 @@
 
 .chatList::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* Delete button styling */
+.deleteButton {
+  background: #ff00001c;
+  border: none;
+  color: #ff0000;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 6px;
+  transition: color 0.2s ease;
+}
+
+.deleteButton:hover {
+  background-color: #ff00003e;
 }

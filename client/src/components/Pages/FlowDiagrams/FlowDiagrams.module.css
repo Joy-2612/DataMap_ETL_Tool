@@ -122,10 +122,10 @@
 }
 
 .runButton {
-  padding: 10px 24px;
-  background-color: black;
-  color: white;
-  border: none;
+  padding: 10px 15px;
+  background-color: #0080001c;
+  color: green;
+  border: 2px solid #0080007a;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
@@ -137,8 +137,7 @@
 }
 
 .runButton:hover {
-  background-color: #333;
-  transform: translateY(-1px);
+  background-color: rgba(0, 128, 0, 0.236);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -148,10 +147,10 @@
 }
 
 .removeButton {
-  padding: 10px 24px;
-  background-color: black;
-  color: white;
-  border: none;
+  padding: 10px 13px;
+  background-color: #ff000017;
+  color: red;
+  border: 2px solid #ff0000bd;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
@@ -163,8 +162,7 @@
 }
 
 .removeButton:hover {
-  background-color: #333;
-  transform: translateY(-1px);
+  background-color: rgba(255, 0, 0, 0.203);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 

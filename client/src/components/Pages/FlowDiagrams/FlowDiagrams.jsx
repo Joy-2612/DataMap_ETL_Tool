@@ -17,6 +17,7 @@ import styles from "./FlowDiagrams.module.css";
 import { toast } from "sonner"; // For showing toast notifications
 import "react-toastify/dist/ReactToastify.css"; // Toast styles
 import Modal from "./Modal"; // Import the Modal component
+import { FaPlay } from "react-icons/fa";
 
 const initialNodes = [];
 const initialEdges = [];
@@ -30,12 +31,10 @@ const nodeTypes = {
 function updateActionNodesWithEdgeData(nodes, edges) {
   const actionNodesMap = new Map();
 
-  // Process each edge to find source and target nodes
   edges.forEach((edge) => {
     const sourceNode = nodes.find((node) => node.id === edge.source);
     const targetNode = nodes.find((node) => node.id === edge.target);
 
-    // If the source is a dataset node and the target is an action node
     if (
       sourceNode &&
       targetNode &&
@@ -43,20 +42,16 @@ function updateActionNodesWithEdgeData(nodes, edges) {
       targetNode.type === "actionNode"
     ) {
       const actionNodeId = targetNode.id;
-
-      // Initialize the action node in the map if it doesn't exist
       if (!actionNodesMap.has(actionNodeId)) {
         actionNodesMap.set(actionNodeId, {
           ...targetNode,
           data: {
             ...targetNode.data,
-            sourcenodes: [], // Array to store source nodes
-            destinationNode: null, // Initialize destination node as null
+            sourcenodes: [],
+            destinationNode: null,
           },
         });
       }
-
-      // Add the source node to the action node's sourcenodes
       const actionNode = actionNodesMap.get(actionNodeId);
       actionNode.data.sourcenodes.push({
         id: sourceNode.data._id,
@@ -64,28 +59,23 @@ function updateActionNodesWithEdgeData(nodes, edges) {
       });
     }
 
-    // If the source is an action node and the target is an output node
     if (
       sourceNode &&
       targetNode &&
       sourceNode.type === "actionNode" &&
       targetNode.type === "outputNode"
     ) {
-      const actionNodeId = sourceNode.id; // Use the action node's ID
-
-      // Ensure the action node exists in the map
+      const actionNodeId = sourceNode.id;
       if (!actionNodesMap.has(actionNodeId)) {
         actionNodesMap.set(actionNodeId, {
           ...sourceNode,
           data: {
             ...sourceNode.data,
-            sourcenodes: sourceNode.data.sourcenodes || [], // Preserve existing sourcenodes
-            destinationNode: null, // Initialize destination node as null
+            sourcenodes: sourceNode.data.sourcenodes || [],
+            destinationNode: null,
           },
         });
       }
-
-      // Update the action node with the destination node
       const actionNode = actionNodesMap.get(actionNodeId);
       actionNode.data.destinationNode = {
         id: targetNode.data._id,
@@ -95,13 +85,10 @@ function updateActionNodesWithEdgeData(nodes, edges) {
     }
   });
 
-  // Return the updated nodes
   return nodes.map((node) =>
     actionNodesMap.has(node.id) ? actionNodesMap.get(node.id) : node
   );
 }
-
-// Extract source nodes for action nodes based on stored dataset IDs in sourcenodes
 
 const FlowDiagrams = () => {
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
@@ -113,25 +100,23 @@ const FlowDiagrams = () => {
   const [datasets, setDatasets] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
   const [flowJSON, setFlowJSON] = useState(null); // State to store the flow JSON
-  const [isLoading, setIsLoading] = useState(false); // State to track loading state
+  const [isLoading, setIsLoading] = useState(false); // Loading state
   const userId = localStorage.getItem("userId");
 
-  // Load saved nodes and edges from localStorage on component mount
+  // Load saved nodes and edges from localStorage on mount
   useEffect(() => {
     const savedNodes = JSON.parse(localStorage.getItem("savedNodes")) || [];
     const savedEdges = JSON.parse(localStorage.getItem("savedEdges")) || [];
-    // Ensure nodes have valid positions
     const validatedNodes = savedNodes.map((node) => ({
       ...node,
-      position: node.position || { x: 0, y: 0 }, // Default position if missing
+      position: node.position || { x: 0, y: 0 },
     }));
     setNodes(validatedNodes);
     setEdges(savedEdges);
-
-    console.log("Save:", savedNodes, savedEdges);
+    console.log("Saved nodes and edges:", savedNodes, savedEdges);
   }, []);
 
-  // Save nodes and edges to localStorage whenever they change
+  // Save nodes and edges to localStorage on change
   useEffect(() => {
     localStorage.setItem("savedNodes", JSON.stringify(nodes));
     localStorage.setItem("savedEdges", JSON.stringify(edges));
@@ -140,9 +125,9 @@ const FlowDiagrams = () => {
   useEffect(() => {
     const updatedNodes = updateActionNodesWithEdgeData(nodes, edges);
     setNodes(updatedNodes);
-  }, [edges]); // Re-run when edges change
+  }, [edges]);
 
-  // Function to remove all nodes and edges
+  // Remove all nodes and edges
   const handleRemoveFlowDiagram = () => {
     setNodes([]);
     setEdges([]);
@@ -157,13 +142,13 @@ const FlowDiagrams = () => {
       actionNode.data.sourcenodes.length === 0
     ) {
       setSelectedNode(actionNode);
-      setDatasets([]); // No datasets available
+      setDatasets([]);
       return;
     }
 
     const datasets = actionNode.data.sourcenodes.map((source) => ({
       name: source.name,
-      id: source.id, // Assuming id info is necessary for column fetching
+      id: source.id,
     }));
 
     setSelectedNode(actionNode);
@@ -256,10 +241,6 @@ const FlowDiagrams = () => {
           `Operation completed successfully! New file ID: ${data.newFileId}`
         );
 
-        // Return the newly created dataset details
-        console.log("before return:", data);
-
-        // Fetch dataset details using the new file ID
         const datasetResponse = await fetch(
           `http://localhost:5000/api/file/dataset/${data.newFileId}`
         );
@@ -271,10 +252,10 @@ const FlowDiagrams = () => {
         console.log("Dataset details: ", datasetDetails);
 
         return {
-          datasetId: data.newFileId, // ID of the new dataset
-          datasetName: datasetDetails.data.name, // Name of the new dataset
-          datasetType: datasetDetails.data.type || "text/csv", // Get dataset type
-          datasetSize: datasetDetails.data.size || "N/A", // Get dataset size // Size of the dataset (if provided by the backend)
+          datasetId: data.newFileId,
+          datasetName: datasetDetails.data.name,
+          datasetType: datasetDetails.data.type || "text/csv",
+          datasetSize: datasetDetails.data.size || "N/A",
         };
       } else {
         toast.error(`${data.message}`);
@@ -291,7 +272,7 @@ const FlowDiagrams = () => {
     }
   };
 
-  // Deletion callback for custom nodes
+  // Deletion callback used by custom nodes
   const handleDeleteNode = useCallback(
     (nodeId) => {
       setNodes((nds) => nds.filter((node) => node.id !== nodeId));
@@ -305,25 +286,22 @@ const FlowDiagrams = () => {
       const targetNode = nodes.find((node) => node.id === params.target);
       if (targetNode?.data?.type === "action") {
         setEdges((eds) => addEdge(params, eds));
-        // Update action nodes with source nodes data
         const updatedNodes = updateActionNodesWithEdgeData(nodes, [
           ...edges,
           params,
         ]);
-        setNodes(updatedNodes); // Apply the updated nodes state
-        console.log(updatedNodes);
+        setNodes(updatedNodes);
       } else {
         const hasExistingConnection = edges.some(
           (edge) => edge.target === params.target
         );
         if (!hasExistingConnection) {
           setEdges((eds) => addEdge(params, eds));
-          // Update action nodes with source nodes data
           const updatedNodes = updateActionNodesWithEdgeData(nodes, [
             ...edges,
             params,
           ]);
-          setNodes(updatedNodes); // Apply the updated nodes state
+          setNodes(updatedNodes);
         }
       }
     },
@@ -353,7 +331,7 @@ const FlowDiagrams = () => {
 
       const newNode = {
         id: `item-${itemId}-${Date.now()}`,
-        type: "datasetNode", // <-- custom node
+        type: "datasetNode", // Our custom node type
         position,
         data: {
           name: itemName || `Item ${itemId}`,
@@ -361,7 +339,7 @@ const FlowDiagrams = () => {
           type: itemType,
           size: itemSize,
           nodeType: "Dataset",
-          onDelete: handleDeleteNode,
+          onDelete: handleDeleteNode, // Pass delete callback here
         },
         style: {
           overflow: "hidden",
@@ -378,8 +356,8 @@ const FlowDiagrams = () => {
 
   const handleAddNode = (item) => {
     const newNode = {
-      id: `${item.type || "dataset"} -${item.id}-${Date.now()}`,
-      type: "datasetNode", // Use our custom node
+      id: `${item.type || "dataset"}-${item.id}-${Date.now()}`,
+      type: "datasetNode",
       position: { x: Math.random() * 200, y: Math.random() * 200 },
       data: {
         name: item.name,
@@ -388,7 +366,7 @@ const FlowDiagrams = () => {
         size: item.size,
         nodeType: "Dataset",
         label: item.name,
-        onDelete: handleDeleteNode, // So this node can delete itself
+        onDelete: handleDeleteNode,
       },
       style: {
         overflow: "hidden",
@@ -411,7 +389,7 @@ const FlowDiagrams = () => {
         type: item.type,
         nodeType: "Output",
         description: item.desc,
-        actionType: item.actionType, // Store the specific action type
+        actionType: item.actionType,
         onDelete: handleDeleteNode,
         size: null,
         _id: null,
@@ -424,19 +402,19 @@ const FlowDiagrams = () => {
       },
     };
     setNodes((nds) => nds.concat(newNode));
-    console.log("o/p node: ", newNode);
+    console.log("Output node added:", newNode);
   };
 
   const handleAddActionNode = (item) => {
     const newNode = {
       id: `${item.type || "action"}-${item.id}-${Date.now()}`,
-      type: "actionNode", // Use the new ActionNode type
+      type: "actionNode",
       position: { x: Math.random() * 200, y: Math.random() * 200 },
       data: {
         label: item.name,
         type: item.type || "action",
         nodeType: "Action",
-        actionType: item.actionType, // Store the specific action type
+        actionType: item.actionType,
         onDelete: handleDeleteNode,
         parameters: {},
       },
@@ -470,12 +448,12 @@ const FlowDiagrams = () => {
     setSidebarToggle(true);
 
     if (node.type === "actionNode") {
-      updateSidebarMergeWithSourceData(node); // Updated to use the correct source nodes
+      updateSidebarMergeWithSourceData(node);
     } else {
-      setDatasets([]); // Clear datasets if a non-action node is selected
+      setDatasets([]);
     }
 
-    console.log(node);
+    console.log("Node clicked:", node);
   };
 
   const generateFlowJSON = () => {
@@ -496,9 +474,8 @@ const FlowDiagrams = () => {
   };
 
   const handleRun = async () => {
-    const flowJSON = generateFlowJSON(); // Generate flow data
+    const flowJSON = generateFlowJSON();
 
-    // Check if all action nodes have incoming edges, dataset IDs, and valid parameters
     const actionNodes = flowJSON.nodes.filter(
       (node) => node.type === "actionNode"
     );
@@ -523,22 +500,19 @@ const FlowDiagrams = () => {
       return;
     }
 
-    setFlowJSON(flowJSON); // Store the flow JSON in state
+    setFlowJSON(flowJSON);
     toast.info("Processing flow...");
     console.log("Final JSON: ", flowJSON);
 
     try {
-      // Call handleActionOperationsOnRun for each action node
       const results = await Promise.all(
         actionNodes.map(async (node) => {
           return await handleActionOperationsOnRun(node);
         })
       );
 
-      // Ensure that results match the corresponding output nodes
       const updatedNodes = flowJSON.nodes.map((node) => {
         if (node.type === "outputNode") {
-          // Find the result corresponding to this output node
           const result = results.find(
             (result) => result && node.data.name === result.datasetName
           );
@@ -548,10 +522,10 @@ const FlowDiagrams = () => {
               ...node,
               data: {
                 ...node.data,
-                name: result.datasetName, // Update the name
-                _id: result.datasetId, // Update the ID
-                type: result.datasetType, // Update the type
-                size: result.datasetSize, // Update the size
+                name: result.datasetName,
+                _id: result.datasetId,
+                type: result.datasetType,
+                size: result.datasetSize,
               },
             };
           }
@@ -559,7 +533,7 @@ const FlowDiagrams = () => {
         return node;
       });
 
-      setNodes(updatedNodes); // Update the state with new dataset details
+      setNodes(updatedNodes);
       toast.success("All operations completed successfully!");
     } catch (error) {
       console.error("Error running operation:", error);
@@ -568,7 +542,7 @@ const FlowDiagrams = () => {
   };
 
   const closeModal = () => {
-    setIsModalOpen(false); // Close the modal
+    setIsModalOpen(false);
   };
 
   return (
@@ -579,18 +553,16 @@ const FlowDiagrams = () => {
           className={styles.runButton}
           disabled={isLoading}
         >
-          {isLoading ? "Processing..." : "Run"}
+          {isLoading ? "Processing..." : <FaPlay />}
         </button>
         <button
           onClick={handleRemoveFlowDiagram}
           className={styles.removeButton}
         >
-          Clear Flow Diagram
+          Clear Diagram
         </button>
       </div>
       <div className={styles.container}>
-        {/* Run Button at the top of the flow diagram */}
-
         <div className={styles.flowContainer}>
           <ReactFlow
             nodes={nodes}
@@ -612,7 +584,6 @@ const FlowDiagrams = () => {
             <Background variant="dots" gap={12} size={1} />
           </ReactFlow>
         </div>
-
         <RightSideBar
           userId={userId}
           onAddNode={handleAddNode}
@@ -624,11 +595,10 @@ const FlowDiagrams = () => {
           nodes={nodes}
           setNodes={setNodes}
           sidebarToggle={sidebarToggle}
-          datasets_source={datasets} // Pass datasets
+          datasets_source={datasets} // Pass datasets to sidebar
           setDatasets_source={setDatasets} // Pass setDatasets function
         />
       </div>
-      {/* Modal to display the JSON */}
       <Modal isOpen={isModalOpen} onClose={closeModal}>
         <pre>{JSON.stringify(flowJSON, null, 2)}</pre>
       </Modal>

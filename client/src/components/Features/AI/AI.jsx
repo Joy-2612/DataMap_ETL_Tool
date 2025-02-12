@@ -23,6 +23,9 @@ const AI = () => {
   const inputRef = useRef(null);
   const chatBodyRef = useRef(null);
 
+  // NEW: Ref to track if autoSaveChat has been triggered for the current answer
+  const autoSaveTriggeredRef = useRef(false);
+
   // Fetch user datasets
   useEffect(() => {
     if (userId) {
@@ -181,12 +184,14 @@ const AI = () => {
 
   // Automatically save chat to the server
   const autoSaveChat = async (messagesToSave) => {
+    console.log("Auto-saving chat...");
     try {
       // We only save once the final response is done
       const response = await fetch("http://localhost:5000/api/ai/chats", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          chatId: activeChatId,
           userId,
           messages: messagesToSave.filter((msg) => !msg.isLoading),
         }),
@@ -254,9 +259,9 @@ const AI = () => {
         });
       }
     }
-
     // If the server sends the final "answer" event
     else if (eventType === "answer") {
+      console.log("Hello..!");
       // Remove loading placeholder
       setMessages((prev) => {
         const newMessages = [...prev];
@@ -284,15 +289,20 @@ const AI = () => {
           }
         }
 
-        // Add the final messages to state, then automatically save the chat
+        console.log("Hello..2!");
+
+        // Add the final messages to state, then automatically save the chat only once
         setMessages((prev) => {
+          console.log("Final answer received:", eventData.answer);
           const newMessages = [...prev, ...parsedMessages];
-          autoSaveChat(newMessages); // <--- auto-save once final answer is set
+          if (!autoSaveTriggeredRef.current) {
+            autoSaveTriggeredRef.current = true; // Mark auto-save as triggered
+            autoSaveChat(newMessages);
+          }
           return newMessages;
         });
       }
     }
-
     // If there's an "error" event
     else if (eventType === "error") {
       // Remove loading placeholder if it exists
@@ -343,6 +353,9 @@ const AI = () => {
   // Send prompt to server (SSE streaming)
   const handleSend = async () => {
     if (!prompt.trim()) return;
+
+    // Reset auto-save flag for new prompt
+    autoSaveTriggeredRef.current = false;
 
     // Replace any @datasetName with fileId:...
     const finalPrompt = replaceDatasetReferences(prompt, datasets);

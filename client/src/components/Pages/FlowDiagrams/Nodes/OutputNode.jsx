@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import { Handle, Position } from "reactflow";
 import { CiSettings } from "react-icons/ci";
 import { FaDatabase } from "react-icons/fa6";
+import Tooltip from "./Tooltip"; // Adjust the import path as necessary
 
 const OutputNode = ({ id, data, selected }) => {
   const [showTooltip, setShowTooltip] = useState(false);
-  console.log("Output node new dataset's: ",data,id);
+  console.log("Output node new dataset's: ", data, id);
 
   const handleOptionsClick = (event) => {
     event.stopPropagation();
@@ -20,7 +21,7 @@ const OutputNode = ({ id, data, selected }) => {
         textAlign: "left",
         color: "#333",
         padding: "16px",
-        paddingBottom:"8px",
+        paddingBottom: "8px",
         border: "2px solid red", // Red outline
         borderRadius: "8px",
         fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
@@ -29,11 +30,16 @@ const OutputNode = ({ id, data, selected }) => {
         overflow: "visible",
       }}
     >
-      <Handle type="target" position={Position.Top} style={{ background: "#555", width: "8px", height: "8px" }} />
+      <Handle
+        type="target"
+        position={Position.Top}
+        style={{ background: "#555", width: "8px", height: "8px" }}
+      />
 
       <div style={{ color: "black", marginBottom: "8px" }}>
         <FaDatabase />
       </div>
+
       <div style={{ marginBottom: "8px" }}>
         <div
           style={{
@@ -54,30 +60,32 @@ const OutputNode = ({ id, data, selected }) => {
             fontSize: "12px",
             color: "#666",
             marginTop: "4px",
-            marginBottom:"4px",
+            marginBottom: "4px",
             display: "flex",
             justifyContent: "space-between",
           }}
         >
           <span>DataType: {data.type}</span>
           <span>Size: {data.size}</span>
-          
-         
         </div>
         <div style={{ fontSize: "12px", color: "#666" }}>
-                NodeType: {data.nodeType}
-            </div>
+          NodeType: {data.nodeType}
+        </div>
       </div>
 
-      <Handle type="source" position={Position.Bottom} style={{ background: "#555", width: "8px", height: "8px" }} />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        style={{ background: "#555", width: "8px", height: "8px" }}
+      />
 
       {selected && (
-        <div 
-          style={{ 
-            position: "absolute", 
-            top: "8px", 
+        <div
+          style={{
+            position: "absolute",
+            top: "8px",
             right: "8px",
-            zIndex: 10 // Added zIndex to ensure visibility
+            zIndex: 10, // Ensures visibility
           }}
         >
           <button
@@ -96,40 +104,7 @@ const OutputNode = ({ id, data, selected }) => {
           </button>
 
           {showTooltip && (
-            <div
-              style={{
-                position: "absolute",
-                top: "100%", // Changed from -35px to position below the settings icon
-                right: "0",
-                marginTop: "5px", // Added margin for spacing
-                fontSize: "10px",
-                background: "#fff",
-                color: "#333",
-                borderRadius: "4px",
-                padding: "4px 6px",
-                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                zIndex: 999,
-                whiteSpace: "nowrap", // Prevent button from wrapping
-                border: "1px solid #ddd" // Added border for better visibility
-              }}
-            >
-              <button
-                style={{
-                  background: "red",
-                  color: "white",
-                  border: "none",
-                  fontSize: "10px",
-                  borderRadius: "4px",
-                  padding: "4px 8px", // Increased padding for better clickability
-                  cursor: "pointer",
-                  width: "100%", // Ensure button takes full width
-                  minWidth: "60px", // Minimum width for the button
-                }}
-                onClick={() => data.onDelete(id)}
-              >
-                Delete
-              </button>
-            </div>
+            <Tooltip onDelete={data.onDelete} id={id} data={data} />
           )}
         </div>
       )}

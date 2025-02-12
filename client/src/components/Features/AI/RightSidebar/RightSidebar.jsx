@@ -1,8 +1,11 @@
 import React, { useContext, useEffect, useState } from "react";
 import { UserContext } from "../../../../context/UserContext";
 import styles from "./RightSidebar.module.css";
-import { TbLayoutSidebarLeftExpandFilled } from "react-icons/tb";
-import { TbLayoutSidebarLeftCollapseFilled } from "react-icons/tb";
+import {
+  TbLayoutSidebarLeftExpandFilled,
+  TbLayoutSidebarLeftCollapseFilled,
+} from "react-icons/tb";
+import { FaTrash } from "react-icons/fa";
 
 const ChatHistory = ({
   chats,
@@ -10,6 +13,7 @@ const ChatHistory = ({
   activeChatId,
   isCollapsed,
   setIsCollapsed,
+  onDeleteChat,
 }) => {
   return (
     <div className={styles.chatHistory}>
@@ -21,9 +25,9 @@ const ChatHistory = ({
           onClick={() => setIsCollapsed(!isCollapsed)}
         >
           {isCollapsed ? (
-            <TbLayoutSidebarLeftExpandFilled />
-          ) : (
             <TbLayoutSidebarLeftCollapseFilled />
+          ) : (
+            <TbLayoutSidebarLeftExpandFilled />
           )}
         </button>
         <div className={styles.headerContent}>
@@ -56,7 +60,7 @@ const ChatHistory = ({
             >
               <div className={styles.chatContent}>
                 <div className={styles.chatPreview}>
-                  {chat.messages[0]?.text || "New conversation"}
+                  {chat.title || "New conversation"}
                 </div>
                 <div className={styles.chatMeta}>
                   <span className={styles.chatDate}>
@@ -68,6 +72,16 @@ const ChatHistory = ({
                   {chat.unread && <span className={styles.unreadBadge}></span>}
                 </div>
               </div>
+              <button
+                className={styles.deleteButton}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteChat(chat._id);
+                }}
+                title="Delete Chat"
+              >
+                <FaTrash />
+              </button>
             </div>
           ))}
         </div>
@@ -99,6 +113,27 @@ const RightSidebar = ({ onSelectChat, activeChatId }) => {
     if (userId) fetchChats();
   }, [userId]);
 
+  const handleDeleteChat = async (chatId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/ai/chats/${chatId}`,
+        {
+          method: "DELETE",
+        }
+      );
+      const data = await response.json();
+      if (data.success) {
+        setChats((prevChats) =>
+          prevChats.filter((chat) => chat._id !== chatId)
+        );
+      } else {
+        console.error("Failed to delete chat");
+      }
+    } catch (error) {
+      console.error("Error deleting chat:", error);
+    }
+  };
+
   return (
     <div className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
       <ChatHistory
@@ -107,6 +142,7 @@ const RightSidebar = ({ onSelectChat, activeChatId }) => {
         activeChatId={activeChatId}
         isCollapsed={isCollapsed}
         setIsCollapsed={setIsCollapsed}
+        onDeleteChat={handleDeleteChat}
       />
     </div>
   );

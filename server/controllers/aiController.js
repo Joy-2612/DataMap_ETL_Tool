@@ -1,5 +1,5 @@
 // controllers/aiController.js
-const { runChainOfThought } = require("../services/aiService");
+const { runChainOfThought, getTitle } = require("../services/aiService");
 const Chat = require("../models/Chat");
 
 const askAI = async (req, res) => {
@@ -24,11 +24,11 @@ const askAI = async (req, res) => {
         .json({ error: "Failed to initialize chat session" });
     }
 
-    // Add user message to history
+    // Add user message to history and save immediately
     chatSession.messages.push(createMessage(prompt, "user"));
     await chatSession.save();
 
-    // Prepare proper chat history
+    // Prepare proper chat history (exclude system messages)
     const chatHistory = chatSession.messages
       .filter((msg) => msg.sender !== "system")
       .map((msg) => ({
@@ -37,7 +37,7 @@ const askAI = async (req, res) => {
         isThought: msg.isThought,
       }));
 
-    // Process with Gemini
+    // Process with Gemini (the chain-of-thought steps will be sent via SSE)
     await runChainOfThought(prompt, chatHistory, async (eventType, data) => {
       handleSSEEvent(eventType, data, res, chatSession);
     });
@@ -57,11 +57,14 @@ const askAI = async (req, res) => {
 };
 
 async function manageChatSession(userId, chatId) {
+  // If an existing chat is provided, return it.
   if (chatId) {
     const existingChat = await Chat.findById(chatId);
     if (existingChat) return existingChat;
   }
 
+  // Otherwise, create a new chat.
+  // (The Chat model may already set a default title like "New Chat")
   const newChat = new Chat({
     user: userId,
     messages: [createMessage("System initialized", "system")],
@@ -79,21 +82,37 @@ function createMessage(text, sender, isThought = false) {
   };
 }
 
+// Updated saveChat: now it expects a chatId and updates the existing document instead of creating a new one.
 const saveChat = async (req, res) => {
   try {
-    const { userId, messages } = req.body;
-    const newChat = new Chat({
-      user: userId,
-      messages: messages.map((msg) => ({
-        text: msg.text,
-        sender: msg.sender,
-        isThought: msg.isThought || false,
-        approved: msg.approved || false,
-        ...(msg.datasetData && { datasetData: msg.datasetData }),
-      })),
-    });
-    await newChat.save();
-    res.status(201).json({ success: true, chat: newChat });
+    const { chatId, userId, messages } = req.body;
+    if (!chatId) {
+      return res
+        .status(400)
+        .json({ success: false, error: "chatId is required" });
+    }
+    const title = await getTitle(messages);
+    console.log("Title:", title);
+
+    // Update the existing chat session with the new title and messages.
+    const updatedChat = await Chat.findByIdAndUpdate(
+      chatId,
+      {
+        title,
+        messages: messages.map((msg) => ({
+          text: msg.text,
+          sender: msg.sender,
+          isThought: msg.isThought || false,
+          approved: msg.approved || false,
+          ...(msg.datasetData && { datasetData: msg.datasetData }),
+        })),
+      },
+      { new: true }
+    );
+    if (!updatedChat) {
+      return res.status(404).json({ success: false, error: "Chat not found" });
+    }
+    res.status(200).json({ success: true, chat: updatedChat });
   } catch (error) {
     console.error("Error saving chat:", error);
     res.status(500).json({ success: false, error: error.message });
@@ -112,13 +131,29 @@ const getChats = async (req, res) => {
   }
 };
 
+const deleteChat = async (req, res) => {
+  try {
+    const chatId = req.params.chatId;
+    const deletedChat = await Chat.findByIdAndDelete(chatId);
+    if (!deletedChat) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Chat not found" });
+    }
+    res.json({ success: true, message: "Chat deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting chat:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 let lastSavePromise = Promise.resolve();
 
 function handleSSEEvent(eventType, data, res, chatSession) {
-  // Send SSE event
+  // Send SSE event to the client
   res.write(`event: ${eventType}\ndata: ${JSON.stringify(data)}\n\n`);
 
-  // Save to database
+  // Append to chat session messages based on event type
   if (eventType === "thought") {
     chatSession.messages.push(createMessage(data.thought, "bot", true));
   } else if (eventType === "answer") {
@@ -127,7 +162,7 @@ function handleSSEEvent(eventType, data, res, chatSession) {
     chatSession.messages.push(createMessage(data.observation, "bot"));
   }
 
-  // Save asynchronously
+  // Save the updated chat session asynchronously
   lastSavePromise = lastSavePromise
     .then(() => chatSession.save())
     .catch(console.error);
@@ -137,4 +172,5 @@ module.exports = {
   askAI,
   saveChat,
   getChats,
+  deleteChat,
 };
