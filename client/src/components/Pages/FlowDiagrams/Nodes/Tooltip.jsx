@@ -15,7 +15,7 @@ const Tooltip = ({ onDelete, id, data }) => {
   const handleView = async (dataset) => {
     // Peek the dataset only if an ID is present; otherwise, show a toast error.
     if (!dataset || !dataset._id) {
-      toast.error("Dataset ID is missing");
+      toast.error("Node doesn't have a dataset");
       return;
     }
 

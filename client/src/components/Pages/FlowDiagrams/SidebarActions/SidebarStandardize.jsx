@@ -17,6 +17,7 @@ const SidebarStandardize = ({ nodeId, nodes, setNodes }) => {
   const [uniqueValues, setUniqueValues] = useState([]);
   const [globalSelectedValues, setGlobalSelectedValues] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const selectedNode = nodes.find((node) => node.id === nodeId);
 
   const userId = localStorage.getItem("userId");
 
@@ -36,17 +37,37 @@ const SidebarStandardize = ({ nodeId, nodes, setNodes }) => {
   };
 
   // Fetch available datasets
-  const fetchDatasets = async () => {
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/file/alldatasets/${userId}`
-      );
-      const data = await response.json();
-      setDatasets(data.data);
-    } catch (error) {
-      console.error("Error fetching datasets:", error);
-    }
-  };
+  useEffect(() => {
+            const fetchDatasets = async () => {
+              try {
+                const response1 = await fetch(`http://localhost:5000/api/file/datasets/${userId}`);
+        const response2 = await fetch(`http://localhost:5000/api/file/results/${userId}`);
+        const data1 = await response1.json();
+        const data2= await response2.json();
+        
+                // Match datasets with sourcenode.id
+                if (selectedNode && selectedNode.data.sourcenodes) {
+                  const sourceNodeIds = selectedNode.data.sourcenodes.map((node) => node.id);
+                  // console.log("S",sourceNodeIds);
+                  const matchedDataset1 = data1.data.find((dataset) => dataset._id === sourceNodeIds[0])
+                  || data2.data.find(
+                    (dataset) => dataset._id === sourceNodeIds[0]
+                  );;
+        
+                  // console.log("D",matchedDataset1); 
+                  if (matchedDataset1) {
+                    setSelectedDataset(matchedDataset1);
+                    // console.log("D",matchedDataset1);
+                    fetchColumns(matchedDataset1, setColumns);
+                  }
+                  
+                }
+              } catch (error) {
+                console.error("Error fetching datasets: ", error);
+              }
+            };
+            fetchDatasets();
+          }, [userId, selectedNode])
 
   // Fetch columns when dataset is selected
   const fetchColumns = async (dataset) => {
@@ -55,10 +76,7 @@ const SidebarStandardize = ({ nodeId, nodes, setNodes }) => {
     setColumns(Object.keys(csv[0]));
   };
 
-  // Load datasets on mount
-  useEffect(() => {
-    fetchDatasets();
-  }, [userId]);
+
 
   // Update unique values when column changes
   useEffect(() => {
@@ -119,19 +137,34 @@ const SidebarStandardize = ({ nodeId, nodes, setNodes }) => {
     );
   };
 
+  const handleAddMapping = () => {
+    setMappings([...mappings, { before: [], after: "" }]);
+  };
   const handleSubmit = () => {
     if (!selectedDataset || !selectedColumn) {
       toast.error("Please select a dataset and column.");
       return;
     }
-  
+
+    // Ensure at least one mapping has a filled "after" value
+    const isAnyMappingFilled = mappings.some(
+      (mapping) => mapping.after.trim() !== ""
+    );
+
+    if (!isAnyMappingFilled) {
+      toast.error(
+        "At least one mapping must have a value in the 'After' field."
+      );
+      return;
+    }
+
     const parameters = {
       datasetId: selectedDataset._id,
       datasetName: selectedDataset.name, // ✅ Store dataset name for display
       column: selectedColumn,
       mappings: mappings,
     };
-    
+
     const updatedNodes = nodes.map((node) => {
       if (node.id === nodeId) {
         return {
@@ -144,6 +177,7 @@ const SidebarStandardize = ({ nodeId, nodes, setNodes }) => {
       }
       return node;
     });
+
     setNodes(updatedNodes);
     toast.success("Standardize Parameters saved successfully!");
   };
@@ -216,13 +250,24 @@ const SidebarStandardize = ({ nodeId, nodes, setNodes }) => {
               />
             </div>
           ))}
+          <button className={styles.addButton} onClick={handleAddMapping}>
+            + Add More
+          </button>
         </div>
       )}
 
       {/* Submit Button */}
       <div className={styles.buttonGroup}>
-        <button className={styles.submitButton} onClick={handleSubmit}>
-          Submit
+        <button
+          className={styles.submitButton}
+          onClick={handleSubmit}
+          disabled={
+            !selectedDataset ||
+            !selectedColumn ||
+            !mappings.some((m) => m.after.trim() !== "")
+          }
+        >
+          Set Parameters
         </button>
       </div>
     </div>

@@ -1,271 +1,245 @@
-
-
-
 .standardizeContainer {
-    backdrop-filter: blur(4px);
-    width: auto;
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-    color: #333;
+  backdrop-filter: blur(4px);
+  width: auto;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #333;
+}
+
+.title {
+  text-align: left;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: black;
+  font-size: 2rem;
+}
+
+.formGroup {
+  align-items: left;
+  margin-bottom: 0.5rem;
+}
+
+.formGroup input,
+.formGroup textarea {
+  width: 100%;
+  color: black;
+}
+
+.formGroup input {
+  width: calc(100% - 20px);
+}
+
+.formGroup label {
+  display: block;
+  text-align: left;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: black;
+}
+
+.formGroup select {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 5px;
+  font-size: 1rem;
+  background-color: #f9f9f9;
+  border: 1px solid black;
+  color: black;
+}
+
+.mappingsContainer {
+  margin-top: 2rem;
+}
+
+.mappingsContainer h2 {
+  text-align: left;
+  color: black;
+}
+
+.mappingRow {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.multiSelect {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+}
+
+.selectedValues {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+}
+
+.selectedValue {
+  padding: 0.3rem 0.7rem;
+  border: none;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  background-color: rgba(0, 85, 255, 0.134);
+  color: black;
+}
+
+.mappingRow select,
+.mappingRow input {
+  flex: 1 1;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  color: black;
+}
+
+.buttonGroup {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+}
+
+/* Combined button styles with specific overrides */
+.addButton, 
+.submitButton, 
+.previewButton, 
+.cancelButton {
+  padding: 0.75rem 1.5rem;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.addButton {
+  width: 55%;
+  border: 2px solid black;
+  color: black;
+  background-color: transparent;
+  display: block;
+}
+
+.addButton:hover {
+  background-color: #00000034;
+}
+
+.submitButton {
+  border: none;
+  font-weight: bold;
+  color: #ffffff;
+  background-color: black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.submitButton:hover {
+  background-color: #0000009b;
+}
+
+.previewButton {
+  border: none;
+  background-color: #4caf50;
+  color: white;
+  margin-top: 1rem;
+}
+
+.previewButton:hover {
+  background-color: #45a049;
+}
+
+.cancelButton {
+  border: none;
+  background-color: #aaa;
+  color: #ffffff;
+}
+
+.cancelButton:hover {
+  background-color: #888;
+}
+
+/* Loader Spinner */
+.loader {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #333;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
   }
-  
-  .title {
-    text-align: left;
-    margin-top: 0;
-    margin-bottom: 1.5rem;
-    color: black;
-    font-size: 2rem;
+  100% {
+    transform: rotate(360deg);
   }
-  
-  .formGroup {
-    align-items: left;
-    margin-bottom: 0.5rem;
-  }
-  
-  .formGroup input {
-    width: calc(100% - 20px);
-    color: black;
-  }
-  
-  .formGroup textarea {
-    width: 100%;
-    color: black;
-  }
-  
-  .formGroup label {
-    display: block;
-    text-align: left;
-    margin-bottom: 0.5rem;
-    font-weight: bold;
-    color: black;
-  }
-  
-  .formGroup select {
-    width: 100%;
-    padding: 0.5rem;
-    border: none;
-    border-radius: 5px;
-    font-size: 1rem;
-    background-color: #f9f9f9;
-    border: 1px solid black;
-    color: black;
-  }
-  
-  .mappingsContainer {
-    margin-top: 2rem;
-  }
-  
-  .mappingsContainer h2 {
-    text-align: left;
-    color: black;
-  }
-  
-  .mappingRow {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-  
-  .multiSelect {
-    display: flex;
-    flex-direction: row;
-    gap: 1rem;
-  }
-  
-  .selectedValues {
-    display: flex;
-    flex-direction: row;
-    gap: 1rem;
-  }
-  
-  .selectedValue {
-    padding: 0.3rem 0.7rem;
-    border: none;
-    border-radius: 50px;
-    font-size: 0.8rem;
-    background-color: rgba(0, 85, 255, 0.134);
-    color: black;
-  }
-  
-  .mappingRow select,
-  .mappingRow input {
-    flex: 1 1;
-    padding: 0.5rem;
-    border: none;
-    border-radius: 5px;
-    font-size: 1rem;
-    color: black;
-  }
-  
-  .buttonGroup {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 1.5rem;
-  }
-  
-  .addButton {
-    padding: 0.75rem 1.5rem;
-    border: 2px solid black;
-    border-radius: 5px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    color: black;
-    background-color: transparent;
-  }
-  
-  .addButton:hover {
-    background-color: #00000034;
-  }
-  
-  .submitButton {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 5px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    font-weight: bold;
-    color: #ffffff;
-    background-color: black;
-  }
-  
-  .submitButton:hover {
-    background-color: #0000009b;
-  }
-  
-  .previewButton {
-    margin-top: 1rem;
-    padding: 12px;
-    border: none;
-    border-radius: 5px;
-    background-color: #4caf50;
-    color: white;
-    cursor: pointer;
-    transition: background 0.3s;
-  }
-  
-  .previewButton:hover {
-    background-color: #45a049;
-  }
-  
-  /* Loader Spinner */
-  .loader {
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #333;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    animation: spin 1s linear infinite;
-  }
-  
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-  
-  /* Modal Styles */
-  .modalOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    backdrop-filter: blur(8px);
-    background-color: rgba(0, 0, 0, 0.4);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    transition: opacity 0.3s ease-in-out;
-  }
-  
-  .modalOverlayVisible {
-    opacity: 1;
-  }
-  
-  .modalContent {
-    background-color: white;
-    padding: 2rem;
-    border-radius: 10px;
-    width: 70%;
-    max-width: 800px;
-    overflow-y: auto;
-    position: relative;
-    transform: scale(0.9);
-    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-  }
-  
-  .descModalContent {
-    background-color: white;
-    padding: 2rem;
-    border-radius: 10px;
-    width: 500px;
-    overflow-y: auto;
-    position: relative;
-    transform: scale(0.9);
-    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-  }
-  
-  .modalContentVisible {
-    opacity: 1;
-    transform: scale(1);
-  }
-  
-  .modalTitle {
-    font-size: 1.5rem;
-    font-weight: bold;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-  }
-  
-  .closeButton {
-    cursor: pointer;
-    font-size: 1.5rem;
-  }
-  
-  .buttonGroup {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 1rem;
-  }
-  
-  .cancelButton {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 5px;
-    background-color: #aaa;
-    color: #ffffff;
-    transition: background-color 0.3s ease;
-  }
-  
-  .cancelButton:hover {
-    background-color: #888;
-  }
-  
-  .submitButton {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 5px;
-    background-color: black;
-    color: white;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  .submitButton:hover {
-    background-color: #0000009b;
-  }
-  
+}
+
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(8px);
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.modalOverlayVisible {
+  opacity: 1;
+}
+
+.modalContent {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 10px;
+  width: 70%;
+  max-width: 800px;
+  overflow-y: auto;
+  position: relative;
+  transform: scale(0.9);
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.descModalContent {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 10px;
+  width: 500px;
+  overflow-y: auto;
+  position: relative;
+  transform: scale(0.9);
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.modalContentVisible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.modalTitle {
+  font-size: 1.5rem;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.closeButton {
+  cursor: pointer;
+  font-size: 1.5rem;
+}
+.submitButton{
+  width: 100%;
+}

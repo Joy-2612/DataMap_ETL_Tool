@@ -6,7 +6,7 @@ import Tooltip from "./Tooltip"; // Adjust the import path as necessary
 
 const OutputNode = ({ id, data, selected }) => {
   const [showTooltip, setShowTooltip] = useState(false);
-  console.log("Output node new dataset's: ", data, id);
+  // console.log("Output node new dataset's: ", data, id);
 
   const handleOptionsClick = (event) => {
     event.stopPropagation();

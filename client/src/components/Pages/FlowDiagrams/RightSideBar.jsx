@@ -45,6 +45,7 @@ const RightSideBar = ({ onAddNode, onAddActionNode,onAddNodeOutput, userId, sele
 
   // Effect to handle selected node from flow diagram
   useEffect(() => {
+    
     if (selectedNode) {
       if (selectedNode.data?.type === "action") {
         const action = actionOptions.find(
@@ -62,6 +63,7 @@ const RightSideBar = ({ onAddNode, onAddActionNode,onAddNodeOutput, userId, sele
     }
 
     const fetchData = async () => {
+     
       try {
         const [datasetsResponse, resultsResponse] = await Promise.all([
           fetch(`http://localhost:5000/api/file/datasets/${userId}`),
@@ -79,7 +81,11 @@ const RightSideBar = ({ onAddNode, onAddActionNode,onAddNodeOutput, userId, sele
     };
 
     if (userId) {
+      
       fetchData();
+    }
+    else{
+      
     }
   }, [selectedNode]);
 
@@ -89,6 +95,7 @@ const RightSideBar = ({ onAddNode, onAddActionNode,onAddNodeOutput, userId, sele
     event.dataTransfer.setData("text/name", item.name);
     event.dataTransfer.setData("text/size", item.size);
     event.dataTransfer.setData("text/type", item.type);
+    event.dataTransfer.setData("text/nodeType",item.nodeType||"dataset");
     event.dataTransfer.effectAllowed = "move";
   };
 
@@ -117,27 +124,11 @@ const RightSideBar = ({ onAddNode, onAddActionNode,onAddNodeOutput, userId, sele
       name: action.name,
       type: "action",
       actionType: action.id,
+      nodeType:"Action"
     });
   
   };
-
-    // onAddNodeOutput({
-    //   id: Date.now().toString(),
-    //   // name: action.name,
-    //   type: "output",
-    //   style: {
-    //     border: "2px solid ",
-    //     padding: "15px",
-    //     borderRadius: "4px",
-    //     backgroundColor: "#f8f9fa",
-    //     fontWeight: "bold",
-    //     overflow: "hidden",
-    //     textOverflow: "ellipsis",
-    //     whiteSpace: "nowrap",
-    //   },
-    // });
-  
-  
+ 
 
   const handleBackClick = () => {
     setShowParametersView(false);
@@ -179,20 +170,23 @@ const RightSideBar = ({ onAddNode, onAddActionNode,onAddNodeOutput, userId, sele
         <div className={styles.accordionContent}>
           <input
             type="text"
-            placeholder="Enter node name (output file name)"
+            placeholder="Output Node name"
+            title="Enter the name of the new dataset to store result"
             value={newNodeName}
             onChange={(e) => setNewNodeName(e.target.value)}
             className={styles.nodeInput}
           />  
           <input
             type="text"
-            placeholder="Enter node description (output file desc.)"
+            placeholder="Enter Description"
+            title="Enter the new node's description"
             value={newNodeDesc}
             onChange={(e) => setNewNodeDesc(e.target.value)}
             className={styles.nodeInput}
           />  
           <button
             className={styles.addNodeButton}
+            disabled={!newNodeName || !newNodeDesc}
             onClick={() => {
               if (newNodeName && newNodeDesc && onAddNodeOutput) {
                 onAddNodeOutput({

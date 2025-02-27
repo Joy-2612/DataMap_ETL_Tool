@@ -1,199 +1,166 @@
 import React, { useState, useEffect } from "react";
+import { FaTimes } from "react-icons/fa";
 import Papa from "papaparse";
 import Dropdown from "../../../UI/Dropdown/Dropdown";
 import { toast } from "sonner";
 import styles from "./SidebarMerge.module.css";
 
-const SidebarMerge = ({ nodeId, nodes, setNodes, datasets_source, setDatasets_source }) => {
+const SidebarMerge = ({ nodeId, nodes, setNodes }) => {
   const [dataset1, setDataset1] = useState(null);
   const [dataset2, setDataset2] = useState(null);
   const [columns1, setColumns1] = useState([]);
   const [columns2, setColumns2] = useState([]);
   const [selectedColumn1, setSelectedColumn1] = useState("");
   const [selectedColumn2, setSelectedColumn2] = useState("");
-  const [isDropdown1Open, setIsDropdown1Open] = useState(false);
-  const [isDropdown2Open, setIsDropdown2Open] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const userId = localStorage.getItem("userId");
+  const selectedNode = nodes.find((node) => node.id === nodeId);
 
-  // ✅ Fetch datasets on component mount
+  useEffect(() => {
+    if (selectedNode && selectedNode.data.parameters) {
+      const { dataset1, dataset2, column1, column2 } = selectedNode.data.parameters;
+      setDataset1(dataset1);
+      setDataset2(dataset2);
+      setSelectedColumn1(column1 || "");
+      setSelectedColumn2(column2 || "");
+      if (dataset1) fetchColumns(dataset1, setColumns1);
+      if (dataset2) fetchColumns(dataset2, setColumns2);
+    }
+  }, [selectedNode]);
+
   useEffect(() => {
     const fetchDatasets = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/file/alldatasets/${userId}`);
-        const data = await response.json();
-
-        if (data.data && Array.isArray(data.data)) {
-          setDatasets_source(data.data);  // ✅ Correctly updating state
-        } else {
-          console.error("Invalid data format:", data);
+        const response1 = await fetch(`http://localhost:5000/api/file/datasets/${userId}`);
+        const response2 = await fetch(`http://localhost:5000/api/file/results/${userId}`);
+        const data1 = await response1.json();
+        const data2= await response2.json();
+    
+      
+        // Match datasets with sourcenode.id
+        if (selectedNode && selectedNode.data.sourcenodes) {
+          const sourceNodeIds = selectedNode.data.sourcenodes.map((node) => node.id);
+          // console.log("S",sourceNodeIds);
+          const matchedDataset1 = data1.data.find((dataset) => dataset._id === sourceNodeIds[0]) || data2.data.find((dataset) => dataset._id === sourceNodeIds[0]);
+           const matchedDataset2 = data1.data.find((dataset) => dataset._id === sourceNodeIds[1]) || data2.data.find((dataset) => dataset._id === sourceNodeIds[1]);
+                
+          console.log("D",matchedDataset1); 
+          if (matchedDataset1) {
+            setDataset1(matchedDataset1);
+            // console.log("D",matchedDataset1);
+            fetchColumns(matchedDataset1, setColumns1);
+          }
+          if (matchedDataset2) {
+            setDataset2(matchedDataset2);
+            // console.log(matchedDataset2);
+            fetchColumns(matchedDataset2, setColumns2);
+          }
         }
       } catch (error) {
-        console.error("Error fetching datasets:", error);
+        console.error("Error fetching datasets: ", error);
       }
     };
     fetchDatasets();
-  }, [userId]);
+  }, [userId, selectedNode]);
 
-  // ✅ Set datasets from source nodes (when datasets_source updates)
-  useEffect(() => {
-    const selectedNode = nodes.find((node) => node.id === nodeId);
-    
-    if (selectedNode?.data?.parameters?.sourcenodes?.length > 0) {
-      console.log("Source Nodes:", selectedNode.data.parameters.sourcenodes);
-      
-      const [sourceNode1, sourceNode2] = selectedNode.data.parameters.sourcenodes;
-
-      const dataset1Data = datasets_source.find((dataset) => dataset.id === sourceNode1);
-      const dataset2Data = datasets_source.find((dataset) => dataset.id === sourceNode2);
-
-      if (dataset1Data) {
-        setDataset1(dataset1Data);
-        fetchColumns(dataset1Data, setColumns1);
-      }
-      if (dataset2Data) {
-        setDataset2(dataset2Data);
-        fetchColumns(dataset2Data, setColumns2);
-      }
-    }
-  }, [nodeId, datasets_source, nodes]);
-
-  // ✅ Fetch columns when dataset1 or dataset2 updates
-  useEffect(() => {
-    if (dataset1) fetchColumns(dataset1, setColumns1);
-  }, [dataset1]);
-
-  useEffect(() => {
-    if (dataset2) fetchColumns(dataset2, setColumns2);
-  }, [dataset2]);
-
-  // ✅ Fetch columns from dataset
   const fetchColumns = async (dataset, setColumns) => {
-    try {
-      console.log(`Fetching columns for dataset: ${dataset.name}`);
-      
-      if (!dataset?.file) {
-        console.warn(`No file found for dataset: ${dataset.name}`);
-        return;
-      }
-
-      const csvData = await parseCsvFile(dataset.file);
-      if (csvData.length > 0) {
-        setColumns(Object.keys(csvData[0]));
-      } else {
-        setColumns([]);
-      }
-    } catch (error) {
-      console.error("Error fetching columns:", error);
-    }
+    const csv = await parseCsvFile(dataset.file);
+    const columns = Object.keys(csv[0]);
+    setColumns(columns);
   };
 
-  // ✅ Parse CSV file from dataset object
   const parseCsvFile = (file) => {
     return new Promise((resolve, reject) => {
-      Papa.parse(file, {
+      const uint8Array = new Uint8Array(file.data);
+      const text = new TextDecoder("utf-8").decode(uint8Array);
+      Papa.parse(text, {
         header: true,
         dynamicTyping: true,
         complete: (result) => resolve(result.data),
-        error: (error) => {
-          console.error("Error parsing CSV:", error);
-          reject(error);
-        },
+        error: (error) => reject(error),
       });
     });
   };
 
   const handleSubmit = () => {
-    if (!dataset1 || !dataset2 || !selectedColumn1 || !selectedColumn2) {
-      toast.error("Please select both datasets and columns before submitting.");
-      return;
-    }
-
     const parameters = {
       dataset1,
       dataset2,
-      selectedColumn1,
-      selectedColumn2,
+      column1: selectedColumn1,
+      column2: selectedColumn2,
     };
 
-    const updatedNodes = nodes.map((node) =>
-      node.id === nodeId
-        ? {
-            ...node,
-            data: {
-              ...node.data,
-              parameters,
-            },
-          }
-        : node
-    );
-
+    const updatedNodes = nodes.map((node) => {
+      if (node.id === nodeId) {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            parameters,
+          },
+        };
+      }
+      return node;
+    });
     setNodes(updatedNodes);
+    setIsLoading(false);
     toast.success("Merge parameters saved successfully!");
   };
 
   return (
     <div className={styles.mergeContainer}>
       <div className={styles.formGroup}>
-        <div className={styles.datasetAndColumnInput}>
-          <div className={styles.mergeInput}>
-            <Dropdown
-              datasets_source={datasets_source}  // ✅ Pass correct datasets_source
-              selected={dataset1}
-              onSelect={(dataset) => {
-                setDataset1(dataset);
-                fetchColumns(dataset, setColumns1);
-                setIsDropdown1Open(false);
-              }}
-              isOpen={isDropdown1Open}
-              setIsOpen={setIsDropdown1Open}
-              disabled={datasets_source.length < 2}
-            />
+        <div className={styles.labelContainer}>
+          <label className={styles.label}>Dataset 1</label>
+          
+          <div className={styles.dropdown}>
+
+          <Dropdown
+         
+          selected={dataset1}
+          onSelect={(dataset) => {
+            setDataset1(dataset);
+            fetchColumns(dataset, setColumns1);
+          }}
+          label="Select Dataset 1"
+          />
           </div>
-          <select
-            value={selectedColumn1}
-            onChange={(e) => setSelectedColumn1(e.target.value)}
-            disabled={!dataset1}
-          >
-            <option value="">Select Column from Dataset 1</option>
-            {columns1.map((col) => (
-              <option key={col} value={col}>
-                {col}
-              </option>
-            ))}
-          </select>
         </div>
-        <hr className={styles.linebreak} />
-        <div className={styles.datasetAndColumnInput}>
-          <div className={styles.mergeInput}>
-            <Dropdown
-              datasets_source={datasets_source.filter((d) => d.id !== dataset1?.id)}
-              selected={dataset2}
-              onSelect={(dataset) => {
-                setDataset2(dataset);
-                fetchColumns(dataset, setColumns2);
-                setIsDropdown2Open(false);
-              }}
-              isOpen={isDropdown2Open}
-              setIsOpen={setIsDropdown2Open}
-              disabled={datasets_source.length < 2}
-            />
+        <select value={selectedColumn1} onChange={(e) => setSelectedColumn1(e.target.value)}>
+          <option value="">Select Column from Dataset 1</option>
+          {columns1.map((col, index) => (
+            <option key={index} value={col}>
+              {col}
+            </option>
+          ))}
+        </select>
+
+        <div className={styles.labelContainer}>
+          <label className={styles.label}>Dataset 2</label>
+          <div className={styles.dropdown}>
+
+          <Dropdown
+            selected={dataset2}
+            onSelect={(dataset) => {
+              setDataset2(dataset);
+              fetchColumns(dataset, setColumns2);
+            }}
+            label="Select Dataset 2"
+          />
           </div>
-          <select
-            value={selectedColumn2}
-            onChange={(e) => setSelectedColumn2(e.target.value)}
-            disabled={!dataset2}
-          >
-            <option value="">Select Column from Dataset 2</option>
-            {columns2.map((col) => (
-              <option key={col} value={col}>
-                {col}
-              </option>
-            ))}
-          </select>
         </div>
-        <button onClick={handleSubmit} disabled={!dataset1 || !dataset2 || !selectedColumn1 || !selectedColumn2}>
-          Submit
+        <select value={selectedColumn2} onChange={(e) => setSelectedColumn2(e.target.value)}>
+          <option value="">Select Column from Dataset 2</option>
+          {columns2.map((col, index) => (
+            <option key={index} value={col}>
+              {col}
+            </option>
+          ))}
+        </select>
+
+        <button onClick={handleSubmit} disabled={!selectedColumn1 || !selectedColumn2 || isLoading}>
+          {isLoading ? <span className={styles.loader}></span> : "Set Parameters"}
         </button>
       </div>
     </div>

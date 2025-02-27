@@ -8,27 +8,102 @@ const SidebarSplit = ({ nodeId, nodes, setNodes }) => {
   const [datasets, setDatasets] = useState([]);
   const [dataset1, setDataset1] = useState(null);
   const [columns1, setColumns1] = useState([]);
-  const [splits, setSplits] = useState([{ col: "", delimiter: "", numDelimiters: 1, columnNames: [""] }]);
+  const [splits, setSplits] = useState([
+    { col: "", delimiter: "", numDelimiters: 1, columnNames: [""] },
+  ]);
   const [activeTab, setActiveTab] = useState("general");
   const [addressColumn, setAddressColumn] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
+  const selectedNode = nodes.find((node) => node.id === nodeId);
   const userId = localStorage.getItem("userId");
 
-  // Fetch datasets on mount
+  // Initialize state with previously set parameters
   useEffect(() => {
-    fetchDatasets();
-  }, []);
+    if (selectedNode && selectedNode.data.parameters) {
+      const { splitType, splits: savedSplits, addressColumn: savedAddressColumn } =
+        selectedNode.data.parameters;
 
-  const fetchDatasets = async () => {
-    try {
-      const response = await fetch(`http://localhost:5000/api/file/alldatasets/${userId}`);
-      const data = await response.json();
-      setDatasets(data.data);
-    } catch (error) {
-      toast.error("Error fetching datasets.");
+      // Set active tab
+      setActiveTab(splitType || "general");
+
+      // Set splits for general tab
+      if (splitType === "general" && savedSplits) {
+        setSplits(savedSplits);
+      }
+
+      // Set address column for address tab
+      if (splitType === "address" && savedAddressColumn) {
+        setAddressColumn(savedAddressColumn);
+      }
+
+      // Set dataset if available
+      if (selectedNode.data.parameters.datasetId) {
+        const fetchDatasets = async () => {
+          try {
+            const response1 = await fetch(
+              `http://localhost:5000/api/file/datasets/${userId}`
+            );
+            const response2 = await fetch(
+              `http://localhost:5000/api/file/results/${userId}`
+            );
+            const data1 = await response1.json();
+            const data2 = await response2.json();
+
+            // Find the dataset by ID
+            const matchedDataset =
+              data1.data.find(
+                (dataset) => dataset._id === selectedNode.data.parameters.datasetId
+              ) ||
+              data2.data.find(
+                (dataset) => dataset._id === selectedNode.data.parameters.datasetId
+              );
+
+            if (matchedDataset) {
+              setDataset1(matchedDataset);
+              fetchColumnsAndData(matchedDataset);
+            }
+          } catch (error) {
+            console.error("Error fetching datasets: ", error);
+          }
+        };
+        fetchDatasets();
+      }
     }
-  };
+  }, [selectedNode, userId]);
+
+  // Fetch datasets and columns
+  useEffect(() => {
+    const fetchDatasets = async () => {
+      try {
+        const response1 = await fetch(
+          `http://localhost:5000/api/file/datasets/${userId}`
+        );
+        const response2 = await fetch(
+          `http://localhost:5000/api/file/results/${userId}`
+        );
+        const data1 = await response1.json();
+        const data2 = await response2.json();
+
+        // Match datasets with sourcenode.id
+        if (selectedNode && selectedNode.data.sourcenodes) {
+          const sourceNodeIds = selectedNode.data.sourcenodes.map(
+            (node) => node.id
+          );
+          const matchedDataset1 =
+            data1.data.find((dataset) => dataset._id === sourceNodeIds[0]) ||
+            data2.data.find((dataset) => dataset._id === sourceNodeIds[0]);
+
+          if (matchedDataset1) {
+            setDataset1(matchedDataset1);
+            fetchColumnsAndData(matchedDataset1);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching datasets: ", error);
+      }
+    };
+    fetchDatasets();
+  }, [userId, selectedNode]);
 
   const fetchColumnsAndData = async (dataset) => {
     const csv = await parseCsvFile(dataset.file);
@@ -52,7 +127,9 @@ const SidebarSplit = ({ nodeId, nodes, setNodes }) => {
   const handleDatasetSelect = async (dataset) => {
     setDataset1(dataset);
     await fetchColumnsAndData(dataset);
-    setSplits([{ col: "", delimiter: "", numDelimiters: 1, columnNames: [""] }]);
+    setSplits([
+      { col: "", delimiter: "", numDelimiters: 1, columnNames: [""] },
+    ]);
   };
 
   const handleSplitChange = (index, field, value) => {
@@ -64,7 +141,8 @@ const SidebarSplit = ({ nodeId, nodes, setNodes }) => {
       const selectedColumn = newSplits[index].col;
       newSplits[index].columnNames = Array.from(
         { length: numCols },
-        (_, i) => newSplits[index].columnNames[i] || `${selectedColumn}_${i + 1}`
+        (_, i) =>
+          newSplits[index].columnNames[i] || `${selectedColumn}_${i + 1}`
       );
     }
 
@@ -78,7 +156,10 @@ const SidebarSplit = ({ nodeId, nodes, setNodes }) => {
   };
 
   const addSplit = () => {
-    setSplits([...splits, { col: "", delimiter: "", numDelimiters: 1, columnNames: [""] }]);
+    setSplits([
+      ...splits,
+      { col: "", delimiter: "", numDelimiters: 1, columnNames: [""] },
+    ]);
   };
 
   // Save split parameters to the selected node
@@ -119,13 +200,17 @@ const SidebarSplit = ({ nodeId, nodes, setNodes }) => {
       {/* Tab Selector */}
       <div className={styles.tabSelector}>
         <button
-          className={`${styles.tabButton} ${activeTab === "general" ? styles.active : ""}`}
+          className={`${styles.tabButton} ${
+            activeTab === "general" ? styles.active : ""
+          }`}
           onClick={() => setActiveTab("general")}
         >
           General Split
         </button>
         <button
-          className={`${styles.tabButton} ${activeTab === "address" ? styles.active : ""}`}
+          className={`${styles.tabButton} ${
+            activeTab === "address" ? styles.active : ""
+          }`}
           onClick={() => setActiveTab("address")}
         >
           Address Split
@@ -153,7 +238,9 @@ const SidebarSplit = ({ nodeId, nodes, setNodes }) => {
               <div className={styles.splitRow}>
                 <select
                   value={split.col}
-                  onChange={(e) => handleSplitChange(index, "col", e.target.value)}
+                  onChange={(e) =>
+                    handleSplitChange(index, "col", e.target.value)
+                  }
                 >
                   <option value="">Select Column</option>
                   {columns1.map((column, i) => (
@@ -165,7 +252,9 @@ const SidebarSplit = ({ nodeId, nodes, setNodes }) => {
 
                 <select
                   value={split.delimiter}
-                  onChange={(e) => handleSplitChange(index, "delimiter", e.target.value)}
+                  onChange={(e) =>
+                    handleSplitChange(index, "delimiter", e.target.value)
+                  }
                 >
                   <option value="">Select Delimiter</option>
                   <option value=" ">Space</option>
@@ -173,12 +262,14 @@ const SidebarSplit = ({ nodeId, nodes, setNodes }) => {
                   <option value=";">Semicolon (;)</option>
                   <option value="|">Pipe (|)</option>
                 </select>
-
+                <label htmlFor="">Enter number of space to be splitted</label>
                 <input
                   type="number"
                   min="0"
                   value={split.numDelimiters}
-                  onChange={(e) => handleSplitChange(index, "numDelimiters", e.target.value)}
+                  onChange={(e) =>
+                    handleSplitChange(index, "numDelimiters", e.target.value)
+                  }
                 />
               </div>
               <label>Enter Column Names:</label>
@@ -189,7 +280,9 @@ const SidebarSplit = ({ nodeId, nodes, setNodes }) => {
                     type="text"
                     placeholder={`Column ${i + 1} Name`}
                     value={name}
-                    onChange={(e) => handleColumnNameChange(index, i, e.target.value)}
+                    onChange={(e) =>
+                      handleColumnNameChange(index, i, e.target.value)
+                    }
                   />
                 ))}
               </div>
@@ -198,6 +291,7 @@ const SidebarSplit = ({ nodeId, nodes, setNodes }) => {
           <button className={styles.addButton} onClick={addSplit}>
             + Add More
           </button>
+          <br />
         </div>
       )}
 
@@ -205,7 +299,10 @@ const SidebarSplit = ({ nodeId, nodes, setNodes }) => {
       {dataset1 && activeTab === "address" && (
         <div className={styles.addressSplitContainer}>
           <label>Select Address Column</label>
-          <select value={addressColumn} onChange={(e) => setAddressColumn(e.target.value)}>
+          <select
+            value={addressColumn}
+            onChange={(e) => setAddressColumn(e.target.value)}
+          >
             <option value="">Select Column</option>
             {columns1.map((column, i) => (
               <option key={i} value={column}>
@@ -218,8 +315,24 @@ const SidebarSplit = ({ nodeId, nodes, setNodes }) => {
 
       {/* Submit Button */}
       <div className={styles.buttonGroup}>
-        <button className={styles.submitButton} onClick={handleSubmit}>
-          Submit
+        <button
+          className={styles.submitButton}
+          onClick={handleSubmit}
+          disabled={
+            !dataset1 ||
+            (activeTab === "general" &&
+              (splits.length === 0 ||
+                splits.some(
+                  (split) =>
+                    !split.col ||
+                    !split.delimiter ||
+                    split.numDelimiters < 0 ||
+                    split.columnNames.some((name) => !name.trim())
+                ))) ||
+            (activeTab === "address" && !addressColumn)
+          }
+        >
+          Set Parameters
         </button>
       </div>
     </div>
