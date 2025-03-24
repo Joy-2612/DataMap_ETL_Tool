@@ -196,3 +196,126 @@
 .tooltip button:active {
   transform: scale(0.95);
 }
+/* Add to existing styles */
+.buttonContainer {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background: #f5f5f5;
+  border-bottom: 1px solid #ddd;
+}
+
+.templateButtons {
+  display: flex;
+  gap: 10px;
+}
+
+.templateButton {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
+  background: #4a6fa5;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.templateButton:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+}
+
+.templateButton:hover:not(:disabled) {
+  background: #3a5a8f;
+}
+
+.templateForm {
+  padding: 20px;
+}
+
+.formGroup {
+  margin-bottom: 15px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.formGroup input,
+.formGroup textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.saveButton {
+  padding: 8px 16px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.saveButton:hover {
+  background: #45a049;
+}
+
+.templatesList {
+  padding: 20px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.templateItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.templateInfo {
+  flex: 1;
+}
+
+.templateInfo h4 {
+  margin: 0 0 5px 0;
+}
+
+.templateInfo p {
+  margin: 0 0 5px 0;
+  color: #666;
+}
+
+.templateInfo small {
+  color: #999;
+}
+
+.templateActions {
+  display: flex;
+  gap: 10px;
+}
+
+.loadButton {
+  padding: 5px 10px;
+  background: #4a6fa5;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.deleteButton {
+  padding: 5px 10px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
