@@ -12,7 +12,17 @@ import SidebarSplit from "./SidebarActions/SidebarSplit";
 import SidebarStandardize from "./SidebarActions/SidebarStandardize";
 import SidebarMerge from "./SidebarActions/SidebarMerge";
 
-const RightSideBar = ({ onAddNode, onAddActionNode,onAddNodeOutput, userId, selectedNode,nodes,setNodes,datasets_source,setDatasets_source }) => {
+const RightSideBar = ({
+  onAddNode,
+  onAddActionNode,
+  onAddNodeOutput,
+  userId,
+  selectedNode,
+  nodes,
+  setNodes,
+  datasets_source,
+  setDatasets_source,
+}) => {
   const [datasets1, setDatasets1] = useState([]);
   const [results, setResults] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -43,9 +53,8 @@ const RightSideBar = ({ onAddNode, onAddActionNode,onAddNodeOutput, userId, sele
     },
   ];
 
-  // Effect to handle selected node from flow diagram
+  // Fetch data whenever userId or selectedNode changes
   useEffect(() => {
-    
     if (selectedNode) {
       if (selectedNode.data?.type === "action") {
         const action = actionOptions.find(
@@ -63,7 +72,6 @@ const RightSideBar = ({ onAddNode, onAddActionNode,onAddNodeOutput, userId, sele
     }
 
     const fetchData = async () => {
-     
       try {
         const [datasetsResponse, resultsResponse] = await Promise.all([
           fetch(`http://localhost:5000/api/file/datasets/${userId}`),
@@ -81,60 +89,56 @@ const RightSideBar = ({ onAddNode, onAddActionNode,onAddNodeOutput, userId, sele
     };
 
     if (userId) {
-      
       fetchData();
     }
-    else{
-      
-    }
-  }, [selectedNode]);
+  }, [userId, selectedNode]);
 
+  // When dragging starts, set the data for dropping
   const handleDragStart = (event, item) => {
-    console.log("Dragging item : ", item);
+    console.log("Dragging item: ", item);
     event.dataTransfer.setData("text/id", item._id);
     event.dataTransfer.setData("text/name", item.name);
     event.dataTransfer.setData("text/size", item.size);
     event.dataTransfer.setData("text/type", item.type);
-    event.dataTransfer.setData("text/nodeType",item.nodeType||"dataset");
+    // If nodeType isn't set, default to "dataset"
+    event.dataTransfer.setData("text/nodeType", item.nodeType || "dataset");
     event.dataTransfer.effectAllowed = "move";
   };
 
+  // Double-click to add node instantly (optional)
   const handleDoubleClick = (item) => {
-    console.log("item: ",item);
     if (onAddNode) {
-        const nodeData = {
-            id: item._id,
-            name: item.name,
-            size: item.size,
-            type: item.type
-        };
-        console.log("data is: ",nodeData);
-        onAddNode(nodeData);
+      const nodeData = {
+        id: item._id,
+        name: item.name,
+        size: item.size,
+        type: item.type,
+      };
+      onAddNode(nodeData);
     }
-};
-
-  // Rest of the fetch data useEffect remains the same...
+  };
 
   const handleActionSelect = (action) => {
     setSelectedAction(action);
     setShowParametersView(true);
 
-    onAddActionNode({
-      id: Date.now().toString(),
-      name: action.name,
-      type: "action",
-      actionType: action.id,
-      nodeType:"Action"
-    });
-  
+    if (onAddActionNode) {
+      onAddActionNode({
+        id: Date.now().toString(),
+        name: action.name,
+        type: "action",
+        actionType: action.id,
+        nodeType: "Action",
+      });
+    }
   };
- 
 
   const handleBackClick = () => {
     setShowParametersView(false);
     setSelectedAction(null);
   };
 
+  // Renders the list of items (dataset or results)
   const renderItems = (items) => (
     <div className={styles.itemsContainer}>
       {items.length === 0 ? (
@@ -175,7 +179,7 @@ const RightSideBar = ({ onAddNode, onAddActionNode,onAddNodeOutput, userId, sele
             value={newNodeName}
             onChange={(e) => setNewNodeName(e.target.value)}
             className={styles.nodeInput}
-          />  
+          />
           <input
             type="text"
             placeholder="Enter Description"
@@ -183,7 +187,7 @@ const RightSideBar = ({ onAddNode, onAddActionNode,onAddNodeOutput, userId, sele
             value={newNodeDesc}
             onChange={(e) => setNewNodeDesc(e.target.value)}
             className={styles.nodeInput}
-          />  
+          />
           <button
             className={styles.addNodeButton}
             disabled={!newNodeName || !newNodeDesc}
@@ -233,7 +237,6 @@ const RightSideBar = ({ onAddNode, onAddActionNode,onAddNodeOutput, userId, sele
   );
 
   const renderParametersView = () => {
-    // console.log("Selected : ", selectedAction);
     if (!selectedAction?.component) return null;
     const ActionComponent = selectedAction.component;
 
@@ -248,19 +251,19 @@ const RightSideBar = ({ onAddNode, onAddActionNode,onAddNodeOutput, userId, sele
           </div>
         </div>
         <div className={styles.parametersContent}>
-          <ActionComponent 
-          nodeId={selectedNode?.id} // Pass the selected node's ID
-        nodes={nodes} // Pass the nodes array
-        setNodes={setNodes} // Pass the setNodes function
-        datasets_source={datasets_source}
-        setDatasets_source={setDatasets_source}
-      />
+          <ActionComponent
+            nodeId={selectedNode?.id} // Pass the selected node's ID
+            nodes={nodes} // Pass the nodes array
+            setNodes={setNodes} // Pass the setNodes function
+            datasets_source={datasets_source}
+            setDatasets_source={setDatasets_source}
+          />
         </div>
       </div>
     );
   };
 
-  // Regular view content
+  // Regular content if we're not in parameters view
   const regularContent = (
     <>
       <div className={styles.tabHeader}>

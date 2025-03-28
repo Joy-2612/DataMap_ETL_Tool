@@ -1,17 +1,14 @@
-// services/aiService.js
 require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
 const { XMLParser } = require("fast-xml-parser");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-// Helper services
 const {
   getHeadersService,
   getFirst10RowsService,
   getDistinctValuesService,
 } = require("./aiFIleService");
-
 const {
   mergeDatasetsService,
   concatenateColumnsService,
@@ -21,38 +18,33 @@ const {
 
 const gemini_api_key = process.env.GEMINI_API_KEY;
 const googleAI = new GoogleGenerativeAI(gemini_api_key);
+const geminiModel = googleAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-// Define Gemini model
-const geminiModel = googleAI.getGenerativeModel({
-  model: "gemini-1.5-flash",
-});
-
-/**
- * runChainOfThought
- * Orchestrates the conversation with Gemini and streams thoughts and final answers.
- */
 async function runChainOfThought(userPrompt, chatHistory, onUpdate) {
-  console.log("User Prompt:", userPrompt);
-
-  // Read system instructions from an XML file
+  console.log("User Prompt:", userPrompt, "Chat History:", chatHistory);
+  let fileIds = await getFileIdGemini(chatHistory);
+  fileIds = Array.isArray(fileIds) ? fileIds : [];
   const systemInstructions = fs.readFileSync(
-    path.join(__dirname, "prompt.xml"),
+    path.join(__dirname, "prompt2.xml"),
     "utf-8"
   );
 
   try {
-    // Convert database format to Gemini's chat history format
-    const formattedHistory = chatHistory.map((msg) => ({
-      role: msg.sender === "user" ? "user" : "model",
-      parts: [{ text: msg.text }],
-    }));
+    const formattedHistory = chatHistory
+      .filter((msg) => msg.text !== undefined)
+      .map((msg) => ({
+        role: msg.sender === "user" ? "user" : "model",
+        parts: [
+          { text: msg.text },
+          { text: `File IDs used for operations: ${fileIds.join(", ")}` },
+        ],
+      }));
 
-    // Start chat session with history and system instructions
     const chatSession = geminiModel.startChat({
       history: formattedHistory,
       systemInstruction: {
         role: "system",
-        parts: [{ text: systemInstructions }],
+        parts: [{ text: systemInstructions }, { text: "Generate XML only!" }],
       },
     });
 
@@ -62,24 +54,14 @@ async function runChainOfThought(userPrompt, chatHistory, onUpdate) {
 
     while (maxIterations-- > 0) {
       const parsed = parseResponse(responseText);
-
-      // Stream thoughts
-      if (parsed.thought) {
-        onUpdate("thought", { thought: parsed.thought });
-      }
-
-      // Final answer
+      if (parsed.thought) onUpdate("thought", { thought: parsed.thought });
       if (parsed.answer) {
         onUpdate("answer", { answer: parsed.answer });
         return;
       }
-
-      // Handle actions
       if (parsed.action) {
         const observation = await handleAction(parsed.action);
         onUpdate("observation", { observation });
-
-        // Send observation back to continue conversation
         response = await chatSession.sendMessage(
           `<observation>${observation}</observation>`
         );
@@ -89,24 +71,21 @@ async function runChainOfThought(userPrompt, chatHistory, onUpdate) {
       }
     }
 
-    if (maxIterations <= 0) {
+    if (maxIterations <= 0)
       onUpdate("error", {
         error: "Maximum iterations reached without resolution",
       });
-    }
   } catch (error) {
     console.error("Error in chat session:", error);
     onUpdate("error", { error: error.message });
   }
 }
 
-// Helper function to parse LLM response
 function parseResponse(responseText) {
   const parser = new XMLParser({
     ignoreAttributes: false,
     attributeNamePrefix: "@_",
   });
-
   try {
     const parsed = parser.parse(responseText);
     return {
@@ -119,19 +98,13 @@ function parseResponse(responseText) {
     return { error: "Invalid response format from AI" };
   }
 }
-/**
- * callGeminiLLM
- * Sends the conversation to Gemini and returns its response.
- */
+
 async function callGeminiLLM(conversation) {
   try {
     const prompt = conversation.map((msg) => msg.content).join("\n");
     const result = await geminiModel.generateContent(prompt);
     const responseText = result.response?.text();
-    if (!responseText) {
-      return "Thought: [No valid response from Gemini]\n";
-    }
-    return responseText;
+    return responseText || "Thought: [No valid response from Gemini]\n";
   } catch (error) {
     console.error("Error calling Gemini LLM:", error);
     return "Thought: I'm sorry, but I encountered an error calling the Gemini LLM.\n";
@@ -147,51 +120,68 @@ async function getTitle(messages) {
     role: msg.sender === "user" ? "user" : "model",
     parts: [{ text: msg.text }],
   }));
-
   const prompt = formattedHistory
     .map((msg) => msg.parts.map((part) => part.text).join(" "))
     .join("\n");
-
   const promptWithInstructions = `${titleSystemInstructions}\n${prompt}`;
-
   const response = await geminiModel.generateContent(promptWithInstructions);
-
-  console.log("response:", response);
-
   return response.response?.text();
 }
 
-/**
- * handleAction
- * Executes the action parsed from the LLM response.
- */
-async function handleAction(actionString) {
-  console.log("actionString:", actionString);
-
-  const funcName = actionString.name;
-  const parameters = actionString.parameters;
-
-  if (!funcName || !parameters) {
-    return "Invalid action format";
+async function getFileIdGemini(chatHistory) {
+  const fileIdSystemInstructions = fs.readFileSync(
+    path.join(__dirname, "generateFileId.xml"),
+    "utf-8"
+  );
+  const formattedHistory = chatHistory.map((msg) => ({
+    role: msg.sender === "user" ? "user" : "model",
+    parts: [{ text: msg.text }],
+  }));
+  const prompt = formattedHistory
+    .map((msg) => msg.parts.map((part) => part.text).join(" "))
+    .join("\n");
+  const promptWithInstructions = `${fileIdSystemInstructions}\n${prompt}`;
+  const response = await geminiModel.generateContent(promptWithInstructions);
+  const responseText = response.response?.text();
+  if (!responseText) {
+    console.error("Empty response from Gemini.");
+    return [];
   }
+  try {
+    const parser = new XMLParser({
+      ignoreAttributes: false,
+      attributeNamePrefix: "@_",
+    });
+    const parsed = parser.parse(responseText);
+    return Array.isArray(parsed.fileId) ? parsed.fileId : [parsed.fileId];
+  } catch (error) {
+    console.error("Error parsing response:", error);
+    return [];
+  }
+}
 
+async function handleAction(actionString) {
+  const { name: funcName, parameters } = actionString;
+  if (!funcName || !parameters) return "Invalid action format";
   const args = Object.values(parameters);
 
   switch (funcName) {
     case "get_headers":
-      if (args.length < 1) return "File ID required for get_headers";
-      return await getHeadersService(args[0]);
+      return args.length < 1
+        ? "File ID required for get_headers"
+        : await getHeadersService(args[0]);
 
     case "get_first_10_rows":
-      if (args.length < 1) return "File ID required for get_first_10_rows";
-      return await getFirst10RowsService(args[0]);
+      return args.length < 1
+        ? "File ID required for get_first_10_rows"
+        : await getFirst10RowsService(args[0]);
 
     case "get_distinct_value_of_column":
-      if (args.length < 2)
-        return "File ID and columnName required for get_distinct_value_of_column";
-      return await getDistinctValuesService(args[0], args[1]);
+      return args.length < 2
+        ? "File ID and columnName required for get_distinct_value_of_column"
+        : await getDistinctValuesService(args[0], args[1]);
 
-    case "merge":
+    case "merge": {
       const [
         dataset1,
         dataset2,
@@ -213,8 +203,9 @@ async function handleAction(actionString) {
       } catch (err) {
         return `Error merging: ${err.message}`;
       }
+    }
 
-    case "concatenate":
+    case "concatenate": {
       const [
         dataset,
         columnsStr,
@@ -237,8 +228,9 @@ async function handleAction(actionString) {
       } catch (err) {
         return `Error concatenating: ${err.message}`;
       }
+    }
 
-    case "split":
+    case "split": {
       const [fileId, splitsJson, outputFileNameSplit, descriptionSplit] = args;
       let parsedSplits;
       try {
@@ -257,8 +249,9 @@ async function handleAction(actionString) {
       } catch (err) {
         return `Error splitting: ${err.message}`;
       }
+    }
 
-    case "standardize":
+    case "standardize": {
       const [
         datasetId,
         column,
@@ -274,11 +267,9 @@ async function handleAction(actionString) {
             const existingMapping = acc.find(
               (mapping) => mapping.after === value
             );
-            if (existingMapping) {
-              existingMapping.before.push(key);
-            } else {
-              acc.push({ before: [key], after: value });
-            }
+            existingMapping
+              ? existingMapping.before.push(key)
+              : acc.push({ before: [key], after: value });
             return acc;
           },
           []
@@ -298,13 +289,11 @@ async function handleAction(actionString) {
       } catch (err) {
         return `Error standardizing: ${err.message}`;
       }
+    }
 
     default:
       return `Unknown action: ${funcName}`;
   }
 }
 
-module.exports = {
-  runChainOfThought,
-  getTitle,
-};
+module.exports = { runChainOfThought, getTitle };

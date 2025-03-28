@@ -1,8 +1,12 @@
 import React, { useEffect } from "react";
-import ReactFlow, { MiniMap, Controls, Background, ReactFlowProvider } from "reactflow";
+import ReactFlow, {
+  MiniMap,
+  Controls,
+  Background,
+  ReactFlowProvider,
+} from "reactflow";
 import "reactflow/dist/style.css";
 import { toast } from "sonner";
-import "react-toastify/dist/ReactToastify.css";
 import { FaPlay } from "react-icons/fa";
 import useFlowLogic from "../FlowDiagrams/hooks/useFlowLogic";
 import useFlowUI from "../FlowDiagrams/hooks/useFlowUI";
@@ -32,7 +36,6 @@ const FlowDiagram = () => {
     isModalOpen,
     flowJSON,
     isLoading,
-    reactFlowInstance,
     onNodesChange,
     onEdgesChange,
     onConnect,
@@ -44,11 +47,16 @@ const FlowDiagram = () => {
     handleRun,
     handleRemoveFlowDiagram,
     closeModal,
+    // The important setter for the ReactFlow instance:
+    setReactFlowInstance,
   } = useFlowLogic();
-  
-  const { handleAddNode, handleAddNodeOutput, handleAddActionNode } = useFlowUI(setNodes);
+
+  // For your custom UI hook (optional, if you need it)
+  const { handleAddNode, handleAddNodeOutput, handleAddActionNode } =
+    useFlowUI(setNodes);
+
   const userId = localStorage.getItem("userId");
-  
+
   // Disable the "Clear Diagram" button if there are no nodes
   const isClearDiagramDisabled = nodes.length === 0;
 
@@ -66,11 +74,11 @@ const FlowDiagram = () => {
     if (savedFlow) {
       try {
         const { nodes: savedNodes, edges: savedEdges } = JSON.parse(savedFlow);
-        
+
         if (savedNodes && savedNodes.length > 0) {
           setNodes(savedNodes);
         }
-        
+
         if (savedEdges && savedEdges.length > 0) {
           setEdges(savedEdges);
         }
@@ -91,21 +99,22 @@ const FlowDiagram = () => {
   return (
     <ReactFlowProvider>
       <div className={styles.runButtonContainer}>
-        <button 
-          onClick={handleRun} 
-          className={styles.runButton} 
+        <button
+          onClick={handleRun}
+          className={styles.runButton}
           disabled={isClearDiagramDisabled}
         >
           {isLoading ? "Processing..." : <FaPlay />}
         </button>
-        <button 
-          onClick={handleClearDiagram} 
-          className={styles.removeButton} 
+        <button
+          onClick={handleClearDiagram}
+          className={styles.removeButton}
           disabled={isClearDiagramDisabled}
         >
           Clear Diagram
         </button>
       </div>
+
       <div className={styles.container}>
         <div className={styles.flowContainer}>
           <ReactFlow
@@ -120,7 +129,8 @@ const FlowDiagram = () => {
             onBackgroundClick={onBackgroundClick}
             onNodeClick={onNodeClick}
             fitView
-            onInit={reactFlowInstance}
+            // Updated: store the instance
+            onInit={setReactFlowInstance}
             nodeTypes={nodeTypes}
           >
             <MiniMap style={{ transformOrigin: "top left" }} />
@@ -128,6 +138,7 @@ const FlowDiagram = () => {
             <Background variant="dots" gap={12} size={1} />
           </ReactFlow>
         </div>
+
         <RightSideBar
           userId={userId}
           onAddNode={handleAddNode}
@@ -143,6 +154,7 @@ const FlowDiagram = () => {
           setDatasets_source={datasets}
         />
       </div>
+
       <Modal isOpen={isModalOpen} onClose={closeModal}>
         <pre>{JSON.stringify(flowJSON, null, 2)}</pre>
       </Modal>

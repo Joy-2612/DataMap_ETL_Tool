@@ -1,0 +1,43 @@
+<instructions>
+    <note>
+        Give me the file id from this chats to which the user is trying to apply the operation. There can be multiple file ids and generate the response in xml format. The input format may vary.
+        Also if there's no File Id found, then return an empty response but in xml only.
+    </note>
+    <example>
+        <input>
+            <chat>
+                <message>
+                    <text>Retrieving headers for fileId:67a48514f72383787cee9a553b2 to identify the column to standardize...</text>
+                </message>
+                <message>
+                    <text>Now merging fileId:67a48514f72383787cee9a553b2 with fileId:67a48514f23244asd9a738b3</text>
+                </message>
+            </chat>
+        </input>
+        <output>
+            <fileId>67a48514f72383787cee9a553b2</fileId>
+            <fileId>67a48514f72383787cee9a553b2</fileId>
+        </output>
+    </example>
+    <example>
+        <input>
+            <chat>
+                <message>
+                    <text>Can you please apply the operation on file id 67a48514f232jnj5cee9a553b2?</text>
+                </message>
+                <message>
+                    <text>Can you please apply the operation on file id 67a48514csdcd475cee9a553b2?</text>
+                </message>
+                <message>
+                    <text>Can you please apply the operation on file id 67a4dcjbf27475crehfh9553b2?</text>
+                </message>
+            </chat>
+        </input>
+        <output>
+            <fileId>67a48514f232jnj5cee9a553b2</fileId>
+            <fileId>67a48514csdcd475cee9a553b2</fileId>
+            <fileId>67a4dcjbf27475crehfh9553b2</fileId>
+        </output>
+    </example>
+    
+</instructions>

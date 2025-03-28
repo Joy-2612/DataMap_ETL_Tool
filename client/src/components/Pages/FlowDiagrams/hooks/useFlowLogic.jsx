@@ -17,7 +17,7 @@ const useFlowLogic = () => {
   const [flowJSON, setFlowJSON] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load saved nodes and edges from localStorage
+  // Load saved nodes and edges from localStorage (if you want them separate from flow-diagram-userId)
   useEffect(() => {
     const savedNodes = JSON.parse(localStorage.getItem("savedNodes")) || [];
     const savedEdges = JSON.parse(localStorage.getItem("savedEdges")) || [];
@@ -31,14 +31,13 @@ const useFlowLogic = () => {
     localStorage.setItem("savedEdges", JSON.stringify(edges));
   }, [nodes, edges]);
 
-  // Update action nodes with edge data
+  // Update action nodes with edge data whenever edges change
   useEffect(() => {
     const updatedNodes = updateActionNodesWithEdgeData(nodes, edges);
-    console.log("Updated Node ",updatedNodes);
     setNodes(updatedNodes);
   }, [edges]);
 
-  // Handle diagram clearing
+  // Handle clearing the diagram
   const handleRemoveFlowDiagram = () => {
     setNodes([]);
     setEdges([]);
@@ -46,19 +45,30 @@ const useFlowLogic = () => {
     localStorage.removeItem("savedEdges");
   };
 
-  // Handle edge connections
+  // Handle creating new edges
   const onConnect = useCallback(
     (params) => {
       const targetNode = nodes.find((node) => node.id === params.target);
+
       if (targetNode?.data?.type === "action") {
+        // If target is an action node, just connect
         setEdges((eds) => addEdge(params, eds));
-        const updatedNodes = updateActionNodesWithEdgeData(nodes, [...edges, params]);
+        const updatedNodes = updateActionNodesWithEdgeData(nodes, [
+          ...edges,
+          params,
+        ]);
         setNodes(updatedNodes);
       } else {
-        const hasExistingConnection = edges.some((edge) => edge.target === params.target);
+        // For other nodes, ensure no duplicate target connections
+        const hasExistingConnection = edges.some(
+          (edge) => edge.target === params.target
+        );
         if (!hasExistingConnection) {
           setEdges((eds) => addEdge(params, eds));
-          const updatedNodes = updateActionNodesWithEdgeData(nodes, [...edges, params]);
+          const updatedNodes = updateActionNodesWithEdgeData(nodes, [
+            ...edges,
+            params,
+          ]);
           setNodes(updatedNodes);
         }
       }
@@ -66,8 +76,9 @@ const useFlowLogic = () => {
     [setEdges, nodes, edges, setNodes]
   );
 
-  // Handle drag-and-drop for nodes
+  // DRAG & DROP handlers
   const onDragOver = useCallback((event) => {
+    // Must call preventDefault to allow onDrop
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
   }, []);
@@ -75,23 +86,39 @@ const useFlowLogic = () => {
   const onDrop = useCallback(
     (event) => {
       event.preventDefault();
+      if (!reactFlowInstance) return;
+
+      // Where you dropped inside the DOM
       const reactFlowBounds = event.target.getBoundingClientRect();
+
+      // Data from handleDragStart in RightSideBar
       const itemId = event.dataTransfer.getData("text/id");
       const itemName = event.dataTransfer.getData("text/name");
       const itemType = event.dataTransfer.getData("text/type");
       const itemSize = event.dataTransfer.getData("text/size");
       const nodeType = event.dataTransfer.getData("text/nodeType");
 
-      if (!reactFlowInstance) return;
+      if (!itemId) return; // If there's no data, do nothing
 
+      // Convert (x, y) from screen coords to React Flow coords
       const position = reactFlowInstance.project({
         x: event.clientX - reactFlowBounds.left,
         y: event.clientY - reactFlowBounds.top,
       });
 
+      // Decide what node type to use in React Flow
+      // (If nodeType is "Action", we might use actionNode, etc.)
+      let newNodeType = "datasetNode";
+      if (nodeType === "Action") {
+        newNodeType = "actionNode";
+      } else if (nodeType === "Output") {
+        newNodeType = "outputNode";
+      }
+
       const newNode = {
+        // Unique ID
         id: `item-${itemId}-${Date.now()}`,
-        type: "datasetNode",
+        type: newNodeType,
         position,
         data: {
           name: itemName || `Item ${itemId}`,
@@ -102,7 +129,6 @@ const useFlowLogic = () => {
           onDelete: handleDeleteNode,
         },
         style: {
-          backgroundcolor: "red",
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
@@ -110,12 +136,13 @@ const useFlowLogic = () => {
         },
       };
 
+      // Add the new node
       setNodes((nds) => nds.concat(newNode));
     },
     [reactFlowInstance, setNodes]
   );
 
-  // Handle node deletion
+  // Delete a node
   const handleDeleteNode = useCallback(
     (nodeId) => {
       setNodes((nds) => nds.filter((node) => node.id !== nodeId));
@@ -124,7 +151,7 @@ const useFlowLogic = () => {
     [setNodes]
   );
 
-  // Handle edge double-click
+  // Edge double-click
   const onEdgeDoubleClick = (event, edge) => {
     event.preventDefault();
     setSelectedEdge(edge);
@@ -132,14 +159,14 @@ const useFlowLogic = () => {
     setSidebarToggle(true);
   };
 
-  // Handle background click
+  // Background click
   const onBackgroundClick = () => {
     setSelectedEdge(null);
     setSelectedNode(null);
     setSidebarToggle(true);
   };
 
-  // Handle node click
+  // Node click
   const onNodeClick = (event, node) => {
     event.preventDefault();
     setSelectedEdge(null);
@@ -147,9 +174,9 @@ const useFlowLogic = () => {
     setSidebarToggle(true);
   };
 
-  // Generate flow JSON
+  // Generate JSON representation
   const generateFlowJSON = (nodes, edges) => {
-    const flowData = {
+    return {
       nodes: nodes.map((node) => ({
         id: node.id,
         type: node.type,
@@ -162,10 +189,9 @@ const useFlowLogic = () => {
         target: edge.target,
       })),
     };
-    return flowData;
   };
 
-  // Handle running the flow diagram
+  // Handle "Run" button
   const handleRun = async () => {
     if (!validateFlowDiagram(nodes, edges)) {
       return;
@@ -177,19 +203,21 @@ const useFlowLogic = () => {
     console.log("Final JSON: ", flowJSON);
 
     try {
-      const actionNodes = flowJSON.nodes.filter((node) => node.type === "actionNode");
+      const actionNodes = flowJSON.nodes.filter(
+        (node) => node.type === "actionNode"
+      );
       const results = await Promise.all(
         actionNodes.map(async (node) => {
           return await handleActionOperationsOnRun(node);
         })
       );
 
+      // Update output nodes with the result data
       const updatedNodes = flowJSON.nodes.map((node) => {
         if (node.type === "outputNode") {
           const result = results.find(
-            (result) => result && node.data.name === result.datasetName
+            (r) => r && node.data.name === r.datasetName
           );
-
           if (result) {
             return {
               ...node,
@@ -231,7 +259,7 @@ const useFlowLogic = () => {
     isModalOpen,
     flowJSON,
     isLoading,
-    reactFlowInstance,
+    // expose these handlers so FlowDiagram can use them
     onNodesChange,
     onEdgesChange,
     onConnect,
@@ -243,6 +271,8 @@ const useFlowLogic = () => {
     handleRun,
     handleRemoveFlowDiagram,
     closeModal,
+    // store and export the instance setter:
+    setReactFlowInstance,
   };
 };
 

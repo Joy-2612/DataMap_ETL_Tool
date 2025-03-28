@@ -1,20 +1,16 @@
 import { toast } from "sonner";
 
 export const validateFlowDiagram = (nodes, edges) => {
-
   //Existence of atleast 1 node to run
   if (nodes.length === 0) {
     toast.error("There must be at least one node in the diagram to run.");
     return false;
   }
 
-
   // 1) Check for nodes without edges
-  const nodesWithoutEdges =  nodes.filter(
+  const nodesWithoutEdges = nodes.filter(
     (node) =>
-      ! edges.some(
-        (edge) => edge.source === node.id || edge.target === node.id
-      )
+      !edges.some((edge) => edge.source === node.id || edge.target === node.id)
   );
   if (nodesWithoutEdges.length > 0) {
     toast.error("There are nodes without edges. Please connect all nodes.");
@@ -22,10 +18,10 @@ export const validateFlowDiagram = (nodes, edges) => {
   }
 
   // 2) Action nodes must have incoming and outgoing edges
-  const actionNodes =  nodes.filter((node) => node.type === "actionNode");
+  const actionNodes = nodes.filter((node) => node.type === "actionNode");
   const invalidActionNodes = actionNodes.filter((node) => {
-    const incomingEdges =  edges.filter((edge) => edge.target === node.id);
-    const outgoingEdges =  edges.filter((edge) => edge.source === node.id);
+    const incomingEdges = edges.filter((edge) => edge.target === node.id);
+    const outgoingEdges = edges.filter((edge) => edge.source === node.id);
     return incomingEdges.length === 0 || outgoingEdges.length === 0;
   });
   if (invalidActionNodes.length > 0) {
@@ -44,9 +40,9 @@ export const validateFlowDiagram = (nodes, edges) => {
   }
 
   // 4) Invalid edge connections
-  const invalidEdges =  edges.filter((edge) => {
-    const sourceNode =  nodes.find((node) => node.id === edge.source);
-    const targetNode =  nodes.find((node) => node.id === edge.target);
+  const invalidEdges = edges.filter((edge) => {
+    const sourceNode = nodes.find((node) => node.id === edge.source);
+    const targetNode = nodes.find((node) => node.id === edge.target);
 
     // Dataset -> Output
     if (
@@ -103,7 +99,6 @@ export const validateFlowDiagram = (nodes, edges) => {
     toast.error("Invalid edge connections detected.");
     return;
   }
-
 
   return true;
 };

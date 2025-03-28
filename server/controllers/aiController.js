@@ -24,6 +24,13 @@ const askAI = async (req, res) => {
         .json({ error: "Failed to initialize chat session" });
     }
 
+    // Send chatSession SSE event so the frontend has the new chatId
+    res.write(
+      `event: chatSession\ndata: ${JSON.stringify({
+        chatId: chatSession._id,
+      })}\n\n`
+    );
+
     // Add user message to history and save immediately
     chatSession.messages.push(createMessage(prompt, "user"));
     await chatSession.save();
@@ -37,11 +44,20 @@ const askAI = async (req, res) => {
         isThought: msg.isThought,
       }));
 
-    // Process with Gemini (the chain-of-thought steps will be sent via SSE)
+    // Create a local promise chain to serialize saves
+    let lastSavePromise = Promise.resolve();
+
+    // Process with Gemini (chain-of-thought steps will be sent via SSE)
     await runChainOfThought(prompt, chatHistory, async (eventType, data) => {
       handleSSEEvent(eventType, data, res, chatSession);
+      // Chain save calls sequentially to avoid parallel saves
+      lastSavePromise = lastSavePromise.then(() => chatSession.save());
+      await lastSavePromise;
     });
 
+    // Ensure all pending saves complete
+    await lastSavePromise;
+    await chatSession.save();
     res.end();
   } catch (error) {
     console.error("AskAI error:", error);
@@ -64,12 +80,11 @@ async function manageChatSession(userId, chatId) {
   }
 
   // Otherwise, create a new chat.
-  // (The Chat model may already set a default title like "New Chat")
   const newChat = new Chat({
     user: userId,
-    messages: [createMessage("System initialized", "system")],
+    messages: [],
   });
-  await newChat.save();
+  await newChat.save(); // Persist the new chat session
   return newChat;
 }
 
@@ -84,13 +99,36 @@ function createMessage(text, sender, isThought = false) {
 
 // Updated saveChat: now it expects a chatId and updates the existing document instead of creating a new one.
 const saveChat = async (req, res) => {
+  console.log("Save Chats is called...!!");
   try {
     const { chatId, userId, messages } = req.body;
+
+    console.log("ChatId:", chatId);
+    console.log("UserId:", userId);
+    console.log("Messages:", messages);
+
     if (!chatId) {
-      return res
-        .status(400)
-        .json({ success: false, error: "chatId is required" });
+      //this means that this is a new chat, so create a chat and save it
+
+      const title = await getTitle(messages);
+
+      newChat = new Chat({
+        user: userId,
+        title,
+        messages: messages.map((msg) => ({
+          text: msg.text,
+          sender: msg.sender,
+          isThought: msg.isThought || false,
+          approved: msg.approved || false,
+          ...(msg.datasetData && { datasetData: msg.datasetData }),
+        })),
+      });
+      await newChat.save();
+      return res.status(200).json({ success: true, chat: newChat });
     }
+
+    console.log("Fine..!");
+
     const title = await getTitle(messages);
     console.log("Title:", title);
 
@@ -109,11 +147,14 @@ const saveChat = async (req, res) => {
       },
       { new: true }
     );
+
+    console.log("Updated Chat:", updatedChat);
     if (!updatedChat) {
       return res.status(404).json({ success: false, error: "Chat not found" });
     }
     res.status(200).json({ success: true, chat: updatedChat });
   } catch (error) {
+    console.log("Error saving chat:", error);
     console.error("Error saving chat:", error);
     res.status(500).json({ success: false, error: error.message });
   }
@@ -161,11 +202,6 @@ function handleSSEEvent(eventType, data, res, chatSession) {
   } else if (eventType === "observation") {
     chatSession.messages.push(createMessage(data.observation, "bot"));
   }
-
-  // Save the updated chat session asynchronously
-  lastSavePromise = lastSavePromise
-    .then(() => chatSession.save())
-    .catch(console.error);
 }
 
 module.exports = {

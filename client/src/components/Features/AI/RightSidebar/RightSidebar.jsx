@@ -95,24 +95,40 @@ const RightSidebar = ({ onSelectChat, activeChatId }) => {
   const [chats, setChats] = useState([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  useEffect(() => {
-    const fetchChats = async () => {
-      try {
-        const response = await fetch(
-          `http://localhost:5000/api/ai/chats/${userId}`
-        );
-        const data = await response.json();
-        if (data.success) {
-          setChats(data.chats);
-        }
-      } catch (error) {
-        console.error("Error fetching chats:", error);
+  // 1. Wrap fetch in its own function
+  const fetchChats = async () => {
+    if (!userId) return;
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/ai/chats/${userId}`
+      );
+      const data = await response.json();
+      if (data.success) {
+        setChats(data.chats);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching chats:", error);
+    }
+  };
 
-    if (userId) fetchChats();
+  // 2. Fetch chats on mount/when userId changes
+  useEffect(() => {
+    fetchChats();
   }, [userId]);
 
+  // 3. Listen for the custom event "refreshChats"
+  useEffect(() => {
+    const handleRefreshChats = () => {
+      fetchChats();
+    };
+
+    window.addEventListener("refreshChats", handleRefreshChats);
+    return () => {
+      window.removeEventListener("refreshChats", handleRefreshChats);
+    };
+  }, []);
+
+  // Delete chat
   const handleDeleteChat = async (chatId) => {
     try {
       const response = await fetch(
