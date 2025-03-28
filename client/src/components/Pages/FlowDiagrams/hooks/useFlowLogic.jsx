@@ -268,6 +268,7 @@ const useFlowLogic = () => {
     onEdgeDoubleClick,
     onBackgroundClick,
     onNodeClick,
+    generateFlowJSON,
     handleRun,
     handleRemoveFlowDiagram,
     closeModal,
