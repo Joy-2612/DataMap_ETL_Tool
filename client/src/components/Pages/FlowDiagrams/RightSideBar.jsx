@@ -1,12 +1,21 @@
 import React, { useState, useEffect } from "react";
 import styles from "./RightSideBar.module.css";
+import { FaCodeMerge } from "react-icons/fa6";
+import { IoMdAddCircleOutline } from "react-icons/io";
+import { PiApproximateEqualsBold } from "react-icons/pi";
+import { MdOutlineVerticalSplit } from "react-icons/md";
 import {
   FaDatabase,
   FaPlus,
+  FaFileCsv,
+  FaFileExcel,
+  FaArrowLeft,
+  FaChartBar,
+  FaProjectDiagram,
   FaChevronDown,
   FaChevronRight,
-  FaArrowLeft,
 } from "react-icons/fa";
+
 import SidebarConcatenate from "./SidebarActions/SidebarConcatenate";
 import SidebarSplit from "./SidebarActions/SidebarSplit";
 import SidebarStandardize from "./SidebarActions/SidebarStandardize";
@@ -23,16 +32,13 @@ const RightSideBar = ({
   datasets_source,
   setDatasets_source,
 }) => {
-  const [datasets1, setDatasets1] = useState([]);
+  const [datasets, setDatasets] = useState([]);
   const [results, setResults] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [newNodeName, setNewNodeName] = useState("");
   const [newNodeDesc, setNewNodeDesc] = useState("");
-  const [activeTab, setActiveTab] = useState("datasets");
-  const [isLoadedOpen, setIsLoadedOpen] = useState(false);
-  const [isResultsOpen, setIsResultsOpen] = useState(false);
-  const [isAddNodeOpen, setIsAddNodeOpen] = useState(false);
-  const [isActionsOpen, setIsActionsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("data");
+  const [dataSubTab, setDataSubTab] = useState("source");
   const [selectedAction, setSelectedAction] = useState(null);
   const [showParametersView, setShowParametersView] = useState(false);
 
@@ -40,20 +46,37 @@ const RightSideBar = ({
     {
       id: "concatenate",
       name: "Concatenate",
-      color: "blue",
+      color: "#22C55E", // Green
       component: SidebarConcatenate,
+      icon: <IoMdAddCircleOutline />,
+      description: "Combine multiple datasets vertically",
     },
-    { id: "split", name: "Split", color: "blue", component: SidebarSplit },
-    { id: "merge", name: "Merge", color: "blue", component: SidebarMerge },
+    {
+      id: "split",
+      name: "Split",
+      color: "#EC4899", // Pink
+      component: SidebarSplit,
+      icon: <MdOutlineVerticalSplit />,
+      description: "Divide dataset by columns or conditions",
+    },
+    {
+      id: "merge",
+      name: "Merge",
+      color: "#3B82F6", // Blue
+      component: SidebarMerge,
+      icon: <FaCodeMerge />,
+      description: "Join datasets using common keys",
+    },
     {
       id: "standardize",
       name: "Standardize",
-      color: "blue",
+      color: "#F97316", // Orange
       component: SidebarStandardize,
+      icon: <PiApproximateEqualsBold />,
+      description: "Normalize data formats and values",
     },
   ];
 
-  // Fetch data whenever userId or selectedNode changes
   useEffect(() => {
     if (selectedNode) {
       if (selectedNode.data?.type === "action") {
@@ -67,7 +90,7 @@ const RightSideBar = ({
       } else {
         setSelectedAction(null);
         setShowParametersView(false);
-        setActiveTab("datasets");
+        setActiveTab("data");
       }
     }
 
@@ -81,7 +104,7 @@ const RightSideBar = ({
         const datasetsData = await datasetsResponse.json();
         const resultsData = await resultsResponse.json();
 
-        setDatasets1(datasetsData.data || []);
+        setDatasets(datasetsData.data || []);
         setResults(resultsData.data || []);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -93,19 +116,15 @@ const RightSideBar = ({
     }
   }, [userId, selectedNode]);
 
-  // When dragging starts, set the data for dropping
   const handleDragStart = (event, item) => {
-    console.log("Dragging item: ", item);
     event.dataTransfer.setData("text/id", item._id);
     event.dataTransfer.setData("text/name", item.name);
     event.dataTransfer.setData("text/size", item.size);
     event.dataTransfer.setData("text/type", item.type);
-    // If nodeType isn't set, default to "dataset"
     event.dataTransfer.setData("text/nodeType", item.nodeType || "dataset");
     event.dataTransfer.effectAllowed = "move";
   };
 
-  // Double-click to add node instantly (optional)
   const handleDoubleClick = (item) => {
     if (onAddNode) {
       const nodeData = {
@@ -138,101 +157,114 @@ const RightSideBar = ({
     setSelectedAction(null);
   };
 
-  // Renders the list of items (dataset or results)
-  const renderItems = (items) => (
-    <div className={styles.itemsContainer}>
-      {items.length === 0 ? (
-        <div className={styles.emptyState}>No items found</div>
-      ) : (
-        items.map((item) => (
-          <div
-            key={item.id}
-            draggable
-            onDragStart={(e) => handleDragStart(e, item)}
-            onDoubleClick={() => handleDoubleClick(item)}
-            onClick={() => setSelectedItem(item)}
-            className={`${styles.draggableItem} ${
-              selectedItem?.id === item.id ? styles.selectedItem : ""
-            }`}
-          >
-            {item.name}
-          </div>
-        ))
-      )}
-    </div>
-  );
-
-  const renderAddNodeAccordion = () => (
-    <div className={styles.accordion}>
-      <div
-        className={styles.accordionHeader}
-        onClick={() => setIsAddNodeOpen(!isAddNodeOpen)}
-      >
-        Output Node {isAddNodeOpen ? <FaChevronDown /> : <FaChevronRight />}
+  const renderDatasetGroup = (title, items, icon) => (
+    <div className={styles.datasetGroup}>
+      <div className={styles.groupHeader}>
+        {icon}
+        <h4>{title}</h4>
+        <span className={styles.countBadge}>{items.length}</span>
       </div>
-      {isAddNodeOpen && (
-        <div className={styles.accordionContent}>
-          <input
-            type="text"
-            placeholder="Output Node name"
-            title="Enter the name of the new dataset to store result"
-            value={newNodeName}
-            onChange={(e) => setNewNodeName(e.target.value)}
-            className={styles.nodeInput}
-          />
-          <input
-            type="text"
-            placeholder="Enter Description"
-            title="Enter the new node's description"
-            value={newNodeDesc}
-            onChange={(e) => setNewNodeDesc(e.target.value)}
-            className={styles.nodeInput}
-          />
-          <button
-            className={styles.addNodeButton}
-            disabled={!newNodeName || !newNodeDesc}
-            onClick={() => {
-              if (newNodeName && newNodeDesc && onAddNodeOutput) {
-                onAddNodeOutput({
-                  id: Date.now().toString(),
-                  name: newNodeName,
-                  desc: newNodeDesc,
-                });
-                setNewNodeName("");
-                setNewNodeDesc("");
-              }
-            }}
-          >
-            Add Node
-          </button>
-        </div>
-      )}
-    </div>
-  );
-
-  const renderActionsAccordion = () => (
-    <div className={styles.accordion}>
-      <div
-        className={styles.accordionHeader}
-        onClick={() => setIsActionsOpen(!isActionsOpen)}
-      >
-        Action Nodes {isActionsOpen ? <FaChevronDown /> : <FaChevronRight />}
-      </div>
-      {isActionsOpen && (
-        <div className={styles.accordionContent}>
-          {actionOptions.map((action) => (
+      <div className={styles.datasetGrid}>
+        {items.length === 0 ? (
+          <div className={styles.emptyState}>{title} not found</div>
+        ) : (
+          items.map((item) => (
             <div
-              key={action.id}
-              className={`${styles.actionItem} ${
-                selectedAction?.id === action.id ? styles.selectedAction : ""
+              key={item.id}
+              draggable
+              onDragStart={(e) => handleDragStart(e, item)}
+              onDoubleClick={() => handleDoubleClick(item)}
+              onClick={() => setSelectedItem(item)}
+              className={`${styles.datasetCard} ${
+                selectedItem?.id === item.id ? styles.selectedCard : ""
               }`}
-              onClick={() => handleActionSelect(action)}
             >
-              {action.name}
+              <div className={styles.cardHeader}>
+                {item.type === "csv" ? <FaFileCsv /> : <FaFileExcel />}
+                <span className={styles.datasetName}>{item.name}</span>
+              </div>
+              <div className={styles.cardMeta}>
+                <span className={styles.fileSize}>
+                  {(item.size / 1024).toFixed(1)}KB
+                </span>
+                <span className={styles.fileType}>{item.type}</span>
+              </div>
             </div>
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
+    </div>
+  );
+
+  const renderActionButtons = () => (
+    <div className={styles.actionsGrid}>
+      {actionOptions.map((action) => (
+        <button
+          key={action.id}
+          className={styles.actionCard}
+          onClick={() => handleActionSelect(action)}
+          style={{ border: `2px solid ${action.color}` }}
+        >
+          <div
+            className={styles.actionIconContainer}
+            style={{ backgroundColor: `${action.color}20` }}
+          >
+            {React.cloneElement(action.icon, {
+              style: { color: action.color, fontSize: "1.4rem" },
+            })}
+          </div>
+          <div className={styles.actionTextContainer}>
+            <span className={styles.actionName}>{action.name}</span>
+            <span className={styles.actionDescription}>
+              {action.description}
+            </span>
+          </div>
+          <div
+            className={styles.actionHoverIndicator}
+            style={{ color: action.color }}
+          >
+            <FaChevronRight className={styles.chevronIcon} />
+          </div>
+        </button>
+      ))}
+    </div>
+  );
+
+  const renderOutputNodeCreator = () => (
+    <div className={styles.outputCreator}>
+      <h4 className={styles.creatorTitle}>
+        <FaChartBar /> Create Output Node
+      </h4>
+      <input
+        type="text"
+        placeholder="Output name"
+        value={newNodeName}
+        onChange={(e) => setNewNodeName(e.target.value)}
+        className={styles.creatorInput}
+      />
+      <textarea
+        placeholder="Description..."
+        value={newNodeDesc}
+        onChange={(e) => setNewNodeDesc(e.target.value)}
+        className={styles.creatorTextarea}
+      />
+      <button
+        className={styles.creatorButton}
+        disabled={!newNodeName || !newNodeDesc}
+        onClick={() => {
+          if (onAddNodeOutput) {
+            onAddNodeOutput({
+              id: Date.now().toString(),
+              name: newNodeName,
+              desc: newNodeDesc,
+            });
+            setNewNodeName("");
+            setNewNodeDesc("");
+          }
+        }}
+      >
+        Create Node
+      </button>
     </div>
   );
 
@@ -252,9 +284,9 @@ const RightSideBar = ({
         </div>
         <div className={styles.parametersContent}>
           <ActionComponent
-            nodeId={selectedNode?.id} // Pass the selected node's ID
-            nodes={nodes} // Pass the nodes array
-            setNodes={setNodes} // Pass the setNodes function
+            nodeId={selectedNode?.id}
+            nodes={nodes}
+            setNodes={setNodes}
             datasets_source={datasets_source}
             setDatasets_source={setDatasets_source}
           />
@@ -263,58 +295,80 @@ const RightSideBar = ({
     );
   };
 
-  // Regular content if we're not in parameters view
   const regularContent = (
     <>
       <div className={styles.tabHeader}>
-        <div
-          className={`${styles.tab} ${
-            activeTab === "datasets" ? styles.activeTab : ""
+        <button
+          className={`${styles.tabButton} ${
+            activeTab === "data" ? styles.activeTab : ""
           }`}
-          onClick={() => setActiveTab("datasets")}
+          onClick={() => setActiveTab("data")}
         >
-          <FaDatabase title="Datasets" className={styles.icon} />
-        </div>
-        <div
-          className={`${styles.tab} ${
-            activeTab === "addNode" ? styles.activeTab : ""
+          <FaDatabase /> Data
+        </button>
+        <button
+          className={`${styles.tabButton} ${
+            activeTab === "actions" ? styles.activeTab : ""
           }`}
-          onClick={() => setActiveTab("addNode")}
+          onClick={() => setActiveTab("actions")}
         >
-          <FaPlus title="Add Node" className={styles.icon} />
-        </div>
+          <FaProjectDiagram /> Actions
+        </button>
+        <button
+          className={`${styles.tabButton} ${
+            activeTab === "output" ? styles.activeTab : ""
+          }`}
+          onClick={() => setActiveTab("output")}
+        >
+          <FaChartBar /> Output
+        </button>
       </div>
 
       <div className={styles.tabContent}>
-        {activeTab === "datasets" && (
-          <>
-            <div className={styles.accordion}>
-              <div
-                className={styles.accordionHeader}
-                onClick={() => setIsLoadedOpen(!isLoadedOpen)}
+        {activeTab === "data" && (
+          <div className={styles.dataContent}>
+            <div className={styles.subTabs}>
+              <button
+                className={`${styles.subTabButton} ${
+                  dataSubTab === "source" ? styles.activeSubTab : ""
+                }`}
+                onClick={() => setDataSubTab("source")}
               >
-                Loaded Datasets{" "}
-                {isLoadedOpen ? <FaChevronDown /> : <FaChevronRight />}
-              </div>
-              {isLoadedOpen && renderItems(datasets1)}
-            </div>
-            <div className={styles.accordion}>
-              <div
-                className={styles.accordionHeader}
-                onClick={() => setIsResultsOpen(!isResultsOpen)}
+                Source Datasets
+              </button>
+              <button
+                className={`${styles.subTabButton} ${
+                  dataSubTab === "results" ? styles.activeSubTab : ""
+                }`}
+                onClick={() => setDataSubTab("results")}
               >
-                Result Datasets{" "}
-                {isResultsOpen ? <FaChevronDown /> : <FaChevronRight />}
-              </div>
-              {isResultsOpen && renderItems(results)}
+                Result Datasets
+              </button>
             </div>
-          </>
+            <div className={styles.datasetsScrollContainer}>
+              {renderDatasetGroup(
+                dataSubTab === "source" ? "Source Datasets" : "Result Datasets",
+                dataSubTab === "source" ? datasets : results,
+                dataSubTab === "source" ? (
+                  <FaFileCsv className={styles.groupIcon} />
+                ) : (
+                  <FaChartBar className={styles.groupIcon} />
+                )
+              )}
+            </div>
+          </div>
         )}
 
-        {activeTab === "addNode" && (
-          <div className={styles.addNodeSection}>
-            {renderAddNodeAccordion()}
-            {renderActionsAccordion()}
+        {activeTab === "output" && (
+          <div className={styles.creationPanel}>
+            {renderOutputNodeCreator()}
+          </div>
+        )}
+
+        {activeTab === "actions" && (
+          <div className={styles.actionPanel}>
+            <h4 className={styles.sectionTitle}>Data Transformations</h4>
+            {renderActionButtons()}
           </div>
         )}
       </div>

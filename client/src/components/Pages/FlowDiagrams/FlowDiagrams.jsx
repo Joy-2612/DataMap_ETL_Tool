@@ -7,8 +7,7 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { toast } from "sonner";
-import "react-toastify/dist/ReactToastify.css";
-import { FaPlay, FaSave, FaFolderOpen } from "react-icons/fa";
+import { FaPlay, FaSave, FaFolderOpen, FaTrash } from "react-icons/fa";
 import useFlowLogic from "../FlowDiagrams/hooks/useFlowLogic";
 import useFlowUI from "../FlowDiagrams/hooks/useFlowUI";
 import RightSideBar from "./RightSideBar";
@@ -163,24 +162,30 @@ const FlowDiagram = () => {
 
   return (
     <ReactFlowProvider>
-      <div className={styles.buttonContainer}>
-        <div className={styles.runButtonContainer}>
+      <div className={styles.topBar}>
+        <div className={styles.leftControls}>
           <button
             onClick={handleRun}
             className={styles.runButton}
             disabled={isClearDiagramDisabled}
           >
-            {isLoading ? "Processing..." : <FaPlay />}
+            {isLoading ? (
+              <div className={styles.spinner}></div>
+            ) : (
+              <>
+                <FaPlay /> Run Workflow
+              </>
+            )}
           </button>
           <button
             onClick={handleClearDiagram}
-            className={styles.removeButton}
+            className={styles.clearButton}
             disabled={isClearDiagramDisabled}
           >
-            Clear Diagram
+            <FaTrash /> Clear
           </button>
         </div>
-        <div className={styles.templateButtons}>
+        <div className={styles.rightControls}>
           <button
             onClick={handleSaveTemplate}
             className={styles.templateButton}
@@ -192,12 +197,13 @@ const FlowDiagram = () => {
             onClick={handleViewTemplates}
             className={styles.templateButton}
           >
-            <FaFolderOpen /> View Templates
+            <FaFolderOpen /> Templates
           </button>
         </div>
       </div>
-      <div className={styles.container}>
-        <div className={styles.flowContainer}>
+
+      <div className={styles.workarea}>
+        <div className={styles.flowWrapper}>
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -210,14 +216,19 @@ const FlowDiagram = () => {
             onBackgroundClick={onBackgroundClick}
             onNodeClick={onNodeClick}
             fitView
-            // Updated: store the instance
-            onInit={setReactFlowInstance}
             nodeTypes={nodeTypes}
           >
-            <MiniMap style={{ transformOrigin: "top left" }} />
-            <Controls style={{ transformOrigin: "top left" }} />
-            <Background variant="dots" gap={12} size={1} />
+            <MiniMap className={styles.minimap} />
+            <Controls className={styles.controls} />
+            <Background variant="dots" gap={40} size={1} />
           </ReactFlow>
+
+          {nodes.length === 0 && (
+            <div className={styles.emptyState}>
+              <h3>Welcome to Workflow Builder</h3>
+              <p>Drag nodes from the right panel to get started</p>
+            </div>
+          )}
         </div>
 
         <RightSideBar
