@@ -1,11 +1,10 @@
 .sidebar {
   width: 280px;
   height: 92vh;
-  background: #ffffff;
-  border-left: 1px solid #e5e7eb;
+  background: #ffffff80;
+  border-left: 2px solid #e5e7eb;
   display: flex;
   flex-direction: column;
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05);
   transition: width 0.3s ease;
   position: relative;
 }

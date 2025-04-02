@@ -21,26 +21,41 @@ const {
  */
 const uploadFile = async (req, res) => {
   try {
-    const { originalname, mimetype, buffer, description } = req.file;
+    const files = req.files; // Array of files from multipart/form-data
     const { userId } = req.body;
 
     if (!userId) {
       return res.status(400).json({ message: "User ID is required" });
     }
 
-    await uploadFileService({
-      originalname,
-      mimetype,
-      buffer,
-      description,
-      userId,
+    if (!files || files.length === 0) {
+      return res.status(400).json({ message: "No files uploaded" });
+    }
+
+    // Process all files concurrently
+    const uploadPromises = files.map((file) =>
+      uploadFileService({
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+        buffer: file.buffer,
+        userId: userId,
+      })
+    );
+
+    await Promise.all(uploadPromises);
+
+    return res.status(201).json({
+      message: `${files.length} files uploaded successfully`,
+      count: files.length,
     });
-    return res
-      .status(201)
-      .json({ message: "File uploaded and saved successfully!" });
   } catch (error) {
-    console.error("Error uploading file:", error);
-    return res.status(500).json({ message: "Failed to upload file" });
+    console.error("Error uploading files:", error);
+    return res.status(500).json({
+      message: "Failed to upload files",
+      error: error.message,
+      partialSuccess: error.partialResults ? true : false,
+      succeeded: error.partialResults?.length || 0,
+    });
   }
 };
 
@@ -51,7 +66,7 @@ const getDatasetByDatasetId = async (req, res) => {
   try {
     const { datasetId } = req.params;
     const dataset = await getDatasetByDatasetIdService(datasetId);
-    console.log("Dataset Obtained: ",dataset);
+    console.log("Dataset Obtained: ", dataset);
 
     if (!dataset) {
       return res.status(404).json({ message: "Dataset not found" });

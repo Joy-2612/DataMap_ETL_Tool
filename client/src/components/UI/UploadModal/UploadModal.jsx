@@ -1,21 +1,24 @@
 import React, { useState } from "react";
 import styles from "./UploadModal.module.css";
 import { toast } from "sonner";
-import { AiOutlineClose } from "react-icons/ai";
+import { AiOutlineClose, AiOutlineDelete } from "react-icons/ai";
 import { PiFilesFill } from "react-icons/pi";
 
 const UploadModal = ({ show, onClose, onUpload, userId }) => {
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [dragActive, setDragActive] = useState(false);
 
   const handleFileChange = (e) => {
-    setSelectedFile(e.target.files[0]);
+    const files = Array.from(e.target.files);
+    setSelectedFiles((prev) => [...prev, ...files]);
   };
 
   const handleUpload = async () => {
-    if (selectedFile) {
+    if (selectedFiles.length > 0) {
       const formData = new FormData();
-      formData.append("file", selectedFile);
+      selectedFiles.forEach((file) => {
+        formData.append("files", file);
+      });
       formData.append("userId", userId);
 
       try {
@@ -25,13 +28,13 @@ const UploadModal = ({ show, onClose, onUpload, userId }) => {
         });
 
         if (response.ok) {
-          toast.success("File uploaded successfully");
-          onUpload(selectedFile);
-          setSelectedFile(null);
+          toast.success(`${selectedFiles.length} files uploaded successfully`);
+          onUpload(selectedFiles);
+          setSelectedFiles([]);
           onClose();
         } else {
           const data = await response.json();
-          toast.error(data.message || "Failed to upload file");
+          toast.error(data.message || "Failed to upload files");
         }
       } catch (error) {
         toast.error("An error occurred during file upload");
@@ -40,7 +43,6 @@ const UploadModal = ({ show, onClose, onUpload, userId }) => {
     }
   };
 
-  // Handle drag events
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -51,15 +53,18 @@ const UploadModal = ({ show, onClose, onUpload, userId }) => {
     }
   };
 
-  // Handle drop event
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
+    const files = Array.from(e.dataTransfer.files);
+    setSelectedFiles((prev) => [...prev, ...files]);
+  };
 
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setSelectedFile(e.dataTransfer.files[0]);
-    }
+  const removeFile = (indexToRemove) => {
+    setSelectedFiles((prev) =>
+      prev.filter((_, index) => index !== indexToRemove)
+    );
   };
 
   if (!show) return null;
@@ -86,23 +91,40 @@ const UploadModal = ({ show, onClose, onUpload, userId }) => {
             <PiFilesFill />
           </p>
           <p className={styles.dragDropText}>
-            Drag and drop your CSV file here, or click to select a file
+            Drag and drop your CSV files here, or click to select files
           </p>
           <input
             type="file"
             accept=".csv"
             onChange={handleFileChange}
             className={styles.fileInput}
+            multiple
           />
-          {selectedFile && <p>Selected file: {selectedFile.name}</p>}
+        </div>
+
+        <div className={styles.fileList}>
+          {selectedFiles.map((file, index) => (
+            <div key={index} className={styles.fileItem}>
+              <span className={styles.fileName}>{file.name}</span>
+              <span className={styles.fileSize}>
+                {(file.size / 1024).toFixed(2)} KB
+              </span>
+              <button
+                className={styles.deleteButton}
+                onClick={() => removeFile(index)}
+              >
+                <AiOutlineDelete />
+              </button>
+            </div>
+          ))}
         </div>
 
         <button
           className={styles.uploadButton}
           onClick={handleUpload}
-          disabled={!selectedFile}
+          disabled={!selectedFiles.length}
         >
-          Upload
+          Upload {selectedFiles.length} File{selectedFiles.length !== 1 && "s"}
         </button>
       </div>
     </div>

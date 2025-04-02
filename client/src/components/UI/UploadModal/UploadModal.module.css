@@ -14,70 +14,82 @@
 .content {
   position: relative;
   background-color: white;
-  padding: 17px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   width: 500px;
-  height: 400px;
-  text-align: center;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .title {
-  margin: 0;
-  margin-bottom: 20px;
+  margin: 0 0 20px 0;
+  font-size: 1.5rem;
+  color: #2d3748;
 }
 
 .uploadButton {
-  padding: 10px;
-  background-color: black;
+  padding: 12px 20px;
+  background-color: #4299e1;
   color: white;
   border: none;
-  width: 100%;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  margin-top: 15px;
+}
+
+.uploadButton:disabled {
+  background-color: #cbd5e0;
+  cursor: not-allowed;
+}
+
+.uploadButton:hover:not(:disabled) {
+  background-color: #3182ce;
 }
 
 .closeButton {
   position: absolute;
-  top: 10px;
-  color: black;
-  right: 10px;
+  top: 15px;
+  right: 15px;
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 20px;
-  transition: color 0.3s ease;
+  color: #718096;
+  padding: 5px;
+  transition: color 0.2s;
 }
 
 .closeButton:hover {
-  color: red;
-  background: transparent;
+  color: #e53e3e;
 }
 
 .dragDropArea {
-  border: 2px dashed #232f3e;
+  border: 2px dashed #cbd5e0;
   padding: 20px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  margin: 18px 0;
   border-radius: 8px;
-  height: 250px;
+  min-height: 150px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.2s ease;
   position: relative;
 }
 
 .activeDrag {
-  background-color: #f0f8ff;
+  background-color: #ebf8ff;
+  border-color: #4299e1;
 }
 
 .dragDropText {
-  margin: 0;
-  color: #232f3e;
-  font-weight: bold;
+  margin: 10px 0 0 0;
+  color: #718096;
+  text-align: center;
+  font-size: 0.9rem;
 }
 
 .fileInput {
@@ -91,6 +103,56 @@
 }
 
 .fileIcon {
-  font-size: 50px;
-  color: #232f3e;
+  font-size: 40px;
+  color: #4299e1;
+  margin: 0;
+}
+
+.fileList {
+  margin-top: 15px;
+  overflow-y: auto;
+  max-height: 200px;
+}
+
+.fileItem {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background-color: #f7fafc;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  transition: background-color 0.2s;
+}
+
+.fileItem:hover {
+  background-color: #ebf8ff;
+}
+
+.fileName {
+  flex: 1;
+  font-size: 0.9rem;
+  color: #2d3748;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 10px;
+}
+
+.fileSize {
+  font-size: 0.8rem;
+  color: #718096;
+  margin-right: 12px;
+}
+
+.deleteButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #718096;
+  padding: 4px;
+  transition: color 0.2s;
+}
+
+.deleteButton:hover {
+  color: #e53e3e;
 }

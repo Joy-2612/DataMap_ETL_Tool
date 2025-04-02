@@ -24,7 +24,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // Define the upload route
-router.post("/upload", upload.single("file"), uploadFile);
+router.post("/upload", upload.array("files"), uploadFile);
 router.get("/dataset/:datasetId", getDatasetByDatasetId);
 router.get("/alldatasets/:userId", getAllDatasetsByUserId);
 router.get("/datasets/:userId", getDatasetsByUserId);

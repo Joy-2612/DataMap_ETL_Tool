@@ -214,13 +214,40 @@ async function handleAction(actionString) {
         outputFileNameConcat,
         descriptionConcat,
       ] = args;
-      const columns = columnsStr.split("|").map((c) => c.trim());
+
+      console.log("Columns : ", columnsStr);
+
+      console.log(args);
+
+      let columns = [];
+      try {
+        // Attempt to parse columnsStr as JSON array
+        columns = JSON.parse(columnsStr);
+        if (!Array.isArray(columns)) {
+          throw new Error("Parsed result is not an array");
+        }
+      } catch (error) {
+        // If parsing fails, fall back to pipe separated values
+        columns = columnsStr.split("|").map((c) => c.trim());
+      }
+      console.log("Delimeter : ", delimiter);
+      let cleanDelimiter = delimiter.trim();
+      console.log("CleanDelimeter : ", cleanDelimiter);
+      if (
+        (cleanDelimiter.startsWith('"') && cleanDelimiter.endsWith('"')) ||
+        (cleanDelimiter.startsWith("'") && cleanDelimiter.endsWith("'"))
+      ) {
+        cleanDelimiter = cleanDelimiter.substring(1, cleanDelimiter.length - 1);
+      }
+
+      console.log("cleanDelimeter : ", cleanDelimiter);
+
       try {
         const newFile = await concatenateColumnsService({
           dataset,
           columns,
           finalColumnName,
-          delimiter,
+          cleanDelimiter,
           outputFileName: outputFileNameConcat,
           description: descriptionConcat,
         });

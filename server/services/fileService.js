@@ -82,7 +82,7 @@ const concatenateColumnsService = async ({
   dataset,
   columns,
   finalColumnName,
-  delimiter,
+  delimiter = ` `,
   outputFileName,
   description,
 }) => {
