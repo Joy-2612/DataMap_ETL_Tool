@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import Papa from "papaparse";
 import styles from "./Results.module.css"; // Import the modular CSS
 import DataTable from "../../UI/DataTable/DataTable";
-import { FaEye } from "react-icons/fa";
+import { FaEye, FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { IoMdClose } from "react-icons/io";
+import { FaSearch } from "react-icons/fa";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -12,15 +13,23 @@ import "jspdf-autotable";
 const Results = () => {
   const [datasets, setDatasets] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [filteredDatasets, setFilteredDatasets] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedCsvData, setSelectedCsvData] = useState([]);
   const [selectedDataset, setSelectedDataset] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState(null);
+  const [sortOrder, setSortOrder] = useState("asc");
   const userId = localStorage.getItem("userId");
 
   useEffect(() => {
     fetchDatasets();
   }, []);
+
+  useEffect(() => {
+    filterAndSortDatasets();
+  }, [searchTerm, datasets, sortBy, sortOrder]);
 
   const fetchDatasets = async () => {
     setIsLoading(true);
@@ -36,6 +45,54 @@ const Results = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const filterAndSortDatasets = () => {
+    let filtered = datasets.filter(
+      (dataset) =>
+        dataset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (dataset.description &&
+          dataset.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+
+    if (sortBy) {
+      filtered.sort((a, b) => {
+        let valueA, valueB;
+        switch (sortBy) {
+          case "date":
+            valueA = new Date(a.createdAt);
+            valueB = new Date(b.createdAt);
+            break;
+          case "size":
+            valueA = a.size;
+            valueB = b.size;
+            break;
+          default:
+            valueA = a[sortBy]?.toLowerCase();
+            valueB = b[sortBy]?.toLowerCase();
+        }
+
+        if (valueA < valueB) return sortOrder === "asc" ? -1 : 1;
+        if (valueA > valueB) return sortOrder === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+
+    setFilteredDatasets(filtered);
+  };
+
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(column);
+      setSortOrder("asc");
+    }
+  };
+
+  const getSortIcon = (column) => {
+    if (sortBy !== column) return <FaSort />;
+    return sortOrder === "asc" ? <FaSortUp /> : <FaSortDown />;
   };
 
   const handleView = async (dataset) => {
@@ -123,24 +180,56 @@ const Results = () => {
 
   return (
     <div className={styles.container}>
-      <h2 className={styles.title}>Result Datasets</h2>
+      <div className={styles.header}>
+        <div className={styles.title}>Results Datasets</div>
+        <div className={styles.searchContainer}>
+          <FaSearch />
+          <input
+            type="text"
+            placeholder="Search datasets..."
+            className={styles.searchInput}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
       {isLoading ? (
         <p>Loading datasets...</p>
       ) : (
         <table className={styles.table}>
           <thead>
             <tr>
-              <th className={styles.tableHeader}>Name</th>
-              <th className={styles.tableHeader}>Size (bytes)</th>
-              <th className={styles.tableHeader}>Type</th>
-              <th className={styles.tableHeader}>Date Created</th>
+              <th
+                className={styles.sortableHeader}
+                onClick={() => handleSort("name")}
+              >
+                Name {getSortIcon("name")}
+              </th>
+              <th
+                className={styles.sortableHeader}
+                onClick={() => handleSort("size")}
+              >
+                Size (bytes) {getSortIcon("size")}
+              </th>
+              <th
+                className={styles.sortableHeader}
+                onClick={() => handleSort("type")}
+              >
+                Type {getSortIcon("type")}
+              </th>
+              <th
+                className={styles.sortableHeader}
+                onClick={() => handleSort("date")}
+              >
+                Date Created {getSortIcon("date")}
+              </th>
               <th className={styles.tableHeader}>Actions</th>
               <th className={styles.tableHeader}>Export</th>
             </tr>
           </thead>
           <tbody>
-            {datasets?.length > 0 ? (
-              datasets.map((dataset, index) => (
+            {filteredDatasets?.length > 0 ? (
+              filteredDatasets.map((dataset, index) => (
                 <tr key={index} className={styles.tableRow}>
                   <td className={styles.tableData}>
                     <div className={styles.datasetName}>{dataset.name}</div>

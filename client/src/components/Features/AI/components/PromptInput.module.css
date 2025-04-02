@@ -1,3 +1,4 @@
+/* PromptInput.module.css */
 .inputWrapper {
   position: relative;
   display: flex;
@@ -6,65 +7,191 @@
   border: 2px solid #ddd;
   border-radius: 1000px;
   flex: 1;
+  min-width: 300px;
 }
 
 .promptInput {
   flex: 1;
   width: 90%;
-  padding: 8px 12px;
+  padding: 12px 20px;
   border: none;
-  font-size: 14px;
+  font-size: 15px;
   outline: none;
-  transition: border-color 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
+  background: transparent;
 }
 
 .promptInput:focus {
   border-color: #007bff;
 }
 
-/* Red text for rejection prompt */
-.rejected {
-  color: red;
-}
-
 .sendButton {
   display: flex;
-  background-color: black;
+  background-color: #2f2f2f;
   color: #ffffff;
   justify-content: center;
   align-items: center;
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   padding: 0;
   border: none;
   border-radius: 50%;
   cursor: pointer;
   font-size: 17px;
-  transition: background-color 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
+  margin-left: 8px;
 }
 
 .sendButton:hover {
-  background-color: #333;
+  background-color: #007bff;
+  transform: scale(1.05);
 }
 
+/* Dropdown styles */
 .dropdown {
   position: absolute;
-  top: -150px; /* adjust to your preference */
-  max-width: 200px;
+  top: -14px;
+  transform: translateY(-100%);
+  max-height: 400px;
+  background: #ffffff;
+  color: #333;
+  border: 1px solid #e1e1e1;
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
+  overflow: hidden;
+  animation: slideIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dropdownHeader {
+  display: flex;
+  align-items: center;
+  padding: 14px 20px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e1e1e1;
+  font-weight: 600;
+  color: #2c3e50;
+  gap: 10px;
+}
+
+.resultsCount {
+  margin-left: auto;
+  font-size: 12px;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.dbIcon {
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.dropdownList {
+  max-height: 178px;
   overflow-y: auto;
-  background: #333;
-  color: #fff;
-  border: 1px solid #555;
-  border-radius: 4px;
-  z-index: 10;
+  padding: 8px 0;
 }
 
 .dropdownItem {
-  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
   cursor: pointer;
-  font-size: 14px;
+  transition: all 0.15s ease;
+  border-bottom: 1px solid #f5f5f5;
+  gap: 12px;
 }
 
 .dropdownItem:hover {
-  background-color: #555;
+  background-color: #f8faff;
+}
+
+.datasetContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.datasetName {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  color: #2c3e50;
+  margin-bottom: 4px;
+  font-size: 14px;
+  gap: 8px;
+}
+
+.datasetIcon {
+  color: #007bff;
+  font-size: 12px;
+  margin-right: 4px;
+}
+
+.datasetDescription {
+  display: block;
+  font-size: 12px;
+  text-align: left;
+  color: #6c757d;
+  line-height: 1.4;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.datasetVersion {
+  font-size: 11px;
+  color: #fff;
+  background-color: #6c757d;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 12px;
+  flex-shrink: 0;
+}
+
+/* Scrollbar styling */
+.dropdownList::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dropdownList::-webkit-scrollbar-track {
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.dropdownList::-webkit-scrollbar-thumb {
+  background: #d0d0d0;
+  border-radius: 4px;
+}
+
+.dropdownList::-webkit-scrollbar-thumb:hover {
+  background: #b0b0b0;
+}
+
+/* Animation */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateY(-100%);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .inputWrapper {
+    min-width: auto;
+  }
+
+  .dropdown {
+    width: calc(100% - 20px) !important;
+    left: 10px !important;
+    border-radius: 16px;
+  }
 }

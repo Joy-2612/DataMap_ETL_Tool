@@ -43,6 +43,23 @@
   color: transparent;
 }
 
+.chatHeader {
+  font-family: "Google Sans", "Helvetica Neue", sans-serif;
+  font-size: 1.5rem;
+  margin-bottom: 16px;
+  font-weight: bold;
+  background: rgb(2, 0, 36);
+  background: linear-gradient(
+    90deg,
+    rgba(2, 0, 36, 1) 40%,
+    rgba(136, 5, 157, 1) 50%,
+    rgba(0, 212, 255, 1) 60%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
 .chatFooter {
   display: flex;
   padding: 0 50px;
