@@ -6,6 +6,7 @@ const {
   saveChat,
   getChats,
   deleteChat,
+  getSuggestions,
 } = require("../controllers/aiController");
 
 const router = express.Router();
@@ -17,6 +18,7 @@ const router = express.Router();
 router.post("/ask", askAI);
 router.post("/chats", saveChat);
 router.get("/chats/:userId", getChats);
+router.post("/suggestions", getSuggestions);
 router.delete("/chats/:chatId", deleteChat);
 
 module.exports = router;

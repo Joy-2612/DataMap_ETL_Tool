@@ -1,0 +1,110 @@
+/* /src/components/Datasets/DatasetTable.module.css */
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.sortableHeader {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  background-color: #9cabc226;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  user-select: none;
+}
+
+.sortableHeader:hover {
+  background-color: #e9ecef;
+}
+
+.sortableHeader svg {
+  margin-left: 5px;
+  font-size: 0.8em;
+  vertical-align: middle;
+}
+
+.tableHeader,
+.tableData {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  color: #333;
+}
+
+.tableHeader {
+  background-color: #9cabc226;
+  font-weight: bold;
+}
+
+.tableRow:hover {
+  background-color: #f7f7f7;
+}
+
+.iconButton {
+  padding: 10px 7px;
+  margin: 5px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.4rem;
+}
+
+.viewButton {
+  color: rgb(0, 132, 255);
+}
+
+.deleteButton {
+  color: red;
+}
+
+.exportButton {
+  margin: 5px;
+  padding: 5px 10px;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.exportCsv {
+  background-color: #4caf50;
+  color: white;
+}
+
+.exportCsv:hover {
+  background-color: #45a049;
+}
+
+.exportPdf {
+  background-color: #f44336;
+  color: white;
+}
+
+.exportPdf:hover {
+  background-color: #e53935;
+}
+
+.datasetName {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.datasetDescription {
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.loading {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+}

@@ -1,5 +1,6 @@
 // controllers/aiController.js
 const { runChainOfThought, getTitle } = require("../services/aiService");
+const { runInLoop } = require("../services/suggestionsService");
 const Chat = require("../models/Chat");
 
 const askAI = async (req, res) => {
@@ -61,6 +62,41 @@ const askAI = async (req, res) => {
     res.end();
   } catch (error) {
     console.error("AskAI error:", error);
+    if (res.headersSent) {
+      res.write(
+        `event: error\ndata: ${JSON.stringify({ error: error.message })}\n\n`
+      );
+      res.end();
+    } else {
+      res.status(500).json({ error: error.message });
+    }
+  }
+};
+
+const getSuggestions = async (req, res) => {
+  try {
+    const { fileId } = req.body;
+
+    if (typeof fileId === "object" && fileId.value) {
+      fileId = fileId.value;
+    }
+
+    if (!fileId) {
+      return res.status(400).json({ message: "Invalid fileId" });
+    }
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+
+    await runInLoop(fileId, async (eventType, data) => {
+      res.write(`event: ${eventType}\ndata: ${JSON.stringify(data)}\n\n`);
+    });
+
+    res.end();
+  } catch (error) {
+    console.error("Suggestions error:", error);
     if (res.headersSent) {
       res.write(
         `event: error\ndata: ${JSON.stringify({ error: error.message })}\n\n`
@@ -203,10 +239,10 @@ function handleSSEEvent(eventType, data, res, chatSession) {
     chatSession.messages.push(createMessage(data.observation, "bot"));
   }
 }
-
 module.exports = {
   askAI,
   saveChat,
   getChats,
   deleteChat,
+  getSuggestions,
 };
