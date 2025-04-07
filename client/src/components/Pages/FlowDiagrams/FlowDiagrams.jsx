@@ -10,8 +10,10 @@ import { toast } from "sonner";
 import { FaPlay, FaSave, FaFolderOpen, FaTrash } from "react-icons/fa";
 import useFlowLogic from "../FlowDiagrams/hooks/useFlowLogic";
 import useFlowUI from "../FlowDiagrams/hooks/useFlowUI";
-import RightSideBar from "./RightSideBar";
+import RightSideBar from "./RightSideBar/RightSideBar";
 import Modal from "./Modal/Modal";
+import SaveTemplateModal from "./Modal/SaveTemplateModal";
+import ViewTemplatesModal from "./Modal/ViewTemplatesModal";
 import styles from "./FlowDiagrams.module.css";
 import DatasetNode from "./Nodes/DatasetNode";
 import ActionNode from "./Nodes/ActionNode";
@@ -55,9 +57,8 @@ const FlowDiagram = () => {
   const userId = localStorage.getItem("userId");
   const [templates, setTemplates] = useState([]);
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
-  const [templateName, setTemplateName] = useState("");
-  const [templateDescription, setTemplateDescription] = useState("");
   const [isSaveTemplateModalOpen, setIsSaveTemplateModalOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   // Disable the "Clear Diagram" button if there are no nodes
   const isClearDiagramDisabled = nodes.length === 0;
@@ -102,6 +103,7 @@ const FlowDiagram = () => {
     handleRemoveFlowDiagram();
     localStorage.removeItem(`flow-diagram-${userId}`);
     toast.success("Flow diagram cleared");
+    setIsSidebarCollapsed(false);
   };
 
   const handleSaveTemplate = () => {
@@ -112,16 +114,11 @@ const FlowDiagram = () => {
     setIsSaveTemplateModalOpen(true);
   };
 
-  const confirmSaveTemplate = () => {
-    if (!templateName.trim()) {
-      toast.warning("Please enter a template name");
-      return;
-    }
-
+  const handleSaveTemplateConfirm = (name, description) => {
     const newTemplate = {
       id: Date.now().toString(),
-      name: templateName,
-      description: templateDescription,
+      name,
+      description,
       createdAt: new Date().toISOString(),
       flowData: generateFlowJSON(nodes, edges),
     };
@@ -132,25 +129,18 @@ const FlowDiagram = () => {
       `flow-templates-${userId}`,
       JSON.stringify(updatedTemplates)
     );
-
-    setTemplateName("");
-    setTemplateDescription("");
-    setIsSaveTemplateModalOpen(false);
     toast.success("Template saved successfully");
+    setIsSaveTemplateModalOpen(false);
   };
 
-  const handleViewTemplates = () => {
-    setIsTemplateModalOpen(true);
-  };
-
-  const loadTemplate = (template) => {
+  const handleLoadTemplate = (template) => {
     setNodes(template.flowData.nodes);
     setEdges(template.flowData.edges);
     setIsTemplateModalOpen(false);
     toast.success(`Template "${template.name}" loaded`);
   };
 
-  const deleteTemplate = (templateId) => {
+  const handleDeleteTemplate = (templateId) => {
     const updatedTemplates = templates.filter((t) => t.id !== templateId);
     setTemplates(updatedTemplates);
     localStorage.setItem(
@@ -189,15 +179,16 @@ const FlowDiagram = () => {
           <button
             onClick={handleSaveTemplate}
             className={styles.templateButton}
+            id={styles.savetemp}
             disabled={isClearDiagramDisabled}
           >
             <FaSave /> Save Template
           </button>
           <button
-            onClick={handleViewTemplates}
+            onClick={() => setIsTemplateModalOpen(true)}
             className={styles.templateButton}
           >
-            <FaFolderOpen /> Templates
+            <FaFolderOpen /> View Templates
           </button>
         </div>
       </div>
@@ -235,7 +226,10 @@ const FlowDiagram = () => {
           userId={userId}
           onAddNode={handleAddNode}
           onAddNodeOutput={handleAddNodeOutput}
+          selectedNodeId={selectedNode?.id}
           onAddActionNode={handleAddActionNode}
+          isCollapsed={isSidebarCollapsed}
+          toggleCollapse={()=>setIsSidebarCollapsed(!isSidebarCollapsed)}
           selectedEdge={selectedEdge}
           selectedNode={selectedNode}
           setEdges={setEdges}
@@ -244,6 +238,7 @@ const FlowDiagram = () => {
           sidebarToggle={sidebarToggle}
           datasets_source={datasets}
           setDatasets_source={datasets}
+          onClear={handleClearDiagram}
         />
       </div>
 
@@ -252,78 +247,23 @@ const FlowDiagram = () => {
         <pre>{JSON.stringify(flowJSON, null, 2)}</pre>
       </Modal>
 
-      {/* Save Template Modal */}
-      <Modal
+      {/* Template Modals */}
+      <SaveTemplateModal
         isOpen={isSaveTemplateModalOpen}
         onClose={() => setIsSaveTemplateModalOpen(false)}
-      >
-        <div className={styles.templateForm}>
-          <h3>Save as Template</h3>
-          <div className={styles.formGroup}>
-            <label>Template Name *</label>
-            <input
-              type="text"
-              value={templateName}
-              onChange={(e) => setTemplateName(e.target.value)}
-              placeholder="Enter template name"
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label>Description</label>
-            <textarea
-              value={templateDescription}
-              onChange={(e) => setTemplateDescription(e.target.value)}
-              placeholder="Enter template description"
-            />
-          </div>
-          <button onClick={confirmSaveTemplate} className={styles.saveButton}>
-            Save Template
-          </button>
-        </div>
-      </Modal>
+        onSave={handleSaveTemplateConfirm}
+      />
 
-      {/* View Templates Modal */}
-      <Modal
+      <ViewTemplatesModal
         isOpen={isTemplateModalOpen}
         onClose={() => setIsTemplateModalOpen(false)}
-      >
-        <div className={styles.templatesList}>
-          <h3>Saved Templates</h3>
-          {templates.length === 0 ? (
-            <p>No templates saved yet</p>
-          ) : (
-            <ul>
-              {templates.map((template) => (
-                <li key={template.id} className={styles.templateItem}>
-                  <div className={styles.templateInfo}>
-                    <h4>{template.name}</h4>
-                    <p>{template.description}</p>
-                    <small>
-                      {new Date(template.createdAt).toLocaleString()}
-                    </small>
-                  </div>
-                  <div className={styles.templateActions}>
-                    <button
-                      onClick={() => loadTemplate(template)}
-                      className={styles.loadButton}
-                    >
-                      Load
-                    </button>
-                    <button
-                      onClick={() => deleteTemplate(template.id)}
-                      className={styles.deleteButton}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </Modal>
+        templates={templates}
+        onLoadTemplate={handleLoadTemplate}
+        onDeleteTemplate={handleDeleteTemplate}
+      />
     </ReactFlowProvider>
   );
 };
 
 export default FlowDiagram;
+
