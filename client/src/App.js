@@ -4,9 +4,15 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Register from "./components/Pages/Register/Register";
 import Login from "./components/Pages/Login/Login";
 import Layout from "./components/Layout/Layout";
-
+import resizeObserverErr from '../src/components/Pages/FlowDiagrams/utils/resizeObserverUtils';
+import {Toaster} from 'sonner'
 const App = () => {
+  React.useEffect(() => {
+    resizeObserverErr();
+  }, []);
+
   return (
+    <>
     <Router>
       <div className="App">
         <Routes>
@@ -16,6 +22,7 @@ const App = () => {
         </Routes>
       </div>
     </Router>
+    </>
   );
 };
 

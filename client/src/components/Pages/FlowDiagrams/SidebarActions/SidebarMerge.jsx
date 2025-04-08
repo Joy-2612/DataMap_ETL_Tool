@@ -16,6 +16,7 @@ const SidebarMerge = ({ nodeId, nodes, setNodes }) => {
 
   const userId = localStorage.getItem("userId");
   const selectedNode = nodes.find((node) => node.id === nodeId);
+  const disabled=true;
 
   useEffect(() => {
     if (selectedNode && selectedNode.data.parameters) {
@@ -119,9 +120,12 @@ const SidebarMerge = ({ nodeId, nodes, setNodes }) => {
           <Dropdown
          
           selected={dataset1}
+          disabled={true} 
           onSelect={(dataset) => {
-            setDataset1(dataset);
-            fetchColumns(dataset, setColumns1);
+            if(!disabled){
+              setDataset1(dataset);
+              fetchColumns(dataset, setColumns1);
+            }
           }}
           label="Select Dataset 1"
           />
@@ -142,9 +146,13 @@ const SidebarMerge = ({ nodeId, nodes, setNodes }) => {
 
           <Dropdown
             selected={dataset2}
+            disabled={true}
             onSelect={(dataset) => {
-              setDataset2(dataset);
-              fetchColumns(dataset, setColumns2);
+              if(!disabled){
+                setDataset2(dataset);
+                fetchColumns(dataset, setColumns2);
+
+              }
             }}
             label="Select Dataset 2"
           />

@@ -16,6 +16,7 @@ const SidebarSplit = ({ nodeId, nodes, setNodes }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const selectedNode = nodes.find((node) => node.id === nodeId);
   const userId = localStorage.getItem("userId");
+  const disabled=true;
 
   // Initialize state with previously set parameters
   useEffect(() => {
@@ -223,7 +224,13 @@ const SidebarSplit = ({ nodeId, nodes, setNodes }) => {
         <Dropdown
           datasets={datasets}
           selected={dataset1}
-          onSelect={handleDatasetSelect}
+          disabled={true} 
+          onSelect={(dataset) => {
+            if(!disabled){
+
+              {handleDatasetSelect(dataset)}
+            }
+          }}
           isOpen={isDropdownOpen}
           setIsOpen={setIsDropdownOpen}
         />
@@ -262,7 +269,7 @@ const SidebarSplit = ({ nodeId, nodes, setNodes }) => {
                   <option value=";">Semicolon (;)</option>
                   <option value="|">Pipe (|)</option>
                 </select>
-                <label htmlFor="">Enter number of space to be splitted</label>
+                <label htmlFor="">Enter number of delimiters to be splitted</label>
                 <input
                   type="number"
                   min="0"

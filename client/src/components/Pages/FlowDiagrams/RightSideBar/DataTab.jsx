@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback,useRef,useEffect } from 'react';
 import { FaFileCsv, FaFileExcel, FaEye, FaSearch } from 'react-icons/fa';
 import styles from './DataTab.module.css';
 
@@ -10,14 +10,31 @@ const DatasetGrid = React.memo(({
   handleDragStart, 
   handleDoubleClick, 
   handlePeekDataset, 
-  selectedNodeId 
+  selectedNodeId ,
+  title,
 }) => {
+  const cardRef=useRef(null);
+
+  useEffect(() => {
+    if (selectedNodeId && cardRef.current) {
+      // Smooth scroll to highlighted card
+      cardRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+    }
+  }, [selectedNodeId]);
+
+
   const filteredItems = items.filter(item => 
     item.name.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
     <div className={styles.datasetGroup}>
+      <h3 className={styles.sectionHeading}>
+        {title} <span className={styles.countBadge}>{items.length}</span>
+      </h3>
       <div className={styles.searchContainer}>
         <FaSearch className={styles.searchIcon} />
         <input
@@ -32,6 +49,7 @@ const DatasetGrid = React.memo(({
       <div className={styles.datasetGrid}>
         {filteredItems.map((item) => (
           <div
+          ref={selectedNodeId===item._id?cardRef:null}
             key={item._id}
             draggable
             onDragStart={(e) => handleDragStart(e, item)}
@@ -110,6 +128,7 @@ const DataTab = ({
       <div className={styles.datasetsScrollContainer}>
         {dataSubTab === "source" ? (
           <DatasetGrid
+          title="Source Datasets"
             items={datasets}
             search={searchSource}
             setSearch={setSearchSource}
@@ -120,6 +139,7 @@ const DataTab = ({
           />
         ) : (
           <DatasetGrid
+          title="Result Datasets"
             items={results}
             search={searchResult}
             setSearch={setSearchResult}

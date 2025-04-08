@@ -20,6 +20,7 @@ const SidebarStandardize = ({ nodeId, nodes, setNodes }) => {
   const selectedNode = nodes.find((node) => node.id === nodeId);
 
   const userId = localStorage.getItem("userId");
+  const disabled=true;
 
   // Parse CSV File
   const parseCsvFile = (file) => {
@@ -190,13 +191,17 @@ const SidebarStandardize = ({ nodeId, nodes, setNodes }) => {
         <Dropdown
           datasets={datasets}
           selected={selectedDataset}
+          disabled={true}  // Add disabled prop
           onSelect={(dataset) => {
-            setSelectedDataset(dataset);
-            fetchColumns(dataset);
-            setIsDropdownOpen(false);
+            if (!disabled) {  // Add condition to prevent selection
+              setSelectedDataset(dataset);
+              fetchColumns(dataset);
+              setIsDropdownOpen(false);
+            }
           }}
           isOpen={isDropdownOpen}
           setIsOpen={setIsDropdownOpen}
+    
         />
       </div>
 
@@ -221,7 +226,7 @@ const SidebarStandardize = ({ nodeId, nodes, setNodes }) => {
       {/* Mappings */}
       {selectedDataset && (
         <div className={styles.mappingsContainer}>
-          <h2>Mappings</h2>
+          <label>Mappings</label>
           {mappings.map((mapping, index) => (
             <div key={index} className={styles.mappingRow}>
               <div className={styles.multiSelect}>

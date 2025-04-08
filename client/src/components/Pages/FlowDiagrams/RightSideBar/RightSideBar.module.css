@@ -1,5 +1,5 @@
 .sidebar {
-  width: 350px;
+  width: 320px;
   background: #ffffff;
   border-left: 1px solid #eaeaea;
   height: calc(100vh - 116px);
@@ -220,7 +220,7 @@
 }
 
 .actionsGrid {
-  max-height: 450px;
+  max-height: 500px;
   overflow-y: hidden;
   padding-right: 8px;
 }
@@ -440,29 +440,48 @@
 }
 
 .collapsed {
-  width: 0;
+  width: 25px;
   overflow: hidden;
 }
 
 .collapseButton {
   position: absolute;
-  left: -40px;
-  top: 50%;
+  left: -10px; /* Adjusted position to accommodate new size */
+  top: 55%;
   transform: translateY(-50%);
-  background: #fff;
-  border: 1px solid #eaeaea;
+  background: #fffff3;
+  border: none;
   border-radius: 50%;
-  width: 32px;
-  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
   transition: all 0.2s ease;
+  color: #000000; /* Black chevron color */
+  line-height: 24px; /* Center the icon vertically */
+  z-index: 1000;
+}
+.collapsed .collapseButton {
+  left: 3px; /* Position inside the collapsed sidebar area */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+.collapseButton:hover {
+  background: #ffffff;
+  box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.2);
+  transform: translateY(-50%) scale(1.05);
 }
 
-.collapseButton:hover {
-  background: #f8f9fa;
-  transform: translateY(-50%) scale(1.1);
+.collapseButton svg {
+  border-radius: 50%;
+  background-color:  #fffffa;
+  padding: 3px;
+  width: 12px;
+  height: 12px;
+  transition: transform 0.2s ease;
+}
+.chev{
+  border-radius: 50%;
+  width:5px;
+  background-color: red;
 }

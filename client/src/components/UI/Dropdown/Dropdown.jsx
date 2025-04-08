@@ -10,6 +10,7 @@ const Dropdown = ({
   onView,
   isOpen,
   setIsOpen,
+  disabled,
 }) => {
   const [activeTab, setActiveTab] = useState("Standard");
   const [searchQuery, setSearchQuery] = useState("");
@@ -53,8 +54,9 @@ const Dropdown = ({
     }) || [];
 
   return (
-    <div ref={dropdownRef} className={styles.dropdown}>
-      <div className={styles.dropdownHeader} onClick={() => setIsOpen(!isOpen)}>
+    <div ref={dropdownRef} className={`${styles.dropdown} ${disabled ? styles.disabled : ''}`}>
+      <div className={styles.dropdownHeader} onClick={() => !disabled && setIsOpen(!isOpen)}
+      >
         {selected ? selected.name : "Select Dataset"}
       </div>
       {isOpen && (
@@ -91,8 +93,8 @@ const Dropdown = ({
             {filteredDatasets.map((dataset) => (
               <div
                 key={dataset.name}
-                className={styles.dropdownItem}
-                onClick={() => handleSelect(dataset)}
+                className={`${styles.dropdownItem} ${disabled ? styles.disabledItem : ''}`}
+                onClick={() => !disabled && handleSelect(dataset)}
               >
                 <div className={styles.datasetInfo}>
                   <span>{dataset.name}</span>

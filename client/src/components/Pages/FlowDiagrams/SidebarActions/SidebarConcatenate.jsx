@@ -19,6 +19,7 @@ const SidebarConcatenate = ({ nodeId, nodes, setNodes }) => {
   const userId = localStorage.getItem("userId");
 
   const selectedNode = nodes.find((node) => node.id === nodeId);
+  const disabled=true;
 
   //  console.log("d",selectedNode.data.parameters);
 
@@ -157,10 +158,14 @@ const SidebarConcatenate = ({ nodeId, nodes, setNodes }) => {
           <Dropdown
             datasets={datasets}
             selected={dataset1}
+            disabled={true}
             // onSelect={handleDatasetSelect} // Only handles selection
             onSelect={(dataset) => {
-              setDataset1(dataset);
-              fetchColumn(dataset, setColumns1);
+              if(!disabled){
+                setDataset1(dataset);
+                fetchColumn(dataset, setColumns1);
+              }
+                
             }}
             // onView={handleCsvView} // Separate handler for viewing CSV
             // isOpen={isDropdownOpen} // Use the new state variables

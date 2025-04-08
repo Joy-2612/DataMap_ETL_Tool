@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useRef,useCallback } from "react";
 import ReactFlow, {
   MiniMap,
   Controls,
@@ -50,7 +50,11 @@ const FlowDiagram = () => {
     handleRemoveFlowDiagram,
     closeModal,
     generateFlowJSON,
+    handleDragStart,
   } = useFlowLogic();
+
+    // ADDED: State for result datasets
+    const [resultDatasets, setResultDatasets] = useState([]);
 
   const { handleAddNode, handleAddNodeOutput, handleAddActionNode } =
     useFlowUI(setNodes);
@@ -59,9 +63,18 @@ const FlowDiagram = () => {
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [isSaveTemplateModalOpen, setIsSaveTemplateModalOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [resetTabTrigger, setResetTabTrigger] = useState(0);
 
   // Disable the "Clear Diagram" button if there are no nodes
   const isClearDiagramDisabled = nodes.length === 0;
+
+  const prevNodesLength = useRef(nodes.length);
+useEffect(() => {
+  if (nodes.length < prevNodesLength.current) {
+    setResetTabTrigger(prev => prev + 1);
+  }
+  prevNodesLength.current = nodes.length;
+}, [nodes.length]);
 
   // Save nodes and edges to localStorage whenever they change
   useEffect(() => {
@@ -140,6 +153,14 @@ const FlowDiagram = () => {
     toast.success(`Template "${template.name}" loaded`);
   };
 
+  const handleDatasetDragStart = useCallback((event, item) => {
+    event.dataTransfer.setData('application/reactflow', 'datasetNode');
+    event.dataTransfer.setData('dataset', JSON.stringify(item));
+    event.dataTransfer.effectAllowed = 'move';
+  }, []);
+
+  
+
   const handleDeleteTemplate = (templateId) => {
     const updatedTemplates = templates.filter((t) => t.id !== templateId);
     setTemplates(updatedTemplates);
@@ -150,12 +171,49 @@ const FlowDiagram = () => {
     toast.success("Template deleted");
   };
 
+  const runWorkflow = async ()=> {
+    // Check if all output nodes already have datasets
+    const outputNodes = nodes.filter(node => node.type === "outputNode");
+    const outputNodesWithoutDatasets = outputNodes.filter(node => !node.data._id);
+    
+    if (outputNodes.length > 0 && outputNodesWithoutDatasets.length === 0) {
+      toast.info("All output datasets are already created. No need to run again.");
+      return;
+    }
+    
+    // Continue with normal run process
+    await handleRun();
+    await refreshResultDatasets();
+  };
+
+  // ADDED: Function to refresh result datasets
+  const refreshResultDatasets = useCallback(async () => {
+    try {
+      const userId = localStorage.getItem("userId");
+      const response = await fetch(`http://localhost:5000/api/file/results/${userId}`);
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch results");
+      }
+      
+      const resultsData = await response.json();
+      setResultDatasets(resultsData.data || []);
+    } catch (error) {
+      console.error("Error fetching result datasets:", error);
+    }
+  }, []);
+  
+  // ADDED: Load result datasets on component mount
+  useEffect(() => {
+    refreshResultDatasets();
+  }, [refreshResultDatasets]);
+
   return (
     <ReactFlowProvider>
       <div className={styles.topBar}>
         <div className={styles.leftControls}>
           <button
-            onClick={handleRun}
+            onClick={runWorkflow}
             className={styles.runButton}
             disabled={isClearDiagramDisabled}
           >
@@ -239,6 +297,9 @@ const FlowDiagram = () => {
           datasets_source={datasets}
           setDatasets_source={datasets}
           onClear={handleClearDiagram}
+          resetTabTrigger={resetTabTrigger}
+          handleDragStart={handleDragStart}
+          results={resultDatasets}
         />
       </div>
 

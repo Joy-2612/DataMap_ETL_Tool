@@ -1,9 +1,10 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect,useRef } from "react";
 import { useNodesState, useEdgesState, addEdge } from "reactflow";
 import { toast } from "sonner";
 import { updateActionNodesWithEdgeData } from "../utils/utils";
 import { handleActionOperationsOnRun } from "./apiOperations";
 import { validateFlowDiagram } from "./validations";
+
 
 const useFlowLogic = () => {
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
@@ -16,6 +17,8 @@ const useFlowLogic = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [flowJSON, setFlowJSON] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const reactFlowWrapperRef = useRef(null); // ✅ This is the ref
+
 
   // Load saved nodes and edges from localStorage (if you want them separate from flow-diagram-userId)
   useEffect(() => {
@@ -44,6 +47,23 @@ const useFlowLogic = () => {
     localStorage.removeItem("savedNodes");
     localStorage.removeItem("savedEdges");
   };
+
+
+  // In FlowDiagram or useFlowLogic
+const handleDragStart = (event, item) => {
+  const nodeData = {
+    type: 'datasetNode', // or 'outputNode', depending on logic
+    name: item.name,
+    fileId: item._id,
+    fileType: item.type,
+    size: item.size,
+  };
+
+  // Attach as text/json to the event so ReactFlow can extract it
+  event.dataTransfer.setData('application/reactflow', JSON.stringify(nodeData));
+  event.dataTransfer.effectAllowed = 'move';
+};
+
 
   // Handle creating new edges
   const onConnect = useCallback(
@@ -89,8 +109,12 @@ const useFlowLogic = () => {
       if (!reactFlowInstance) return;
 
       // Where you dropped inside the DOM
-      const reactFlowBounds = event.target.getBoundingClientRect();
-
+      const reactFlowBounds = reactFlowWrapperRef.current.getBoundingClientRect();
+      const data = event.dataTransfer.getData('application/reactflow');
+      if (!data) return;
+    
+      const nodeData = JSON.parse(data);
+      
       // Data from handleDragStart in RightSideBar
       const itemId = event.dataTransfer.getData("text/id");
       const itemName = event.dataTransfer.getData("text/name");
@@ -196,16 +220,49 @@ const useFlowLogic = () => {
     if (!validateFlowDiagram(nodes, edges)) {
       return;
     }
-
+    // setIsLoading(true);
     const flowJSON = generateFlowJSON(nodes, edges);
     setFlowJSON(flowJSON);
     toast.info("Processing flow...");
     console.log("Final JSON: ", flowJSON);
 
+    // Find output nodes that already have datasets created (have an _id)
+  const outputNodesWithDatasets = flowJSON.nodes.filter(
+    node => node.type === "outputNode" && node.data._id
+  );
+
+  // Find output nodes that need datasets created (don't have an _id)
+  const outputNodesNeedingDatasets = flowJSON.nodes.filter(
+    node => node.type === "outputNode" && !node.data._id
+  );
+  
+  // If all output nodes already have datasets
+  if (outputNodesNeedingDatasets.length === 0 && outputNodesWithDatasets.length > 0) {
+    toast.info("All output datasets are already created. No need to run again.");
+    return;
+  }
+  
+  
+  console.log("Final JSON: ", flowJSON);
+
     try {
-      const actionNodes = flowJSON.nodes.filter(
-        (node) => node.type === "actionNode"
-      );
+      const actionNodes = flowJSON.nodes.filter(node => {
+        if (node.type !== "actionNode") return false;
+        
+        // If there are no output nodes needing datasets, process all action nodes
+        if (outputNodesNeedingDatasets.length === 0) return true;
+        
+        // Check if this action node is connected to any output node needing a dataset
+        return flowJSON.edges.some(edge => {
+          const targetNode = flowJSON.nodes.find(n => n.id === edge.target);
+          return edge.source === node.id && 
+                 targetNode && 
+                 targetNode.type === "outputNode" && 
+                 !targetNode.data._id;
+        });
+      });
+      
+      
       const results = await Promise.all(
         actionNodes.map(async (node) => {
           return await handleActionOperationsOnRun(node);
@@ -241,6 +298,26 @@ const useFlowLogic = () => {
       toast.error("Failed to perform operation. Please try again.");
     }
   };
+
+  // ADDED: New function to refresh result datasets
+const refreshResultDatasets = async () => {
+  try {
+    const userId = localStorage.getItem("userId");
+    const response = await fetch(`http://localhost:5000/api/file/results/${userId}`);
+    
+    if (!response.ok) {
+      throw new Error("Failed to fetch updated results");
+    }
+    
+    const resultsData = await response.json();
+    setDatasets(prevDatasets => ({
+      ...prevDatasets,
+      results: resultsData.data || []
+    }));
+  } catch (error) {
+    console.error("Error refreshing result datasets:", error);
+  }
+};
 
   // Close modal
   const closeModal = () => {

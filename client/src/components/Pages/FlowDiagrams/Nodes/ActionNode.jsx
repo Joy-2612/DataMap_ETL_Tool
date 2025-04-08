@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Handle, Position } from "reactflow";
 import { CiSettings } from "react-icons/ci";
 import { GrAction } from "react-icons/gr";
+import { MdDeleteForever } from "react-icons/md";
 
 const ActionNode = ({ id, data, selected }) => {
   const [showTooltip, setShowTooltip] = useState(false);
@@ -9,6 +10,17 @@ const ActionNode = ({ id, data, selected }) => {
   const handleOptionsClick = (event) => {
     event.stopPropagation();
     setShowTooltip((prev) => !prev);
+  };
+
+  // Safe delete handler that first checks if onDelete function exists
+  const handleDelete = () => {
+    if (typeof data.onDelete === 'function') {
+      data.onDelete(id);
+    } else {
+      console.error("onDelete callback is not defined");
+      // Close tooltip to prevent further clicks
+      setShowTooltip(false);
+    }
   };
 
   return (
@@ -126,9 +138,10 @@ const ActionNode = ({ id, data, selected }) => {
                   width: "100%", // Ensure button takes full width
                   minWidth: "60px", // Minimum width for the button
                 }}
-                onClick={() => data.onDelete(id)}
+                // Use the safe delete handler instead of directly calling data.onDelete
+                onClick={handleDelete}
               >
-                Delete
+                 <MdDeleteForever />
               </button>
             </div>
           )}
@@ -137,107 +150,5 @@ const ActionNode = ({ id, data, selected }) => {
     </div>
   );
 };
-
-//   return (
-//     <div
-//       style={{
-//         position: "relative",
-//         backgroundColor: "rgba(0, 0, 255, 0.1)", // Light blue background
-//         textAlign: "left",
-//         color: "#333",
-//         padding: "16px",
-//         border: "2px solid blue", // Blue outline
-//         borderRadius: "8px",
-//         fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-//         boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-//         minWidth: 150,
-//         overflow: "visible",
-//       }}
-//     >
-//       <Handle type="target" position={Position.Top} style={{ background: "#555", width: "8px", height: "8px" }} />
-
-//       <div style={{ marginBottom: "8px" }}>
-//         <div
-//           style={{
-//             fontSize: "16px",
-//             marginBottom: "4px",
-//             overflow: "hidden",
-//             textOverflow: "ellipsis",
-//             whiteSpace: "nowrap",
-//           }}
-//           title={data.label}
-//         >
-//           {data.label}
-//         </div>
-//         <div style={{ fontSize: "12px", color: "#666" }}>NodeType: Action</div>
-//       </div>
-
-//       <Handle type="source" position={Position.Bottom} style={{ background: "#555", width: "8px", height: "8px" }} />
-
-//       {selected && (
-//         <div
-//           style={{
-//             position: "absolute",
-//             top: "8px",
-//             right: "8px",
-//             zIndex: 10,
-//           }}
-//         >
-//           <button
-//             onClick={handleOptionsClick}
-//             style={{
-//               background: "none",
-//               padding: 0,
-//               border: "none",
-//               color: "#333",
-//               cursor: "pointer",
-//               fontSize: "16px",
-//             }}
-//             title="Options"
-//           >
-//             <CiSettings />
-//           </button>
-
-//           {showTooltip && (
-//             <div
-//               style={{
-//                 position: "absolute",
-//                 top: "100%",
-//                 right: "0",
-//                 marginTop: "5px",
-//                 fontSize: "10px",
-//                 background: "#fff",
-//                 color: "#333",
-//                 borderRadius: "4px",
-//                 padding: "4px 6px",
-//                 boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-//                 zIndex: 999,
-//                 whiteSpace: "nowrap",
-//                 border: "1px solid #ddd",
-//               }}
-//             >
-//               <button
-//                 style={{
-//                   background: "red",
-//                   color: "white",
-//                   border: "none",
-//                   fontSize: "10px",
-//                   borderRadius: "4px",
-//                   padding: "4px 8px",
-//                   cursor: "pointer",
-//                   width: "100%",
-//                   minWidth: "60px",
-//                 }}
-//                 onClick={() => data.onDelete(id)}
-//               >
-//                 Delete
-//               </button>
-//             </div>
-//           )}
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
 
 export default ActionNode;

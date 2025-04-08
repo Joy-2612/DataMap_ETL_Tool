@@ -13,6 +13,17 @@ const OutputNode = ({ id, data, selected }) => {
     setShowTooltip((prev) => !prev);
   };
 
+  // Create a safe delete function to handle the possibility of missing onDelete
+  const safeOnDelete = (nodeId) => {
+    if (typeof data.onDelete === 'function') {
+      data.onDelete(nodeId);
+    } else {
+      console.error("onDelete callback is not defined");
+      // Close tooltip when delete operation fails
+      setShowTooltip(false);
+    }
+  };
+
   return (
     <div
       style={{
@@ -104,7 +115,7 @@ const OutputNode = ({ id, data, selected }) => {
           </button>
 
           {showTooltip && (
-            <Tooltip onDelete={data.onDelete} id={id} data={data} />
+            <Tooltip onDelete={safeOnDelete} id={id} data={data} />
           )}
         </div>
       )}

@@ -3,7 +3,6 @@ import { Handle, Position } from "reactflow";
 import { CiSettings } from "react-icons/ci";
 import { FaDatabase } from "react-icons/fa6";
 import Tooltip from "./Tooltip"; // Import the Tooltip component
-import { toast } from "sonner"; // For showing toast notifications
 
 const DatasetNode = ({ id, data, selected }) => {
   const [showTooltip, setShowTooltip] = useState(false);
@@ -13,8 +12,16 @@ const DatasetNode = ({ id, data, selected }) => {
     setShowTooltip((prev) => !prev);
   };
 
-  // Retrieve the delete callback from data (set when the node is created)
-  const onDelete = data.onDelete;
+  // Create a safe delete function to handle the possibility of missing onDelete
+  const safeOnDelete = (nodeId) => {
+    if (typeof data.onDelete === 'function') {
+      data.onDelete(nodeId);
+    } else {
+      console.error("onDelete callback is not defined");
+      // Close tooltip when delete operation fails
+      setShowTooltip(false);
+    }
+  };
 
   return (
     <div
@@ -105,7 +112,7 @@ const DatasetNode = ({ id, data, selected }) => {
             <CiSettings />
           </button>
 
-          {showTooltip && <Tooltip data={data} onDelete={onDelete} id={id} />}
+          {showTooltip && <Tooltip data={data} onDelete={safeOnDelete} id={id} />}
         </div>
       )}
     </div>

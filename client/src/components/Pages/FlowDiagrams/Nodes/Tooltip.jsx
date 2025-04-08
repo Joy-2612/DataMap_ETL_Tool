@@ -59,18 +59,27 @@ const Tooltip = ({ onDelete, id, data }) => {
     });
   };
 
+  // Handle delete with error catching
+  const handleDelete = () => {
+    try {
+      if (typeof onDelete === 'function') {
+        onDelete(id);
+      } else {
+        console.error("onDelete callback is not defined");
+        toast.error("Unable to delete node at this time");
+      }
+    } catch (error) {
+      console.error("Error deleting node:", error);
+      toast.error("Failed to delete node");
+    }
+  };
+
   return (
     <div className={styles.tooltipContainer}>
       <button
         className={styles.deleteButton}
         title="Delete"
-        onClick={() => {
-          if (onDelete) {
-            onDelete(id);
-          } else {
-            console.error("onDelete callback is not defined");
-          }
-        }}
+        onClick={handleDelete}
       >
         <MdDeleteForever />
       </button>

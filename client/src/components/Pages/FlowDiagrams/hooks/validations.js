@@ -7,6 +7,16 @@ export const validateFlowDiagram = (nodes, edges) => {
     return false;
   }
 
+  // Check if there are any output nodes that need datasets created
+  const outputNodes = nodes.filter(node => node.type === "outputNode");
+  const outputNodesWithoutDatasets = outputNodes.filter(node => !node.data._id);
+  
+  // If there are output nodes but none need datasets, validation can pass
+  // We'll handle this case in the handleRun function to show the appropriate message
+  if (outputNodes.length > 0 && outputNodesWithoutDatasets.length === 0) {
+    return true;
+  }
+
   // 1) Check for nodes without edges
   const nodesWithoutEdges = nodes.filter(
     (node) =>
