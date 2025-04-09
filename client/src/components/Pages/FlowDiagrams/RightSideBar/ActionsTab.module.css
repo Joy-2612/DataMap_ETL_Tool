@@ -1,131 +1,128 @@
 .actionPanel {
-    /* overflow-y: hidden; */
-    padding: 1rem;
-    background: #ffffff;
-  }
-  
-  .sectionTitle {
-    margin: 0 0 1rem;
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
+  /* overflow-y: hidden; */
+  padding: 1rem;
+  background: #ffffff;
+}
+
+.sectionTitle {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 
 .actionsGrid {
-    max-height: 450px;
-    overflow-y: hidden;
-    padding-right: 8px;
+  max-height: 450px;
+  overflow-y: hidden;
+}
+
+.actionCard {
+  /* overflow-y: auto; */
+  margin-top: 2px;
+  margin-bottom: 10px;
+  position: relative;
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  /* overflow: hidden; */
+  border: 2px solid transparent; /* Base border, will be overridden */
+}
+
+.actionCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #f8f9fb 0%, #ffffff 100%);
+}
+
+.actionCard:hover .actionHoverIndicator {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.actionIconContainer {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background-color 0.3s ease;
+}
+
+.actionIcon {
+  font-size: 1.4rem;
+  color: #6c5ce7;
+}
+
+.actionTextContainer {
+  flex: 1;
+  text-align: left;
+}
+.tabContent {
+  height: calc(100vh - 180px);
+  overflow-y: auto;
+  padding-right: 8px;
+}
+.actionName {
+  font-weight: 600;
+  color: #2d3436;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+.actionDescription {
+  font-size: 0.8rem;
+  color: #636e72;
+  line-height: 1.4;
+  display: block;
+}
+
+.actionHoverIndicator {
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.3s ease;
+  color: #6c5ce7;
+}
+
+.chevronIcon {
+  font-size: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .actionsGrid {
+    grid-template-columns: 1fr;
   }
-  
+
   .actionCard {
-    /* overflow-y: auto; */
-    margin-top:2px;
-    margin-bottom:10px;
-    position: relative;
-    background: white;
-    border-radius: 12px;
-    padding: 1.25rem;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    /* overflow: hidden; */
-    border: 2px solid transparent; /* Base border, will be overridden */
+    padding: 1rem;
   }
-  
-  .actionCard:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-    background: linear-gradient(135deg, #f8f9fb 0%, #ffffff 100%);
-  }
-  
-  .actionCard:hover .actionHoverIndicator {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  
+
   .actionIconContainer {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: background-color 0.3s ease;
+    width: 42px;
+    height: 42px;
   }
-  
-  .actionIcon {
-    font-size: 1.4rem;
-    color: #6c5ce7;
+}
+
+@media (max-width: 480px) {
+  .sectionTitle {
+    font-size: 0.9rem;
   }
-  
-  .actionTextContainer {
-    flex: 1;
-    text-align: left;
-  }
-  .tabContent {
-    height: calc(100vh - 180px);
-    overflow-y: auto;
-    padding-right: 8px;
-  }
+
   .actionName {
-    font-weight: 600;
-    color: #2d3436;
-    font-size: 0.95rem;
-    margin-bottom: 0.25rem;
-    display: block;
+    font-size: 0.9rem;
   }
-  
+
   .actionDescription {
-    font-size: 0.8rem;
-    color: #636e72;
-    line-height: 1.4;
-    display: block;
+    font-size: 0.78rem;
   }
-  
-  .actionHoverIndicator {
-    opacity: 0;
-    transform: translateX(-10px);
-    transition: all 0.3s ease;
-    color: #6c5ce7;
-  }
-  
-  .chevronIcon {
-    font-size: 1rem;
-  }
-  
-  
-  
-  /* Responsive Design */
-  @media (max-width: 768px) {
-    .actionsGrid {
-      grid-template-columns: 1fr;
-    }
-  
-    .actionCard {
-      padding: 1rem;
-    }
-  
-    .actionIconContainer {
-      width: 42px;
-      height: 42px;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .sectionTitle {
-      font-size: 0.9rem;
-    }
-  
-    .actionName {
-      font-size: 0.9rem;
-    }
-  
-    .actionDescription {
-      font-size: 0.78rem;
-    }
-  }
+}
