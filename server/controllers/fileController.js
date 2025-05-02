@@ -14,6 +14,7 @@ const {
   convertBackService,
   splitColsService,
   splitAddressService,
+  updateDatasetNameService,
 } = require("../services/fileService");
 
 /**
@@ -326,6 +327,31 @@ const splitAddress = async (req, res) => {
   }
 };
 
+const updateDatasetName = async (req, res) => {
+  try {
+    const { datasetId } = req.params;
+    const { newName } = req.body;
+
+    if (!newName?.trim()) {
+      return res.status(400).json({ message: "New name is required" });
+    }
+
+    const updated = await updateDatasetNameService(datasetId, newName.trim());
+
+    if (!updated) {
+      return res.status(404).json({ message: "Dataset not found" });
+    }
+
+    return res.status(200).json({
+      message: "Dataset renamed successfully",
+      data: { _id: updated._id, name: updated.originalName },
+    });
+  } catch (err) {
+    console.error("Error renaming dataset:", err);
+    return res.status(500).json({ message: "Failed to rename dataset" });
+  }
+};
+
 /* -------------------------------------------------------------------------- */
 /*                                Exports                                     */
 /* -------------------------------------------------------------------------- */
@@ -344,4 +370,5 @@ module.exports = {
   convertBack,
   splitCols,
   splitAddress,
+  updateDatasetName,
 };

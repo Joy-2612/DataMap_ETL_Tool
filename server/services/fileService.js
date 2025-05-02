@@ -507,6 +507,15 @@ const splitAddressService = async ({
   return newFile;
 };
 
+const updateDatasetNameService = async (datasetId, newName) => {
+  // keep only originalName, nothing else changes
+  return await File.findByIdAndUpdate(
+    datasetId,
+    { originalName: newName },
+    { new: true }
+  );
+};
+
 /* -------------------------------------------------------------------------- */
 /*                                Exports                                     */
 /* -------------------------------------------------------------------------- */
@@ -526,4 +535,5 @@ module.exports = {
   convertBackService,
   splitColsService,
   splitAddressService,
+  updateDatasetNameService,
 };

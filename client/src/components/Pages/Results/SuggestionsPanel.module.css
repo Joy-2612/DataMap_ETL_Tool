@@ -1,0 +1,262 @@
+/* /src/components/Datasets/SuggestionsPanel.module.css */
+.suggestionsPanel {
+  flex: 0 0 400px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 15px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05);
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.suggestionsTitle {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.closePanelButton {
+  color: #666;
+  transition: transform 0.3s ease;
+}
+
+.closePanelButton:hover {
+  color: #333;
+  transform: rotate(90deg);
+}
+
+.panelContent {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+.panelContent::-webkit-scrollbar {
+  width: 5px;
+}
+
+.panelContent::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+.panelContent::-webkit-scrollbar-thumb {
+  background-color: #000;
+  border-radius: 4px;
+}
+
+.thoughtsSection {
+  margin-bottom: 20px;
+}
+
+.thoughtsHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.thoughtsHeader h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.chevron {
+  transition: transform 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.chevronCollapsed {
+  transform: rotate(180deg);
+}
+
+.thoughtsContainer {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.thoughtsContainer > * {
+  opacity: 0;
+  animation: fadeIn 0.8s forwards;
+}
+
+.thoughtsContainer > *:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.thoughtsContainer > *:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.thoughtsContainer > *:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.suggestionsGrid {
+  display: grid;
+  gap: 15px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.suggestionCard {
+  background: linear-gradient(
+    180deg,
+    rgb(53 59 242 / 8%) 0%,
+    rgba(0, 212, 255, 0) 85%
+  );
+  text-align: left;
+  border-radius: 8px;
+  padding: 15px;
+  animation: slideDown 0.8s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.aiIcon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #1a73e8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  mix-blend-mode: multiply;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.cardHeader h4 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.cardIndex {
+  color: black;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  text-align: left;
+  font-size: 1rem;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.cardDescription {
+  font-size: 0.9rem;
+  color: black;
+  margin-bottom: 3px;
+  line-height: 1.5;
+}
+
+.cardAction {
+  border-top: 1px solid #eee;
+  padding-top: 12px;
+}
+
+.actionBadge {
+  display: inline-block;
+  color: black;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.actionName {
+  font-weight: 500;
+  background: #d3d4ffa8;
+  margin: 8px 0;
+  border-radius: 100px;
+  padding: 7px 14px;
+  color: #301ae8;
+}
+
+.parametersSection {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+}
+
+.parametersLabel {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: black;
+  margin-bottom: 8px;
+}
+
+/* Responsive grid layout for the parameters */
+.parametersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 16px;
+  margin: 16px 0;
+}
+
+/* Card-style container for each parameter */
+.parameterItem {
+  background-color: #ffffff75;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Parameter name styling (label) */
+.paramName {
+  font-weight: 600;
+  color: #301ae8;
+}
+
+/* Parameter value styling, handling very long values */
+.paramValue {
+  color: #333;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+}
+
+.paramValue pre {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow: auto;
+  max-height: none;
+}

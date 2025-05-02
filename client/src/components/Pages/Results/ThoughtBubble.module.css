@@ -1,0 +1,28 @@
+/* /src/components/Datasets/ThoughtBubble.module.css */
+.thoughtItem {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 5px;
+  position: relative;
+}
+
+.thoughtIndicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.thoughtLine {
+  width: 2px;
+  background: #ddd;
+  flex-grow: 1;
+  margin: 8px 0;
+}
+
+.thoughtContent {
+  padding: 4px;
+  text-align: left;
+  flex-grow: 1;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}

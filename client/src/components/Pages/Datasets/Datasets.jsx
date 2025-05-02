@@ -85,6 +85,34 @@ const Datasets = () => {
     }
   };
 
+  const renameDataset = async (id, newName) => {
+    // await axios.patch(`/api/dataset/${id}/rename`, { newName });
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/file/dataset/${id}/rename`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ newName }),
+        }
+      );
+
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.message || "Failed to rename dataset");
+      }
+    } catch (error) {
+      console.error("Error renaming dataset: ", error);
+      toast.error("Failed to rename dataset.");
+    }
+    // refresh or optimistically update local state:
+    setDatasets((prev) =>
+      prev.map((d) => (d._id === id ? { ...d, name: newName } : d))
+    );
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -122,6 +150,7 @@ const Datasets = () => {
         onSort={handleSort}
         onView={handleView}
         onDelete={handleDelete}
+        onRename={renameDataset}
       />
       {selectedDataset && (
         <DatasetModal dataset={selectedDataset} onClose={closeModal} />

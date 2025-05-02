@@ -18,7 +18,7 @@ const {
 
 const gemini_api_key = process.env.GEMINI_API_KEY;
 const googleAI = new GoogleGenerativeAI(gemini_api_key);
-const geminiModel = googleAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const geminiModel = googleAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
 async function runChainOfThought(userPrompt, chatHistory, onUpdate) {
   console.log("User Prompt:", userPrompt, "Chat History:", chatHistory);

@@ -1,4 +1,4 @@
-import React, { useEffect, useState,useRef,useCallback } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import ReactFlow, {
   MiniMap,
   Controls,
@@ -53,8 +53,8 @@ const FlowDiagram = () => {
     handleDragStart,
   } = useFlowLogic();
 
-    // ADDED: State for result datasets
-    const [resultDatasets, setResultDatasets] = useState([]);
+  // ADDED: State for result datasets
+  const [resultDatasets, setResultDatasets] = useState([]);
 
   const { handleAddNode, handleAddNodeOutput, handleAddActionNode } =
     useFlowUI(setNodes);
@@ -69,12 +69,12 @@ const FlowDiagram = () => {
   const isClearDiagramDisabled = nodes.length === 0;
 
   const prevNodesLength = useRef(nodes.length);
-useEffect(() => {
-  if (nodes.length < prevNodesLength.current) {
-    setResetTabTrigger(prev => prev + 1);
-  }
-  prevNodesLength.current = nodes.length;
-}, [nodes.length]);
+  useEffect(() => {
+    if (nodes.length < prevNodesLength.current) {
+      setResetTabTrigger((prev) => prev + 1);
+    }
+    prevNodesLength.current = nodes.length;
+  }, [nodes.length]);
 
   // Save nodes and edges to localStorage whenever they change
   useEffect(() => {
@@ -154,12 +154,10 @@ useEffect(() => {
   };
 
   const handleDatasetDragStart = useCallback((event, item) => {
-    event.dataTransfer.setData('application/reactflow', 'datasetNode');
-    event.dataTransfer.setData('dataset', JSON.stringify(item));
-    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData("application/reactflow", "datasetNode");
+    event.dataTransfer.setData("dataset", JSON.stringify(item));
+    event.dataTransfer.effectAllowed = "move";
   }, []);
-
-  
 
   const handleDeleteTemplate = (templateId) => {
     const updatedTemplates = templates.filter((t) => t.id !== templateId);
@@ -171,16 +169,20 @@ useEffect(() => {
     toast.success("Template deleted");
   };
 
-  const runWorkflow = async ()=> {
+  const runWorkflow = async () => {
     // Check if all output nodes already have datasets
-    const outputNodes = nodes.filter(node => node.type === "outputNode");
-    const outputNodesWithoutDatasets = outputNodes.filter(node => !node.data._id);
-    
+    const outputNodes = nodes.filter((node) => node.type === "outputNode");
+    const outputNodesWithoutDatasets = outputNodes.filter(
+      (node) => !node.data._id
+    );
+
     if (outputNodes.length > 0 && outputNodesWithoutDatasets.length === 0) {
-      toast.info("All output datasets are already created. No need to run again.");
+      toast.info(
+        "All output datasets are already created. No need to run again."
+      );
       return;
     }
-    
+
     // Continue with normal run process
     await handleRun();
     await refreshResultDatasets();
@@ -190,19 +192,21 @@ useEffect(() => {
   const refreshResultDatasets = useCallback(async () => {
     try {
       const userId = localStorage.getItem("userId");
-      const response = await fetch(`http://localhost:5000/api/file/results/${userId}`);
-      
+      const response = await fetch(
+        `http://localhost:5000/api/file/results/${userId}`
+      );
+
       if (!response.ok) {
         throw new Error("Failed to fetch results");
       }
-      
+
       const resultsData = await response.json();
       setResultDatasets(resultsData.data || []);
     } catch (error) {
       console.error("Error fetching result datasets:", error);
     }
   }, []);
-  
+
   // ADDED: Load result datasets on component mount
   useEffect(() => {
     refreshResultDatasets();
@@ -287,7 +291,7 @@ useEffect(() => {
           selectedNodeId={selectedNode?.id}
           onAddActionNode={handleAddActionNode}
           isCollapsed={isSidebarCollapsed}
-          toggleCollapse={()=>setIsSidebarCollapsed(!isSidebarCollapsed)}
+          toggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           selectedEdge={selectedEdge}
           selectedNode={selectedNode}
           setEdges={setEdges}
@@ -327,4 +331,3 @@ useEffect(() => {
 };
 
 export default FlowDiagram;
-

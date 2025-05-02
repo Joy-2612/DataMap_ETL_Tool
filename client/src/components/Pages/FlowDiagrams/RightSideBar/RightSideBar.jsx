@@ -2,7 +2,12 @@ import React, { useState, useEffect } from "react";
 import styles from "./RightSideBar.module.css";
 import { toast } from "sonner";
 import { FaChevronLeft, FaChevronRight, FaArrowLeft } from "react-icons/fa";
-import { FaDatabase, FaSearch, FaChartBar, FaProjectDiagram } from "react-icons/fa";
+import {
+  FaDatabase,
+  FaSearch,
+  FaChartBar,
+  FaProjectDiagram,
+} from "react-icons/fa";
 import Papa from "papaparse";
 import { actionOptions } from "./sidebarConfig";
 import DataTab from "./DataTab";
@@ -10,8 +15,8 @@ import OutputTab from "./OutputTab";
 import ActionsTab from "./ActionsTab";
 import ParametersView from "./ParametersView";
 import PeekModal from "../Modal/PeekModal";
-import { useCallback } from 'react';
-import debounce from 'lodash/debounce';
+import { useCallback } from "react";
+import debounce from "lodash/debounce";
 
 const RightSideBar = ({
   onAddNode,
@@ -28,7 +33,6 @@ const RightSideBar = ({
   setDatasets_source,
   resetTabTrigger,
   results,
-
 }) => {
   const [datasets, setDatasets] = useState([]);
   const [localResults, setLocalResults] = useState([]);
@@ -52,9 +56,11 @@ const RightSideBar = ({
 
   useEffect(() => {
     if (selectedNodeId) {
-      const node = nodes.find(n => n.id === selectedNodeId);
+      const node = nodes.find((n) => n.id === selectedNodeId);
       if (node?.data?.type === "action") {
-        const action = actionOptions.find(opt => opt.id === node.data.actionType);
+        const action = actionOptions.find(
+          (opt) => opt.id === node.data.actionType
+        );
         setSelectedAction(action);
         setShowParametersView(true);
       }
@@ -70,26 +76,28 @@ const RightSideBar = ({
   // NEW EFFECT: Switch to appropriate tab based on selected node type
   useEffect(() => {
     if (selectedNodeId) {
-      const node = nodes.find(n => n.id === selectedNodeId);
+      const node = nodes.find((n) => n.id === selectedNodeId);
       if (node) {
         // For dataset nodes or output nodes, show the data tab
         if (node.type === "datasetNode" || node.type === "outputNode") {
           setActiveTab("data");
-          
+
           // If it's an output node, switch to results subtab
           if (node.type === "outputNode") {
             setDataSubTab("results");
           } else {
             setDataSubTab("source");
           }
-          
+
           // Make sure parameters view is hidden for data nodes
           setShowParametersView(false);
-        } 
+        }
         // For action nodes, make sure to show action tab with parameters
         else if (node.data?.type === "action" || node.type === "actionNode") {
           setActiveTab("actions");
-          const action = actionOptions.find(opt => opt.id === node.data.actionType);
+          const action = actionOptions.find(
+            (opt) => opt.id === node.data.actionType
+          );
           if (action) {
             setSelectedAction(action);
             setShowParametersView(true);
@@ -123,7 +131,7 @@ const RightSideBar = ({
   const parseCsvFile = (file) => {
     const uint8Array = new Uint8Array(file.data.file.data);
     const text = new TextDecoder("utf-8").decode(uint8Array);
-    
+
     Papa.parse(text, {
       header: true,
       dynamicTyping: true,
@@ -139,7 +147,7 @@ const RightSideBar = ({
 
   const handleToggleDebounced = useCallback(
     debounce(() => {
-      setIsExpanded(prevExpanded => !prevExpanded);
+      setIsExpanded((prevExpanded) => !prevExpanded);
     }, 300),
     []
   );
@@ -152,9 +160,11 @@ const RightSideBar = ({
 
     try {
       setSelectedItem(dataset);
-      const response = await fetch(`http://localhost:5000/api/file/dataset/${dataset._id}`);
+      const response = await fetch(
+        `http://localhost:5000/api/file/dataset/${dataset._id}`
+      );
       if (!response.ok) throw new Error("Failed to fetch file data");
-      
+
       const fileData = await response.json();
       if (dataset.type.includes("csv")) parseCsvFile(fileData);
       setIsModalOpen(true);
@@ -193,15 +203,23 @@ const RightSideBar = ({
   return (
     <div className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
       {/* <button className={styles.collapseButton} onClick={toggleCollapse}> */}
-      <div className={styles.collapseButton} 
-      onClick={(e) => {toggleCollapse();handleToggleDebounced();}}>
-
-        {isCollapsed ? <FaChevronRight className="chev" /> : <FaChevronLeft className="chev"/>}
+      <div
+        className={styles.collapseButton}
+        onClick={(e) => {
+          toggleCollapse();
+          handleToggleDebounced();
+        }}
+      >
+        {isCollapsed ? (
+          <FaChevronRight className="chev" />
+        ) : (
+          <FaChevronLeft className="chev" />
+        )}
       </div>
       {/* </button> */}
-      
-      {!isCollapsed && (
-        showParametersView ? (
+
+      {!isCollapsed &&
+        (showParametersView ? (
           <ParametersView
             selectedAction={selectedAction}
             handleBackClick={handleBackClick}
@@ -215,19 +233,25 @@ const RightSideBar = ({
           <>
             <div className={styles.tabHeader}>
               <button
-                className={`${styles.tabButton} ${activeTab === "data" ? styles.activeTab : ""}`}
+                className={`${styles.tabButton} ${
+                  activeTab === "data" ? styles.activeTab : ""
+                }`}
                 onClick={() => setActiveTab("data")}
               >
                 <FaDatabase /> Data
               </button>
               <button
-                className={`${styles.tabButton} ${activeTab === "actions" ? styles.activeTab : ""}`}
+                className={`${styles.tabButton} ${
+                  activeTab === "actions" ? styles.activeTab : ""
+                }`}
                 onClick={() => setActiveTab("actions")}
               >
                 <FaProjectDiagram /> Actions
               </button>
               <button
-                className={`${styles.tabButton} ${activeTab === "output" ? styles.activeTab : ""}`}
+                className={`${styles.tabButton} ${
+                  activeTab === "output" ? styles.activeTab : ""
+                }`}
                 onClick={() => setActiveTab("output")}
               >
                 <FaChartBar /> Output
@@ -270,9 +294,8 @@ const RightSideBar = ({
               )}
             </div>
           </>
-        )
-      )}
-      
+        ))}
+
       <PeekModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

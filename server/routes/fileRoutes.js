@@ -15,6 +15,7 @@ const {
   splitCols,
   splitAddress,
   getDatasetByDatasetId,
+  updateDatasetName,
 } = require("../controllers/fileController");
 
 const router = express.Router();
@@ -37,5 +38,6 @@ router.post("/convert", convertFile);
 router.post("/convertback", convertBack);
 router.post("/split", splitCols);
 router.post("/splitAddress", splitAddress);
+router.patch("/dataset/:datasetId/rename", updateDatasetName);
 
 module.exports = router;
