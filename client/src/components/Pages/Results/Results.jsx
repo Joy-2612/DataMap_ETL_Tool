@@ -39,7 +39,7 @@ const Datasets = () => {
   const handleDelete = async (datasetId) => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/file/result/${datasetId}`,
+        `http://localhost:5000/api/file/dataset/${datasetId}`,
         { method: "DELETE" }
       );
       if (response.ok) {

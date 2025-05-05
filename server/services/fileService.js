@@ -163,17 +163,12 @@ const mergeDatasetsService = async ({
   const file1 = await File.findOne({
     $or: [{ originalName: dataset1 }, { _id: dataset1 }],
   });
-
   const file2 = await File.findOne({
     $or: [{ originalName: dataset2 }, { _id: dataset2 }],
   });
 
-  if (!file1) {
-    throw new Error(`Dataset "${dataset1}" not found`);
-  }
-  if (!file2) {
-    throw new Error(`Dataset "${dataset2}" not found`);
-  }
+  if (!file1) throw new Error(`Dataset "${dataset1}" not found`);
+  if (!file2) throw new Error(`Dataset "${dataset2}" not found`);
 
   // Decode Base64
   const csvContent1 = Buffer.from(file1.data, "base64").toString("utf-8");
@@ -203,16 +198,26 @@ const mergeDatasetsService = async ({
 
   await Promise.all([dataset1Promise, dataset2Promise]);
 
-  // Perform Full Outer Join (can switch to naturalJoin if needed)
-  const joinedData = fullOuterJoin(
-    dataset1Rows,
-    dataset2Rows,
-    column1,
-    column2
-  );
+  // Perform Full Outer Join
+  let joinedData = fullOuterJoin(dataset1Rows, dataset2Rows, column1, column2);
 
   if (joinedData.length === 0) {
     throw new Error("No matching rows found between the two datasets");
+  }
+
+  // **UNIFY** the two key‐columns into one (column1) and drop column2
+  if (column1 !== column2) {
+    joinedData = joinedData.map((row) => {
+      // if value came in under column2, copy it to column1
+      if (
+        row[column2] != null &&
+        (row[column1] == null || row[column1] === "")
+      ) {
+        row[column1] = row[column2];
+      }
+      delete row[column2];
+      return row;
+    });
   }
 
   // Convert to CSV

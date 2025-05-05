@@ -18,63 +18,114 @@ const {
 
 const gemini_api_key = process.env.GEMINI_API_KEY;
 const googleAI = new GoogleGenerativeAI(gemini_api_key);
-const geminiModel = googleAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+const geminiModel = googleAI.getGenerativeModel({
+  model: "gemini-2.0-flash",
+});
 
 async function runChainOfThought(userPrompt, chatHistory, onUpdate) {
   console.log("User Prompt:", userPrompt, "Chat History:", chatHistory);
+
+  // 1. Extract any file IDs referenced in prior messages
   let fileIds = await getFileIdGemini(chatHistory);
   fileIds = Array.isArray(fileIds) ? fileIds : [];
+
+  // 2. Load your XML-only system instructions
   const systemInstructions = fs.readFileSync(
     path.join(__dirname, "prompt2.xml"),
     "utf-8"
   );
 
-  try {
-    const formattedHistory = chatHistory
-      .filter((msg) => msg.text !== undefined)
-      .map((msg) => ({
-        role: msg.sender === "user" ? "user" : "model",
-        parts: [
-          { text: msg.text },
-          { text: `File IDs used for operations: ${fileIds.join(", ")}` },
-        ],
-      }));
+  // 3. Build the formatted history for Gemini
+  const formattedHistory = chatHistory
+    .filter((msg) => msg.text !== undefined)
+    .map((msg) => ({
+      role: msg.sender === "user" ? "user" : "model",
+      parts: [
+        { text: msg.text },
+        { text: `File IDs used for operations: ${fileIds.join(", ")}` },
+      ],
+    }));
 
+  const systemInstruction = {
+    role: "system",
+    parts: [
+      { text: systemInstructions },
+      { text: "IMPORTANT: Generate the response containing XML only!" },
+      { text: "IMPORTANT: I want XML only!" },
+      {
+        text: "Remember: Your response should be XML only with no other text!",
+      },
+    ],
+  };
+
+  try {
+    // 4. Start the chat session without any generationConfig
     const chatSession = geminiModel.startChat({
       history: formattedHistory,
-      systemInstruction: {
-        role: "system",
-        parts: [{ text: systemInstructions }, { text: "Generate XML only!" }],
-      },
+      systemInstruction,
     });
 
+    // ---- First attempt ----
     let response = await chatSession.sendMessage(userPrompt);
     let responseText = response.response.text();
-    let maxIterations = 10;
+    console.log("Raw Response:", responseText);
 
+    // ---- Validate XML ----
+    let parsed = parseResponse(responseText);
+    if (parsed.error) {
+      console.warn("First response not valid XML, retrying...");
+      response = await chatSession.sendMessage(
+        "Invalid format, please reply in XML only."
+      );
+      responseText = response.response.text();
+      console.log("Retry Response:", responseText);
+      parsed = parseResponse(responseText);
+      if (parsed.error) {
+        onUpdate("error", {
+          error: "Unable to get a valid XML response after retry",
+        });
+        return;
+      }
+    }
+
+    // 5. Emit any initial thought or answer
+    if (parsed.thought) onUpdate("thought", { thought: parsed.thought });
+    if (parsed.answer) {
+      onUpdate("answer", { answer: parsed.answer });
+      return;
+    }
+
+    // 6. Loop through actions/observations until we get an answer
+    let maxIterations = 9; // we've already done 1 parse
     while (maxIterations-- > 0) {
-      const parsed = parseResponse(responseText);
+      if (!parsed.action) break;
+      console.log("Action:", parsed.action);
+      const observation = await handleAction(parsed.action);
+      console.log("Observation:", observation);
+      onUpdate("observation", { observation });
+
+      response = await chatSession.sendMessage(
+        `<observation>${observation}</observation>`
+      );
+      responseText = response.response.text();
+      console.log("Next Response:", responseText);
+
+      parsed = parseResponse(responseText);
+      if (parsed.error) {
+        onUpdate("error", { error: "Invalid XML received during loop" });
+        return;
+      }
       if (parsed.thought) onUpdate("thought", { thought: parsed.thought });
       if (parsed.answer) {
         onUpdate("answer", { answer: parsed.answer });
         return;
       }
-      if (parsed.action) {
-        const observation = await handleAction(parsed.action);
-        onUpdate("observation", { observation });
-        response = await chatSession.sendMessage(
-          `<observation>${observation}</observation>`
-        );
-        responseText = response.response.text();
-      } else {
-        break;
-      }
     }
 
-    if (maxIterations <= 0)
-      onUpdate("error", {
-        error: "Maximum iterations reached without resolution",
-      });
+    // 7. If we never got an answer
+    onUpdate("error", {
+      error: "Maximum iterations reached without resolution",
+    });
   } catch (error) {
     console.error("Error in chat session:", error);
     onUpdate("error", { error: error.message });
@@ -89,9 +140,9 @@ function parseResponse(responseText) {
   try {
     const parsed = parser.parse(responseText);
     return {
-      thought: parsed.steps?.thought,
-      action: parsed.steps?.action,
-      answer: parsed.answer || parsed.steps?.answer,
+      thought: parsed.response?.steps?.thought,
+      action: parsed.response?.steps?.action,
+      answer: parsed.response?.answer || parsed.response?.steps?.answer,
     };
   } catch (error) {
     console.error("Error parsing response:", error);
@@ -215,32 +266,23 @@ async function handleAction(actionString) {
         descriptionConcat,
       ] = args;
 
-      console.log("Columns : ", columnsStr);
-
-      console.log(args);
-
       let columns = [];
       try {
-        // Attempt to parse columnsStr as JSON array
         columns = JSON.parse(columnsStr);
         if (!Array.isArray(columns)) {
           throw new Error("Parsed result is not an array");
         }
       } catch (error) {
-        // If parsing fails, fall back to pipe separated values
         columns = columnsStr.split("|").map((c) => c.trim());
       }
-      console.log("Delimeter : ", delimiter);
+
       let cleanDelimiter = delimiter.trim();
-      console.log("CleanDelimeter : ", cleanDelimiter);
       if (
         (cleanDelimiter.startsWith('"') && cleanDelimiter.endsWith('"')) ||
         (cleanDelimiter.startsWith("'") && cleanDelimiter.endsWith("'"))
       ) {
         cleanDelimiter = cleanDelimiter.substring(1, cleanDelimiter.length - 1);
       }
-
-      console.log("cleanDelimeter : ", cleanDelimiter);
 
       try {
         const newFile = await concatenateColumnsService({
@@ -294,9 +336,11 @@ async function handleAction(actionString) {
             const existingMapping = acc.find(
               (mapping) => mapping.after === value
             );
-            existingMapping
-              ? existingMapping.before.push(key)
-              : acc.push({ before: [key], after: value });
+            if (existingMapping) {
+              existingMapping.before.push(key);
+            } else {
+              acc.push({ before: [key], after: value });
+            }
             return acc;
           },
           []

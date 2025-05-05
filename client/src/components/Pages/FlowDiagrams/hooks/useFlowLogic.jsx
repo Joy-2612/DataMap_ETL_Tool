@@ -175,6 +175,24 @@ const useFlowLogic = () => {
     [setNodes]
   );
 
+  const loadTemplate = useCallback(
+    (template) => {
+      // template.nodes and template.edges come from your saved JSON
+      const nodesWithHandlers = template.nodes.map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          // re-attach the delete callback
+          onDelete: handleDeleteNode,
+        },
+      }));
+
+      setNodes(nodesWithHandlers);
+      setEdges(template.edges || []);
+    },
+    [setNodes, setEdges, handleDeleteNode]
+  );
+
   // Edge double-click
   const onEdgeDoubleClick = (event, edge) => {
     event.preventDefault();
@@ -358,6 +376,7 @@ const useFlowLogic = () => {
     closeModal,
     // store and export the instance setter:
     setReactFlowInstance,
+    loadTemplate,
   };
 };
 

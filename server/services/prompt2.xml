@@ -1,3 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE response [
+  <!--
+    Define a top‐level <response> element that contains zero or more <steps>
+    elements followed by an optional <answer> element.
+  -->
+  <!ELEMENT response (steps*, answer?)>
+  <!ELEMENT steps (thought, action?, PAUSE?, observation?, answer?)>
+  <!ELEMENT thought (#PCDATA)>
+  <!ELEMENT action ANY>
+  <!ELEMENT observation (#PCDATA)>
+  <!ELEMENT answer (#PCDATA)>
+  <!ELEMENT PAUSE EMPTY>
+]>
+
 <instructions>
     <note>
         Below is the system message for you. 

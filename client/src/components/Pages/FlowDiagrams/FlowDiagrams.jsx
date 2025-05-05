@@ -4,6 +4,7 @@ import ReactFlow, {
   Controls,
   Background,
   ReactFlowProvider,
+  MarkerType,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { toast } from "sonner";
@@ -147,7 +148,17 @@ const FlowDiagram = () => {
   };
 
   const handleLoadTemplate = (template) => {
-    setNodes(template.flowData.nodes);
+    // re-attach a safe delete handler to each node
+    const nodesWithHandlers = template.flowData.nodes.map((node) => ({
+      ...node,
+      data: {
+        ...node.data,
+        onDelete: (nodeId) =>
+          setNodes((nds) => nds.filter((n) => n.id !== nodeId)),
+      },
+    }));
+
+    setNodes(nodesWithHandlers);
     setEdges(template.flowData.edges);
     setIsTemplateModalOpen(false);
     toast.success(`Template "${template.name}" loaded`);
@@ -270,6 +281,24 @@ const FlowDiagram = () => {
             onNodeClick={onNodeClick}
             fitView
             nodeTypes={nodeTypes}
+            defaultEdgeOptions={{
+              // bolden the line itself
+              style: { strokeWidth: 4 },
+              // big, filled arrow in the middle
+              markerMid: {
+                type: MarkerType.ArrowClosed,
+                width: 12,
+                height: 12,
+                color: "#222", // arrow fill/stroke color
+              },
+              // (optional) also keep an arrow at the end
+              markerEnd: {
+                type: MarkerType.ArrowClosed,
+                width: 12,
+                height: 12,
+                color: "#222",
+              },
+            }}
           >
             <MiniMap className={styles.minimap} />
             <Controls className={styles.controls} />
