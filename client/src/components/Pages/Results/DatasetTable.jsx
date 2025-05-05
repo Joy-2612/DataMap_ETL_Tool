@@ -20,11 +20,11 @@ const DatasetTable = ({
   const [draftName, setDraftName] = React.useState("");
 
   const filteredDatasets = useMemo(() => {
-    let filtered = datasets.filter(
+    let filtered = datasets?.filter(
       (dataset) =>
-        dataset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (dataset.description &&
-          dataset.description.toLowerCase().includes(searchTerm.toLowerCase()))
+        dataset?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (dataset?.description &&
+          dataset?.description.toLowerCase().includes(searchTerm.toLowerCase()))
     );
     if (sortBy) {
       filtered.sort((a, b) => {
@@ -113,8 +113,8 @@ const DatasetTable = ({
           </tr>
         </thead>
         <tbody>
-          {filteredDatasets.length > 0 ? (
-            filteredDatasets.map((dataset, index) => (
+          {filteredDatasets?.length > 0 ? (
+            filteredDatasets?.map((dataset, index) => (
               <tr key={index} className={styles.tableRow}>
                 <td className={styles.tableData}>
                   {editingId === dataset._id ? (
