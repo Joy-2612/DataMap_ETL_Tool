@@ -38,7 +38,7 @@ const Split = () => {
   const fetchDatasets = async () => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/file/alldatasets/${userId}`
+        `https://datamap-etl-tool.onrender.com/api/file/alldatasets/${userId}`
       );
       const data = await response.json();
       setDatasets(data.data);
@@ -72,7 +72,7 @@ const Split = () => {
     try {
       setIsLoading(true);
       const response = await fetch(
-        `http://localhost:5000/api/file/dataset/${dataset._id}`
+        `https://datamap-etl-tool.onrender.com/api/file/dataset/${dataset._id}`
       );
       if (!response.ok) {
         throw new Error("Failed to fetch the dataset.");
@@ -146,31 +146,37 @@ const Split = () => {
       let response;
 
       if (activeTab === "general") {
-        response = await fetch("http://localhost:5000/api/file/split", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            fileId: dataset1._id,
-            splits,
-            description: description,
-            outputFileName: outputFileName,
-          }),
-        });
+        response = await fetch(
+          "https://datamap-etl-tool.onrender.com/api/file/split",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              fileId: dataset1._id,
+              splits,
+              description: description,
+              outputFileName: outputFileName,
+            }),
+          }
+        );
       } else {
-        response = await fetch("http://localhost:5000/api/file/splitAddress", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            fileId: dataset1._id,
-            addressName: addressColumn,
-            description: description,
-            outputFileName: outputFileName,
-          }),
-        });
+        response = await fetch(
+          "https://datamap-etl-tool.onrender.com/api/file/splitAddress",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              fileId: dataset1._id,
+              addressName: addressColumn,
+              description: description,
+              outputFileName: outputFileName,
+            }),
+          }
+        );
       }
 
       if (!response.ok) {
@@ -181,7 +187,7 @@ const Split = () => {
       const { newFileId, message } = await response.json();
 
       const newDatasetResponse = await fetch(
-        `http://localhost:5000/api/file/dataset/${newFileId}`
+        `https://datamap-etl-tool.onrender.com/api/file/dataset/${newFileId}`
       );
 
       if (!newDatasetResponse.ok) {

@@ -22,7 +22,7 @@ function useAIChat() {
       const fetchDatasets = async () => {
         try {
           const response = await fetch(
-            `http://localhost:5000/api/file/alldatasets/${userId}`
+            `https://datamap-etl-tool.onrender.com/api/file/alldatasets/${userId}`
           );
           const data = await response.json();
           if (data && data.data) {
@@ -55,7 +55,7 @@ function useAIChat() {
   const fetchDatasetById = async (id) => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/file/dataset/${id}`
+        `https://datamap-etl-tool.onrender.com/api/file/dataset/${id}`
       );
       const data = await response.json();
       const dataset = data?.data;
@@ -271,15 +271,18 @@ function useAIChat() {
   const autoSaveChat = async (messagesToSave) => {
     console.log("Auto-saving chat...");
     try {
-      const response = await fetch("http://localhost:5000/api/ai/chats", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chatId: activeChatId,
-          userId,
-          messages: messagesToSave.filter((msg) => !msg.isLoading),
-        }),
-      });
+      const response = await fetch(
+        "https://datamap-etl-tool.onrender.com/api/ai/chats",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chatId: activeChatId,
+            userId,
+            messages: messagesToSave.filter((msg) => !msg.isLoading),
+          }),
+        }
+      );
 
       console.log("Auto-save response:", response);
 
@@ -370,15 +373,18 @@ function useAIChat() {
 
     // SSE request
     try {
-      const response = await fetch("http://localhost:5000/api/ai/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId,
-          prompt: finalPrompt,
-          chatId: activeChatId,
-        }),
-      });
+      const response = await fetch(
+        "https://datamap-etl-tool.onrender.com/api/ai/ask",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId,
+            prompt: finalPrompt,
+            chatId: activeChatId,
+          }),
+        }
+      );
 
       if (!response.body) {
         throw new Error("No response body from the SSE endpoint.");

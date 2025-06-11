@@ -20,7 +20,7 @@ const SidebarStandardize = ({ nodeId, nodes, setNodes }) => {
   const selectedNode = nodes.find((node) => node.id === nodeId);
 
   const userId = localStorage.getItem("userId");
-  const disabled=true;
+  const disabled = true;
 
   // Parse CSV File
   const parseCsvFile = (file) => {
@@ -39,36 +39,40 @@ const SidebarStandardize = ({ nodeId, nodes, setNodes }) => {
 
   // Fetch available datasets
   useEffect(() => {
-            const fetchDatasets = async () => {
-              try {
-                const response1 = await fetch(`http://localhost:5000/api/file/datasets/${userId}`);
-        const response2 = await fetch(`http://localhost:5000/api/file/results/${userId}`);
+    const fetchDatasets = async () => {
+      try {
+        const response1 = await fetch(
+          `https://datamap-etl-tool.onrender.com/api/file/datasets/${userId}`
+        );
+        const response2 = await fetch(
+          `https://datamap-etl-tool.onrender.com/api/file/results/${userId}`
+        );
         const data1 = await response1.json();
-        const data2= await response2.json();
-        
-                // Match datasets with sourcenode.id
-                if (selectedNode && selectedNode.data.sourcenodes) {
-                  const sourceNodeIds = selectedNode.data.sourcenodes.map((node) => node.id);
-                  // console.log("S",sourceNodeIds);
-                  const matchedDataset1 = data1.data.find((dataset) => dataset._id === sourceNodeIds[0])
-                  || data2.data.find(
-                    (dataset) => dataset._id === sourceNodeIds[0]
-                  );;
-        
-                  // console.log("D",matchedDataset1); 
-                  if (matchedDataset1) {
-                    setSelectedDataset(matchedDataset1);
-                    // console.log("D",matchedDataset1);
-                    fetchColumns(matchedDataset1, setColumns);
-                  }
-                  
-                }
-              } catch (error) {
-                console.error("Error fetching datasets: ", error);
-              }
-            };
-            fetchDatasets();
-          }, [userId, selectedNode])
+        const data2 = await response2.json();
+
+        // Match datasets with sourcenode.id
+        if (selectedNode && selectedNode.data.sourcenodes) {
+          const sourceNodeIds = selectedNode.data.sourcenodes.map(
+            (node) => node.id
+          );
+          // console.log("S",sourceNodeIds);
+          const matchedDataset1 =
+            data1.data.find((dataset) => dataset._id === sourceNodeIds[0]) ||
+            data2.data.find((dataset) => dataset._id === sourceNodeIds[0]);
+
+          // console.log("D",matchedDataset1);
+          if (matchedDataset1) {
+            setSelectedDataset(matchedDataset1);
+            // console.log("D",matchedDataset1);
+            fetchColumns(matchedDataset1, setColumns);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching datasets: ", error);
+      }
+    };
+    fetchDatasets();
+  }, [userId, selectedNode]);
 
   // Fetch columns when dataset is selected
   const fetchColumns = async (dataset) => {
@@ -76,8 +80,6 @@ const SidebarStandardize = ({ nodeId, nodes, setNodes }) => {
     setCsvData(csv);
     setColumns(Object.keys(csv[0]));
   };
-
-
 
   // Update unique values when column changes
   useEffect(() => {
@@ -191,9 +193,10 @@ const SidebarStandardize = ({ nodeId, nodes, setNodes }) => {
         <Dropdown
           datasets={datasets}
           selected={selectedDataset}
-          disabled={true}  // Add disabled prop
+          disabled={true} // Add disabled prop
           onSelect={(dataset) => {
-            if (!disabled) {  // Add condition to prevent selection
+            if (!disabled) {
+              // Add condition to prevent selection
               setSelectedDataset(dataset);
               fetchColumns(dataset);
               setIsDropdownOpen(false);
@@ -201,7 +204,6 @@ const SidebarStandardize = ({ nodeId, nodes, setNodes }) => {
           }}
           isOpen={isDropdownOpen}
           setIsOpen={setIsDropdownOpen}
-    
         />
       </div>
 

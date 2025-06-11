@@ -111,8 +111,12 @@ const RightSideBar = ({
     const fetchData = async () => {
       try {
         const [datasetsResponse, resultsResponse] = await Promise.all([
-          fetch(`http://localhost:5000/api/file/datasets/${userId}`),
-          fetch(`http://localhost:5000/api/file/results/${userId}`),
+          fetch(
+            `https://datamap-etl-tool.onrender.com/api/file/datasets/${userId}`
+          ),
+          fetch(
+            `https://datamap-etl-tool.onrender.com/api/file/results/${userId}`
+          ),
         ]);
 
         const datasetsData = await datasetsResponse.json();
@@ -161,7 +165,7 @@ const RightSideBar = ({
     try {
       setSelectedItem(dataset);
       const response = await fetch(
-        `http://localhost:5000/api/file/dataset/${dataset._id}`
+        `https://datamap-etl-tool.onrender.com/api/file/dataset/${dataset._id}`
       );
       if (!response.ok) throw new Error("Failed to fetch file data");
 

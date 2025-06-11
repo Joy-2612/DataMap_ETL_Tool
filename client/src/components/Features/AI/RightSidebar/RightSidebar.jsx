@@ -100,7 +100,7 @@ const RightSidebar = ({ onSelectChat, activeChatId }) => {
     if (!userId) return;
     try {
       const response = await fetch(
-        `http://localhost:5000/api/ai/chats/${userId}`
+        `https://datamap-etl-tool.onrender.com/api/ai/chats/${userId}`
       );
       const data = await response.json();
       if (data.success) {
@@ -132,7 +132,7 @@ const RightSidebar = ({ onSelectChat, activeChatId }) => {
   const handleDeleteChat = async (chatId) => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/ai/chats/${chatId}`,
+        `https://datamap-etl-tool.onrender.com/api/ai/chats/${chatId}`,
         {
           method: "DELETE",
         }

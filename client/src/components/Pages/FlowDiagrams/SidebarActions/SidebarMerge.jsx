@@ -16,11 +16,12 @@ const SidebarMerge = ({ nodeId, nodes, setNodes }) => {
 
   const userId = localStorage.getItem("userId");
   const selectedNode = nodes.find((node) => node.id === nodeId);
-  const disabled=true;
+  const disabled = true;
 
   useEffect(() => {
     if (selectedNode && selectedNode.data.parameters) {
-      const { dataset1, dataset2, column1, column2 } = selectedNode.data.parameters;
+      const { dataset1, dataset2, column1, column2 } =
+        selectedNode.data.parameters;
       setDataset1(dataset1);
       setDataset2(dataset2);
       setSelectedColumn1(column1 || "");
@@ -33,20 +34,29 @@ const SidebarMerge = ({ nodeId, nodes, setNodes }) => {
   useEffect(() => {
     const fetchDatasets = async () => {
       try {
-        const response1 = await fetch(`http://localhost:5000/api/file/datasets/${userId}`);
-        const response2 = await fetch(`http://localhost:5000/api/file/results/${userId}`);
+        const response1 = await fetch(
+          `https://datamap-etl-tool.onrender.com/api/file/datasets/${userId}`
+        );
+        const response2 = await fetch(
+          `https://datamap-etl-tool.onrender.com/api/file/results/${userId}`
+        );
         const data1 = await response1.json();
-        const data2= await response2.json();
-    
-      
+        const data2 = await response2.json();
+
         // Match datasets with sourcenode.id
         if (selectedNode && selectedNode.data.sourcenodes) {
-          const sourceNodeIds = selectedNode.data.sourcenodes.map((node) => node.id);
+          const sourceNodeIds = selectedNode.data.sourcenodes.map(
+            (node) => node.id
+          );
           // console.log("S",sourceNodeIds);
-          const matchedDataset1 = data1.data.find((dataset) => dataset._id === sourceNodeIds[0]) || data2.data.find((dataset) => dataset._id === sourceNodeIds[0]);
-           const matchedDataset2 = data1.data.find((dataset) => dataset._id === sourceNodeIds[1]) || data2.data.find((dataset) => dataset._id === sourceNodeIds[1]);
-                
-          console.log("D",matchedDataset1); 
+          const matchedDataset1 =
+            data1.data.find((dataset) => dataset._id === sourceNodeIds[0]) ||
+            data2.data.find((dataset) => dataset._id === sourceNodeIds[0]);
+          const matchedDataset2 =
+            data1.data.find((dataset) => dataset._id === sourceNodeIds[1]) ||
+            data2.data.find((dataset) => dataset._id === sourceNodeIds[1]);
+
+          console.log("D", matchedDataset1);
           if (matchedDataset1) {
             setDataset1(matchedDataset1);
             // console.log("D",matchedDataset1);
@@ -114,24 +124,25 @@ const SidebarMerge = ({ nodeId, nodes, setNodes }) => {
       <div className={styles.formGroup}>
         <div className={styles.labelContainer}>
           <label className={styles.label}>Dataset 1</label>
-          
-          <div className={styles.dropdown}>
 
-          <Dropdown
-         
-          selected={dataset1}
-          disabled={true} 
-          onSelect={(dataset) => {
-            if(!disabled){
-              setDataset1(dataset);
-              fetchColumns(dataset, setColumns1);
-            }
-          }}
-          label="Select Dataset 1"
-          />
+          <div className={styles.dropdown}>
+            <Dropdown
+              selected={dataset1}
+              disabled={true}
+              onSelect={(dataset) => {
+                if (!disabled) {
+                  setDataset1(dataset);
+                  fetchColumns(dataset, setColumns1);
+                }
+              }}
+              label="Select Dataset 1"
+            />
           </div>
         </div>
-        <select value={selectedColumn1} onChange={(e) => setSelectedColumn1(e.target.value)}>
+        <select
+          value={selectedColumn1}
+          onChange={(e) => setSelectedColumn1(e.target.value)}
+        >
           <option value="">Select Column from Dataset 1</option>
           {columns1.map((col, index) => (
             <option key={index} value={col}>
@@ -143,22 +154,23 @@ const SidebarMerge = ({ nodeId, nodes, setNodes }) => {
         <div className={styles.labelContainer}>
           <label className={styles.label}>Dataset 2</label>
           <div className={styles.dropdown}>
-
-          <Dropdown
-            selected={dataset2}
-            disabled={true}
-            onSelect={(dataset) => {
-              if(!disabled){
-                setDataset2(dataset);
-                fetchColumns(dataset, setColumns2);
-
-              }
-            }}
-            label="Select Dataset 2"
-          />
+            <Dropdown
+              selected={dataset2}
+              disabled={true}
+              onSelect={(dataset) => {
+                if (!disabled) {
+                  setDataset2(dataset);
+                  fetchColumns(dataset, setColumns2);
+                }
+              }}
+              label="Select Dataset 2"
+            />
           </div>
         </div>
-        <select value={selectedColumn2} onChange={(e) => setSelectedColumn2(e.target.value)}>
+        <select
+          value={selectedColumn2}
+          onChange={(e) => setSelectedColumn2(e.target.value)}
+        >
           <option value="">Select Column from Dataset 2</option>
           {columns2.map((col, index) => (
             <option key={index} value={col}>
@@ -167,8 +179,15 @@ const SidebarMerge = ({ nodeId, nodes, setNodes }) => {
           ))}
         </select>
 
-        <button onClick={handleSubmit} disabled={!selectedColumn1 || !selectedColumn2 || isLoading}>
-          {isLoading ? <span className={styles.loader}></span> : "Set Parameters"}
+        <button
+          onClick={handleSubmit}
+          disabled={!selectedColumn1 || !selectedColumn2 || isLoading}
+        >
+          {isLoading ? (
+            <span className={styles.loader}></span>
+          ) : (
+            "Set Parameters"
+          )}
         </button>
       </div>
     </div>

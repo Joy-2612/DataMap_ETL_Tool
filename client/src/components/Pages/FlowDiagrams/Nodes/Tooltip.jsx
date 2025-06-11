@@ -23,7 +23,7 @@ const Tooltip = ({ onDelete, id, data }) => {
       console.log("Fetching dataset with ID:", dataset._id);
 
       const response = await fetch(
-        `http://localhost:5000/api/file/dataset/${dataset._id}`
+        `https://datamap-etl-tool.onrender.com/api/file/dataset/${dataset._id}`
       );
       if (!response.ok) throw new Error("Failed to fetch file data");
 
@@ -62,7 +62,7 @@ const Tooltip = ({ onDelete, id, data }) => {
   // Handle delete with error catching
   const handleDelete = () => {
     try {
-      if (typeof onDelete === 'function') {
+      if (typeof onDelete === "function") {
         onDelete(id);
       } else {
         console.error("onDelete callback is not defined");

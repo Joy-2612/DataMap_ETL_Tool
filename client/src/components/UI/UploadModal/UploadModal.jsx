@@ -22,10 +22,13 @@ const UploadModal = ({ show, onClose, onUpload, userId }) => {
       formData.append("userId", userId);
 
       try {
-        const response = await fetch("http://localhost:5000/api/file/upload", {
-          method: "POST",
-          body: formData,
-        });
+        const response = await fetch(
+          "https://datamap-etl-tool.onrender.com/api/file/upload",
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
 
         if (response.ok) {
           toast.success(`${selectedFiles.length} files uploaded successfully`);

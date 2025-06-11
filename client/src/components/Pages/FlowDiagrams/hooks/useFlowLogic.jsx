@@ -327,7 +327,7 @@ const useFlowLogic = () => {
     try {
       const userId = localStorage.getItem("userId");
       const response = await fetch(
-        `http://localhost:5000/api/file/results/${userId}`
+        `https://datamap-etl-tool.onrender.com/api/file/results/${userId}`
       );
 
       if (!response.ok) {

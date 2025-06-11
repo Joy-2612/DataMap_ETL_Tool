@@ -25,7 +25,7 @@ const Datasets = () => {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:5000/api/file/results/${userId}`
+        `https://datamap-etl-tool.onrender.com/api/file/results/${userId}`
       );
       const data = await response.json();
       setDatasets(data.data);
@@ -39,7 +39,7 @@ const Datasets = () => {
   const handleDelete = async (datasetId) => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/file/dataset/${datasetId}`,
+        `https://datamap-etl-tool.onrender.com/api/file/dataset/${datasetId}`,
         { method: "DELETE" }
       );
       if (response.ok) {
@@ -89,7 +89,7 @@ const Datasets = () => {
     // await axios.patch(`/api/dataset/${id}/rename`, { newName });
     try {
       const response = await fetch(
-        `http://localhost:5000/api/file/dataset/${id}/rename`,
+        `https://datamap-etl-tool.onrender.com/api/file/dataset/${id}/rename`,
         {
           method: "PATCH",
           headers: {

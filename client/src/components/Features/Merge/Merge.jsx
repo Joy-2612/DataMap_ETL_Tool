@@ -35,7 +35,7 @@ const Merge = () => {
     const fetchDatasets = async () => {
       try {
         const response = await fetch(
-          `http://localhost:5000/api/file/alldatasets/${userId}`
+          `https://datamap-etl-tool.onrender.com/api/file/alldatasets/${userId}`
         );
         const data = await response.json();
         setDatasets(data.data);
@@ -95,20 +95,23 @@ const Merge = () => {
 
     try {
       setIsLoading(true);
-      const response = await fetch("http://localhost:5000/api/file/merge", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          dataset1: dataset1?._id,
-          dataset2: dataset2?._id,
-          column1: selectedColumn1,
-          column2: selectedColumn2,
-          outputFileName,
-          description,
-        }),
-      });
+      const response = await fetch(
+        "https://datamap-etl-tool.onrender.com/api/file/merge",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            dataset1: dataset1?._id,
+            dataset2: dataset2?._id,
+            column1: selectedColumn1,
+            column2: selectedColumn2,
+            outputFileName,
+            description,
+          }),
+        }
+      );
 
       const data = await response.json();
       setIsLoading(false);

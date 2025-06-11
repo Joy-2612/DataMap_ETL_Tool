@@ -7,7 +7,7 @@ import Dropdown from "../../UI/Dropdown/Dropdown";
 import DataTable from "../../UI/DataTable/DataTable";
 import styles from "./Concatenate.module.css";
 
-const Concatenate =  ({ isHidden }) => {
+const Concatenate = ({ isHidden }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [outputFileName, setOutputFileName] = useState("");
   const [description, setDescription] = useState("");
@@ -35,7 +35,7 @@ const Concatenate =  ({ isHidden }) => {
     const fetchDatasets = async () => {
       try {
         const response = await fetch(
-          `http://localhost:5000/api/file/alldatasets/${userId}`
+          `https://datamap-etl-tool.onrender.com/api/file/alldatasets/${userId}`
         );
         const data = await response.json();
         setDatasets(data.data);
@@ -108,7 +108,7 @@ const Concatenate =  ({ isHidden }) => {
     try {
       setIsLoading(true);
       const response = await fetch(
-        "http://localhost:5000/api/file/concatenate",
+        "https://datamap-etl-tool.onrender.com/api/file/concatenate",
         {
           method: "POST",
           headers: {
@@ -123,7 +123,6 @@ const Concatenate =  ({ isHidden }) => {
             description,
           }),
         }
-        
       );
       const data = await response.json();
 
@@ -157,7 +156,7 @@ const Concatenate =  ({ isHidden }) => {
     try {
       // Fetch the dataset using the newFileId
       const response = await fetch(
-        `http://localhost:5000/api/file/dataset/${newFileId}`
+        `https://datamap-etl-tool.onrender.com/api/file/dataset/${newFileId}`
       );
       const data = await response.json();
       if (response.ok) {
@@ -176,8 +175,8 @@ const Concatenate =  ({ isHidden }) => {
 
   return (
     <div className={styles.concatenateContainer}>
-      {!isHidden && (<div className={styles.title}>Concatenate Columns</div>)}
-      
+      {!isHidden && <div className={styles.title}>Concatenate Columns</div>}
+
       <div className={styles.formGroup}>
         <div className={styles.labelContainer}>
           {dataset1 && <label>Dataset</label>}

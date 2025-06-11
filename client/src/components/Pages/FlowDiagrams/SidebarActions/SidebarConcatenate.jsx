@@ -19,7 +19,7 @@ const SidebarConcatenate = ({ nodeId, nodes, setNodes }) => {
   const userId = localStorage.getItem("userId");
 
   const selectedNode = nodes.find((node) => node.id === nodeId);
-  const disabled=true;
+  const disabled = true;
 
   //  console.log("d",selectedNode.data.parameters);
 
@@ -42,10 +42,10 @@ const SidebarConcatenate = ({ nodeId, nodes, setNodes }) => {
     const fetchDatasets = async () => {
       try {
         const response1 = await fetch(
-          `http://localhost:5000/api/file/datasets/${userId}`
+          `https://datamap-etl-tool.onrender.com/api/file/datasets/${userId}`
         );
         const response2 = await fetch(
-          `http://localhost:5000/api/file/results/${userId}`
+          `https://datamap-etl-tool.onrender.com/api/file/results/${userId}`
         );
         const data1 = await response1.json();
         const data2 = await response2.json();
@@ -161,11 +161,10 @@ const SidebarConcatenate = ({ nodeId, nodes, setNodes }) => {
             disabled={true}
             // onSelect={handleDatasetSelect} // Only handles selection
             onSelect={(dataset) => {
-              if(!disabled){
+              if (!disabled) {
                 setDataset1(dataset);
                 fetchColumn(dataset, setColumns1);
               }
-                
             }}
             // onView={handleCsvView} // Separate handler for viewing CSV
             // isOpen={isDropdownOpen} // Use the new state variables
@@ -221,7 +220,11 @@ const SidebarConcatenate = ({ nodeId, nodes, setNodes }) => {
             selectedColumns.length === 0 || !finalColumnName || isLoading
           }
         >
-          {isLoading ? <span className={styles.loader}></span> : "Set Parameters"}
+          {isLoading ? (
+            <span className={styles.loader}></span>
+          ) : (
+            "Set Parameters"
+          )}
         </button>
       </div>
     </div>

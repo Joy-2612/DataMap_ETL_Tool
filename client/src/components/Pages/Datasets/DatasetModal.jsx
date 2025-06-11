@@ -50,11 +50,14 @@ const DatasetModal = ({ dataset, onClose }) => {
     setIsSuggestionsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/ai/suggestions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fileId: dataset._id }),
-      });
+      const response = await fetch(
+        "https://datamap-etl-tool.onrender.com/api/ai/suggestions",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fileId: dataset._id }),
+        }
+      );
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();

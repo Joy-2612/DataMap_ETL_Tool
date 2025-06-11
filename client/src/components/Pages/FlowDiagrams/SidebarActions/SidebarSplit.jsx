@@ -16,13 +16,16 @@ const SidebarSplit = ({ nodeId, nodes, setNodes }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const selectedNode = nodes.find((node) => node.id === nodeId);
   const userId = localStorage.getItem("userId");
-  const disabled=true;
+  const disabled = true;
 
   // Initialize state with previously set parameters
   useEffect(() => {
     if (selectedNode && selectedNode.data.parameters) {
-      const { splitType, splits: savedSplits, addressColumn: savedAddressColumn } =
-        selectedNode.data.parameters;
+      const {
+        splitType,
+        splits: savedSplits,
+        addressColumn: savedAddressColumn,
+      } = selectedNode.data.parameters;
 
       // Set active tab
       setActiveTab(splitType || "general");
@@ -42,10 +45,10 @@ const SidebarSplit = ({ nodeId, nodes, setNodes }) => {
         const fetchDatasets = async () => {
           try {
             const response1 = await fetch(
-              `http://localhost:5000/api/file/datasets/${userId}`
+              `https://datamap-etl-tool.onrender.com/api/file/datasets/${userId}`
             );
             const response2 = await fetch(
-              `http://localhost:5000/api/file/results/${userId}`
+              `https://datamap-etl-tool.onrender.com/api/file/results/${userId}`
             );
             const data1 = await response1.json();
             const data2 = await response2.json();
@@ -53,10 +56,12 @@ const SidebarSplit = ({ nodeId, nodes, setNodes }) => {
             // Find the dataset by ID
             const matchedDataset =
               data1.data.find(
-                (dataset) => dataset._id === selectedNode.data.parameters.datasetId
+                (dataset) =>
+                  dataset._id === selectedNode.data.parameters.datasetId
               ) ||
               data2.data.find(
-                (dataset) => dataset._id === selectedNode.data.parameters.datasetId
+                (dataset) =>
+                  dataset._id === selectedNode.data.parameters.datasetId
               );
 
             if (matchedDataset) {
@@ -77,10 +82,10 @@ const SidebarSplit = ({ nodeId, nodes, setNodes }) => {
     const fetchDatasets = async () => {
       try {
         const response1 = await fetch(
-          `http://localhost:5000/api/file/datasets/${userId}`
+          `https://datamap-etl-tool.onrender.com/api/file/datasets/${userId}`
         );
         const response2 = await fetch(
-          `http://localhost:5000/api/file/results/${userId}`
+          `https://datamap-etl-tool.onrender.com/api/file/results/${userId}`
         );
         const data1 = await response1.json();
         const data2 = await response2.json();
@@ -224,11 +229,12 @@ const SidebarSplit = ({ nodeId, nodes, setNodes }) => {
         <Dropdown
           datasets={datasets}
           selected={dataset1}
-          disabled={true} 
+          disabled={true}
           onSelect={(dataset) => {
-            if(!disabled){
-
-              {handleDatasetSelect(dataset)}
+            if (!disabled) {
+              {
+                handleDatasetSelect(dataset);
+              }
             }
           }}
           isOpen={isDropdownOpen}
@@ -269,7 +275,9 @@ const SidebarSplit = ({ nodeId, nodes, setNodes }) => {
                   <option value=";">Semicolon (;)</option>
                   <option value="|">Pipe (|)</option>
                 </select>
-                <label htmlFor="">Enter number of delimiters to be splitted</label>
+                <label htmlFor="">
+                  Enter number of delimiters to be splitted
+                </label>
                 <input
                   type="number"
                   min="0"

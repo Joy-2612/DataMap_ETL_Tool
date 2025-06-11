@@ -51,7 +51,7 @@ const Standardize = () => {
   const fetchDatasets = async () => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/file/alldatasets/${userId}`
+        `https://datamap-etl-tool.onrender.com/api/file/alldatasets/${userId}`
       );
       const data = await response.json();
       setDatasets(data.data);
@@ -126,7 +126,7 @@ const Standardize = () => {
     try {
       setIsLoading(true);
       const response = await fetch(
-        "http://localhost:5000/api/file/standardize",
+        "https://datamap-etl-tool.onrender.com/api/file/standardize",
         {
           method: "POST",
           headers: {
@@ -173,7 +173,7 @@ const Standardize = () => {
     try {
       // Fetch the dataset using the newFileId
       const response = await fetch(
-        `http://localhost:5000/api/file/dataset/${newFileId}`
+        `https://datamap-etl-tool.onrender.com/api/file/dataset/${newFileId}`
       );
       const data = await response.json();
       if (response.ok) {

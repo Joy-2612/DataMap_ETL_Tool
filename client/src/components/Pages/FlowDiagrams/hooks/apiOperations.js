@@ -1,7 +1,8 @@
 import { toast } from "sonner";
 
 export const handleActionOperationsOnRun = async (actionNode) => {
-  const { actionType, parameters, sourcenodes, destinationNode } = actionNode.data;
+  const { actionType, parameters, sourcenodes, destinationNode } =
+    actionNode.data;
   const datasetIds = sourcenodes.map((source) => source.id);
 
   try {
@@ -10,7 +11,7 @@ export const handleActionOperationsOnRun = async (actionNode) => {
 
     switch (actionType) {
       case "concatenate":
-        endpoint = "http://localhost:5000/api/file/concatenate";
+        endpoint = "https://datamap-etl-tool.onrender.com/api/file/concatenate";
         payload = {
           dataset: datasetIds[0],
           columns: parameters.columns,
@@ -22,7 +23,7 @@ export const handleActionOperationsOnRun = async (actionNode) => {
         break;
 
       case "merge":
-        endpoint = "http://localhost:5000/api/file/merge";
+        endpoint = "https://datamap-etl-tool.onrender.com/api/file/merge";
         payload = {
           dataset1: datasetIds[0],
           dataset2: datasetIds[1],
@@ -34,7 +35,7 @@ export const handleActionOperationsOnRun = async (actionNode) => {
         break;
 
       case "standardize":
-        endpoint = "http://localhost:5000/api/file/standardize";
+        endpoint = "https://datamap-etl-tool.onrender.com/api/file/standardize";
         payload = {
           datasetId: datasetIds[0],
           column: parameters.column,
@@ -46,7 +47,7 @@ export const handleActionOperationsOnRun = async (actionNode) => {
 
       case "split":
         if (parameters.splitType === "general") {
-          endpoint = "http://localhost:5000/api/file/split";
+          endpoint = "https://datamap-etl-tool.onrender.com/api/file/split";
           payload = {
             fileId: datasetIds[0],
             splits: parameters.splits,
@@ -54,7 +55,8 @@ export const handleActionOperationsOnRun = async (actionNode) => {
             description: destinationNode.description,
           };
         } else if (parameters.splitType === "address") {
-          endpoint = "http://localhost:5000/api/file/splitAddress";
+          endpoint =
+            "https://datamap-etl-tool.onrender.com/api/file/splitAddress";
           payload = {
             fileId: datasetIds[0],
             addressName: parameters.addressName,
@@ -80,10 +82,12 @@ export const handleActionOperationsOnRun = async (actionNode) => {
     console.log("Backend Response:", data);
 
     if (response.ok) {
-      toast.success(`Operation completed successfully! New file ID: ${data.newFileId}`);
+      toast.success(
+        `Operation completed successfully! New file ID: ${data.newFileId}`
+      );
 
       const datasetResponse = await fetch(
-        `http://localhost:5000/api/file/dataset/${data.newFileId}`
+        `https://datamap-etl-tool.onrender.com/api/file/dataset/${data.newFileId}`
       );
       if (!datasetResponse.ok) {
         throw new Error("Failed to fetch dataset details");
@@ -103,7 +107,9 @@ export const handleActionOperationsOnRun = async (actionNode) => {
       throw new Error(data.message);
     }
   } catch (error) {
-    toast.error(`An error occurred while performing the ${actionType} operation.`);
+    toast.error(
+      `An error occurred while performing the ${actionType} operation.`
+    );
     console.error(error);
     throw error;
   }
