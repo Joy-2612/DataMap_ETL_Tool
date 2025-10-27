@@ -1,0 +1,52 @@
+---
+description: Automated architecture documentation management for PRs
+globs: **/*.py, src/**, tests/**
+alwaysApply: true
+---
+
+# Architecture Documentation Update Rules
+
+## Architecture Analysis Process
+- Analyze code changes in the PR diff to identify:
+  - New components, services, or modules
+  - Modified system interactions or data flows
+  - Changes to API endpoints or database schemas
+  - New dependencies or architectural patterns
+
+## Architecture.md Structure Requirements
+- **System Overview**: High-level architecture diagram (Mermaid syntax)
+- **Core Components**: Key services, modules, and their responsibilities  
+- **Data Flow**: How data moves through the system
+- **API Contracts**: External interfaces and dependencies
+- **Infrastructure**: Deployment architecture and cloud resources
+- **Security Model**: Authentication, authorization, and data protection
+- **Database Design**: Schema structure and relationships
+
+## Documentation Updates
+- Update existing sections when code changes affect architecture
+- Create a new architecture.md if it does not exist
+- Add new sections for new components or significant changes (only if relevant section is not there)
+- Use Mermaid diagrams for visual representations
+- Keep descriptions concise but comprehensive
+- Include decision rationale for architectural choices
+
+## Output Requirements
+- Generate or update `architecture.md` in the repository root
+- Use clear Markdown formatting with proper headers
+- Include updated Mermaid diagrams when system structure changes
+- Add timestamp and PR reference for change tracking
+- Ensure documentation stays synchronized with code changes
+
+## Mermaid Diagram Examples
+Use these patterns for common architectural elements:
+
+graph TD
+A[Frontend] --> B[API Gateway]
+B --> C[Auth Service]
+B --> D[Business Logic]
+D --> E[Database]
+
+# Remember
+- Focus more on newer version of repository instead of changes made.
+- Don't include a separate section for PR Changes.
+- Ensure clarity and maintainability of the documentation

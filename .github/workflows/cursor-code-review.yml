@@ -1,0 +1,152 @@
+name: Cursor Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  code-review:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-actions[bot]'
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Require CURSOR_API_KEY
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: |
+          if [ -z "${CURSOR_API_KEY:-}" ]; then
+            echo "ERROR: CURSOR_API_KEY secret is not set. Aborting job." >&2
+            exit 1
+          fi
+
+      - name: Validate .cursor/rules folder and rule files
+        run: |
+          echo "=== Validating .cursor/rules directory ==="
+          if [ ! -d ".cursor/rules" ]; then
+            echo "❌ ERROR: .cursor/rules directory not found in project root"
+            echo "Please create .cursor/rules and add rule files like 01-scope.mdc"
+            exit 1
+          fi
+
+          SHCOUNT=$(ls -1 .cursor/rules/*.mdc 2>/dev/null | wc -l || true)
+          if [ "$SHCOUNT" -eq 0 ]; then
+            echo "❌ ERROR: No .mdc rule files found in .cursor/rules"
+            exit 1
+          fi
+
+          # Ensure no empty rule files
+          for f in .cursor/rules/*.mdc; do
+            if [ ! -s "$f" ]; then
+              echo "❌ ERROR: Rule file $f is empty"
+              exit 1
+            fi
+          done
+
+          echo "✅ .cursor/rules validated (found $SHCOUNT rule files)"
+
+      - name: Install Cursor CLI
+        run: |
+          if ! curl --fail --silent --show-error --location https://cursor.com/install | bash; then
+            echo "❌ Failed to install Cursor CLI"
+            exit 1
+          fi
+          echo "$HOME/.cursor/bin" >> $GITHUB_PATH
+
+      - name: Verify Installation and Debug Auth
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: |
+          export PATH="$HOME/.cursor/bin:$PATH"
+          echo "Cursor CLI version:"
+          cursor-agent --version || { echo "❌ Cursor CLI not properly installed"; exit 1; }
+          echo "Testing authentication..."
+          cursor-agent status || echo "Auth status failed - this is expected in CI"
+          echo "API key length: ${#CURSOR_API_KEY}"
+
+      - name: Generate latest commit diff
+        id: latest_diff
+        run: |
+          git fetch --deepen=2
+          PREV_COMMIT=$(git rev-parse HEAD~1)
+          LATEST_COMMIT=$(git rev-parse HEAD)
+          git diff $PREV_COMMIT $LATEST_COMMIT > latest.diff
+
+      - name: Perform code review with custom rules
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          export PATH="$HOME/.cursor/bin:$PATH"
+          DIFF_CONTENT=$(cat latest.diff)
+
+          REVIEW_INSTRUCTIONS="GitHub Actions PR Review Context:
+          - Repository: ${{ github.repository }}
+          - PR Number: ${{ github.event.pull_request.number }}
+
+          --- BEGIN DIFF ---
+          $DIFF_CONTENT
+          --- END DIFF ---"
+
+          # Then, generate/update architecture documentation
+          ARCH_INSTRUCTIONS="Architecture Documentation Update Context:
+          - Repository: ${{ github.repository }}
+          - PR Number: ${{ github.event.pull_request.number }}
+          - Current architecture.md exists: $([ -f "architecture.md" ] && echo "Yes" || echo "No")
+
+          Based on the code diff below, analyze the architectural changes and update/create architecture.md file.
+          Focus on system components, data flows, and architectural decisions.
+
+          --- BEGIN DIFF ---
+          $DIFF_CONTENT
+          --- END DIFF ---
+
+          Please output the complete architecture.md content that should be written to the file."
+
+          MODELS=("auto" "claude-4-sonnet" "gpt-5" "sonnet-4.5" "cheetah")
+          SUCCESS=0
+
+          # Run code review
+          for MODEL in "${MODELS[@]}"; do
+            echo "Running code review with model: $MODEL"
+            if cursor-agent --force --model "$MODEL" --output-format=text --print "$REVIEW_INSTRUCTIONS"; then
+              echo "✅ Code review success with model: $MODEL"
+              SUCCESS=1
+              break
+            fi
+          done
+
+          # Run architecture update
+          for MODEL in "${MODELS[@]}"; do
+            echo "Running architecture update with model: $MODEL"
+            if ARCH_CONTENT=$(cursor-agent --force --model "$MODEL" --output-format=text --print "$ARCH_INSTRUCTIONS"); then
+              echo "✅ Architecture update success with model: $MODEL"
+              echo "$ARCH_CONTENT" > architecture.md
+              break
+            fi
+          done
+
+          if [ "$SUCCESS" -ne 1 ]; then
+            echo "ERROR: All models failed or authentication not available. Aborting and failing the job." >&2
+            exit 1
+          fi
+
+      - name: Auto-commit architecture changes
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: "docs: Update architecture.md for PR #${{ github.event.pull_request.number }}"
+          file_pattern: "architecture.md"
+          commit_user_name: github-actions[bot]
+          commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
+          commit_author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          skip_dirty_check: false
+          skip_fetch: false
