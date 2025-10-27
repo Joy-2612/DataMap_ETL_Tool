@@ -87,31 +87,172 @@ jobs:
           export PATH="$HOME/.cursor/bin:$PATH"
           DIFF_CONTENT=$(cat latest.diff)
 
+          # Debug: Check diff size and content
+          echo "🔍 DEBUGGING: Analyzing diff content"
+          echo "📊 Diff size: $(echo "$DIFF_CONTENT" | wc -c) characters"
+          echo "📊 Diff lines: $(echo "$DIFF_CONTENT" | wc -l) lines"
+          echo "📊 Added lines: $(echo "$DIFF_CONTENT" | grep -c "^+" || echo "0")"
+          echo "📊 Removed lines: $(echo "$DIFF_CONTENT" | grep -c "^-" || echo "0")"
+
+          # Check if diff is empty
+          if [ -z "$DIFF_CONTENT" ]; then
+            echo "⚠️  WARNING: Empty diff detected - no changes to review"
+            exit 0
+          fi
+
+          # Check if diff is too large
+          DIFF_SIZE=$(echo "$DIFF_CONTENT" | wc -c)
+          if [ "$DIFF_SIZE" -gt 50000 ]; then
+            echo "⚠️  WARNING: Large diff ($DIFF_SIZE chars) - may cause resource exhaustion"
+            # Truncate diff to manageable size
+            DIFF_CONTENT=$(echo "$DIFF_CONTENT" | head -500)
+            echo "📝 Truncated diff to $(echo "$DIFF_CONTENT" | wc -l) lines"
+          fi
+
+          # Debug: API Key validation
+          echo "🔑 DEBUGGING: API Key validation"
+          echo "📊 API key length: ${#CURSOR_API_KEY}"
+          if [ ${#CURSOR_API_KEY} -lt 20 ]; then
+            echo "❌ ERROR: API key appears too short (${#CURSOR_API_KEY} chars)"
+            exit 1
+          fi
+
+          # Debug: Cursor CLI status
+          echo "🖥️  DEBUGGING: Cursor CLI status"
+          echo "📍 Cursor CLI path: $(which cursor-agent || echo 'NOT FOUND')"
+          echo "🔧 Cursor CLI version: $(cursor-agent --version 2>&1 || echo 'VERSION CHECK FAILED')"
+
+          # Test basic connectivity
+          echo "🌐 DEBUGGING: Testing Cursor connectivity"
+          if ! cursor-agent status 2>&1; then
+            echo "⚠️  WARNING: Cursor status check failed (expected in CI)"
+          fi
+
           REVIEW_INSTRUCTIONS="GitHub Actions PR Review Context:
           - Repository: ${{ github.repository }}
           - PR Number: ${{ github.event.pull_request.number }}
+          - Request ID: $(date +%s)
 
           --- BEGIN DIFF ---
           $DIFF_CONTENT
           --- END DIFF ---"
 
+          # Debug: Instruction size
+          INSTRUCTION_SIZE=${#REVIEW_INSTRUCTIONS}
+          echo "📊 Review instruction size: $INSTRUCTION_SIZE characters"
+
+          if [ "$INSTRUCTION_SIZE" -gt 100000 ]; then
+            echo "⚠️  WARNING: Review instructions very large ($INSTRUCTION_SIZE chars)"
+          fi
+
           MODELS=("auto" "claude-4-sonnet" "gpt-5" "sonnet-4.5" "cheetah")
           SUCCESS=0
+          ATTEMPT=0
 
-          # Run code review
+          # Run code review with detailed error handling
           for MODEL in "${MODELS[@]}"; do
-            echo "Running code review with model: $MODEL"
-            if cursor-agent --force --model "$MODEL" --output-format=text --print "$REVIEW_INSTRUCTIONS"; then
+            ATTEMPT=$((ATTEMPT + 1))
+            echo ""
+            echo "🚀 ATTEMPT $ATTEMPT: Running code review with model: $MODEL"
+            echo "⏰ Start time: $(date)"
+            
+            # Add timeout and capture full error output
+            timeout 60s cursor-agent \
+              --force \
+              --model "$MODEL" \
+              --output-format=text \
+              --print "$REVIEW_INSTRUCTIONS" 2>&1 | tee "cursor_output_$MODEL.log"
+            
+            CURSOR_EXIT_CODE=${PIPESTATUS[0]}
+            echo "📊 Cursor exit code: $CURSOR_EXIT_CODE"
+            echo "⏰ End time: $(date)"
+            
+            # Analyze the specific error
+            if [ $CURSOR_EXIT_CODE -eq 0 ]; then
               echo "✅ Code review success with model: $MODEL"
               SUCCESS=1
               break
+            elif [ $CURSOR_EXIT_CODE -eq 124 ]; then
+              echo "⏰ TIMEOUT: Model $MODEL took longer than 60 seconds"
+              echo "🔍 This suggests either:"
+              echo "   - Network connectivity issues"
+              echo "   - Model is overloaded"
+              echo "   - Input is too complex"
+            else
+              echo "❌ FAILED: Model $MODEL failed with exit code: $CURSOR_EXIT_CODE"
+              
+              # Analyze specific error patterns
+              if grep -q "resource_exhausted" "cursor_output_$MODEL.log"; then
+                echo "💰 RESOURCE EXHAUSTED detected for model: $MODEL"
+                echo "🔍 Possible causes:"
+                echo "   - Monthly quota exceeded"
+                echo "   - Rate limit hit"
+                echo "   - Request too large"
+                echo "   - Account suspended"
+                
+                # Check if it's a quota vs rate limit issue
+                if grep -q "quota" "cursor_output_$MODEL.log"; then
+                  echo "📊 QUOTA ISSUE: Monthly usage limit reached"
+                elif grep -q "rate" "cursor_output_$MODEL.log"; then
+                  echo "🚄 RATE LIMIT: Too many requests per minute"
+                  echo "💤 Adding 10-second delay before next attempt..."
+                  sleep 10
+                fi
+              elif grep -q "authentication" "cursor_output_$MODEL.log"; then
+                echo "🔐 AUTHENTICATION ERROR detected"
+                echo "🔍 Check if API key is valid and not expired"
+              elif grep -q "connection" "cursor_output_$MODEL.log"; then
+                echo "🌐 CONNECTION ERROR detected"
+                echo "🔍 Network connectivity issue"
+              fi
+              
+              # Show last few lines of error output
+              echo "📝 Last 5 lines of error output:"
+              tail -5 "cursor_output_$MODEL.log" 2>/dev/null || echo "No error log available"
+            fi
+            
+            # Add progressive delay between attempts
+            if [ $ATTEMPT -lt ${#MODELS[@]} ]; then
+              DELAY=$((ATTEMPT * 5))
+              echo "💤 Waiting ${DELAY}s before next attempt..."
+              sleep $DELAY
             fi
           done
 
+          echo ""
+          echo "📊 FINAL DEBUG SUMMARY:"
+          echo "   Total attempts: $ATTEMPT"
+          echo "   Success: $([ $SUCCESS -eq 1 ] && echo 'YES' || echo 'NO')"
+          echo "   Available log files: $(ls cursor_output_*.log 2>/dev/null | tr '\n' ' ')"
+
           if [ "$SUCCESS" -ne 1 ]; then
-            echo "ERROR: Code review failed with all models. Aborting job." >&2
+            echo ""
+            echo "❌ ERROR: Code review failed with all models"
+            echo "🔍 Debugging information collected:"
+            echo "   - API key length: ${#CURSOR_API_KEY} characters"
+            echo "   - Diff size: $DIFF_SIZE characters"
+            echo "   - Instruction size: $INSTRUCTION_SIZE characters"
+            echo "   - Models tried: ${MODELS[*]}"
+            
+            # Suggest solutions based on patterns
+            echo ""
+            echo "🛠️  SUGGESTED SOLUTIONS:"
+            if grep -l "resource_exhausted" cursor_output_*.log 2>/dev/null; then
+              echo "   1. Upgrade Cursor subscription (most likely cause)"
+              echo "   2. Wait for quota reset (if monthly limit)"
+              echo "   3. Reduce diff size by making smaller commits"
+            fi
+            if grep -l "authentication" cursor_output_*.log 2>/dev/null; then
+              echo "   1. Verify CURSOR_API_KEY secret is correct"
+              echo "   2. Check if API key has expired"
+              echo "   3. Regenerate API key from Cursor settings"
+            fi
+            
             exit 1
           fi
+
+          # Cleanup log files on success
+          rm -f cursor_output_*.log 2>/dev/null || true
 
       - name: Generate and update architecture documentation
         env:
