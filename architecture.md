@@ -25,6 +25,7 @@ The `architecture.md` file has been successfully created with a comprehensive ov
 - **External Services**: Postal Pincode API for address enrichment
 
 ### **File Details:**
+
 - **Size**: 12,120 bytes
 - **Lines**: 368 lines
 - **Location**: Repository root (`/home/runner/work/DataMap_ETL_Tool/DataMap_ETL_Tool/architecture.md`)
