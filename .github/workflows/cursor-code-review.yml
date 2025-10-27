@@ -33,26 +33,24 @@ jobs:
         run: |
           echo "=== Validating .cursor/rules directory ==="
           if [ ! -d ".cursor/rules" ]; then
-            echo "❌ ERROR: .cursor/rules directory not found in project root"
-            echo "Please create .cursor/rules and add rule files like 01-scope.mdc"
+            echo "❌ ERROR: .cursor/rules directory not found"
             exit 1
           fi
 
-          SHCOUNT=$(ls -1 .cursor/rules/*.mdc 2>/dev/null | wc -l || true)
-          if [ "$SHCOUNT" -eq 0 ]; then
-            echo "❌ ERROR: No .mdc rule files found in .cursor/rules"
+          # Count all .mdc files recursively (including subdirectories)
+          TOTAL_MDC_COUNT=$(find .cursor/rules -name "*.mdc" -type f | wc -l)
+          if [ "$TOTAL_MDC_COUNT" -eq 0 ]; then
+            echo "❌ ERROR: No .mdc rule files found"
             exit 1
           fi
 
-          # Ensure no empty rule files
-          for f in .cursor/rules/*.mdc; do
-            if [ ! -s "$f" ]; then
-              echo "❌ ERROR: Rule file $f is empty"
-              exit 1
-            fi
-          done
+          # Check for empty files
+          if find .cursor/rules -name "*.mdc" -type f -empty | grep -q .; then
+            echo "❌ ERROR: Found empty .mdc files"
+            exit 1
+          fi
 
-          echo "✅ .cursor/rules validated (found $SHCOUNT rule files)"
+          echo "✅ Found $TOTAL_MDC_COUNT rule files"
 
       - name: Install Cursor CLI
         run: |
