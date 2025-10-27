@@ -95,21 +95,6 @@ jobs:
           $DIFF_CONTENT
           --- END DIFF ---"
 
-          # Then, generate/update architecture documentation
-          ARCH_INSTRUCTIONS="Architecture Documentation Update Context:
-          - Repository: ${{ github.repository }}
-          - PR Number: ${{ github.event.pull_request.number }}
-          - Current architecture.md exists: $([ -f "architecture.md" ] && echo "Yes" || echo "No")
-
-          Based on the code diff below, analyze the architectural changes and update/create architecture.md file.
-          Focus on system components, data flows, and architectural decisions.
-
-          --- BEGIN DIFF ---
-          $DIFF_CONTENT
-          --- END DIFF ---
-
-          Please output the complete architecture.md content that should be written to the file."
-
           MODELS=("auto" "claude-4-sonnet" "gpt-5" "sonnet-4.5" "cheetah")
           SUCCESS=0
 
@@ -123,19 +108,84 @@ jobs:
             fi
           done
 
-          # Run architecture update
+          if [ "$SUCCESS" -ne 1 ]; then
+            echo "ERROR: Code review failed with all models. Aborting job." >&2
+            exit 1
+          fi
+
+      - name: Generate and update architecture documentation
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: |
+          export PATH="$HOME/.cursor/bin:$PATH"
+          DIFF_CONTENT=$(cat latest.diff)
+
+          # Check if architecture.md exists and read it
+          EXISTING_ARCH=""
+          if [ -f "architecture.md" ]; then
+            EXISTING_ARCH=$(cat architecture.md)
+            echo "📄 Found existing architecture.md ($(wc -w < architecture.md) words)"
+          else
+            echo "📄 No existing architecture.md - creating new file"
+          fi
+
+          Repository: ${{ github.repository }}
+          PR Number: ${{ github.event.pull_request.number }}
+
+          EXISTING ARCHITECTURE CONTENT:
+          $EXISTING_ARCH
+
+          RECENT CHANGES TO ANALYZE:
+          --- BEGIN DIFF ---
+          $DIFF_CONTENT
+          --- END DIFF ---
+
+          TASK: Generate complete architecture.md content based on current repository state.
+          If existing content exists, enhance and expand it. If not, create from scratch.
+
+          OUTPUT FORMAT: Start immediately with markdown content, no preamble."
+
+          MODELS=("auto" "claude-3-5-sonnet" "gpt-4" "sonnet-4.5")
+          SUCCESS=0
+
+          # Run architecture generation with quality validation
           for MODEL in "${MODELS[@]}"; do
-            echo "Running architecture update with model: $MODEL"
-            if ARCH_CONTENT=$(cursor-agent --force --model "$MODEL" --output-format=text --print "$ARCH_INSTRUCTIONS"); then
-              echo "✅ Architecture update success with model: $MODEL"
-              echo "$ARCH_CONTENT" > architecture.md
-              break
+            echo "Generating architecture with model: $MODEL"
+            
+            if ARCH_CONTENT=$(cursor-agent --force --model "$MODEL" --max-tokens=8000 --temperature=0.2 --output-format=text --print "$ARCH_INSTRUCTIONS"); then
+              
+              # Quality validation
+              WORD_COUNT=$(echo "$ARCH_CONTENT" | wc -w)
+              MERMAID_COUNT=$(echo "$ARCH_CONTENT" | grep -c "```
+              HAS_CONVERSATIONAL=$(echo "$ARCH_CONTENT" | grep -i -E "(good|let me|i can|perfect|here's)" | head -1 || true)
+              
+              echo "Validation for $MODEL:"
+              echo "  📊 Words: $WORD_COUNT"
+              echo "  📈 Mermaid diagrams: $MERMAID_COUNT"
+              echo "  🚫 Conversational text: $([ -n "$HAS_CONVERSATIONAL" ] && echo 'DETECTED' || echo 'NONE')"
+              
+              # Quality checks
+              if [ $WORD_COUNT -gt 2000 ] && [ $MERMAID_COUNT -ge 1 ] && [ -z "$HAS_CONVERSATIONAL" ] && [[ "$ARCH_CONTENT" == "# System Architecture"* ]]; then
+                echo "$ARCH_CONTENT" > architecture.md
+                echo "✅ Quality architecture generated with $MODEL"
+                SUCCESS=1
+                break
+              else
+                echo "❌ Quality validation failed with $MODEL"
+              fi
+            else
+              echo "❌ Architecture generation failed with $MODEL"
             fi
           done
 
           if [ "$SUCCESS" -ne 1 ]; then
-            echo "ERROR: All models failed or authentication not available. Aborting and failing the job." >&2
-            exit 1
+            echo "⚠️  Architecture generation failed with all models"
+            if [ -f "architecture.md" ]; then
+              echo "📄 Preserving existing architecture.md file"
+            else
+              echo "❌ No architecture.md generated and no existing file"
+              exit 1
+            fi
           fi
 
       - name: Auto-commit architecture changes
