@@ -1,0 +1,143 @@
+---
+description: Production-grade comprehensive architecture documentation generation
+globs: **/*.py, **/*.js, **/*.ts, **/*.tsx, **/*.jsx, **/*.java, **/*.go, src/**, tests/**, config/**
+alwaysApply: true
+---
+
+# Production Architecture Documentation Standards
+
+## CRITICAL OUTPUT FORMAT REQUIREMENTS
+- **OUTPUT ONLY RAW MARKDOWN CONTENT** - No conversational text, explanations, or summaries
+- **NO** phrases like "Perfect!", "I have successfully created", "Here's a summary", etc.
+- **START IMMEDIATELY** with "# System Architecture" 
+- **MINIMUM 5000 WORDS** - This is enterprise-grade documentation
+- **MANDATORY**: Include at least 4 Mermaid diagrams as specified below
+
+## REQUIRED ARCHITECTURE SECTIONS (Each section minimum 600 words)
+
+### 1. System Overview (800+ words)
+- **Purpose**: Detailed explanation of system goals, business context, and stakeholder value
+- **Architecture Style**: Comprehensive analysis (microservices/monolith/serverless/hybrid)
+- **Technology Stack**: Complete inventory with version numbers and rationale for each choice
+- **High-level System Diagram**: MANDATORY Mermaid flowchart showing all major components
+
+graph TD
+[REQUIRED: Complete system architecture with all services, databases, external integrations]
+
+### 2. Frontend Architecture (800+ words)
+- **Framework Analysis**: Detailed component hierarchy, state management patterns
+- **Routing Strategy**: Navigation patterns, route protection, lazy loading
+- **State Management**: Global vs local state, data flow patterns, caching strategies
+- **UI/UX Architecture**: Design system, theming, responsive design approach
+- **Build & Deployment**: Bundling strategy, optimization, CDN usage
+- **Performance Considerations**: Code splitting, caching, optimization techniques
+
+### 3. Backend Architecture (800+ words)  
+- **Service Layer Design**: Controller → Service → Repository patterns
+- **API Design**: REST/GraphQL patterns, versioning strategy, documentation approach
+- **Middleware Stack**: Authentication, logging, error handling, validation layers  
+- **Business Logic Organization**: Domain models, service abstractions, data transformation
+- **External Integrations**: Third-party APIs, webhooks, message queues
+- **Scalability Patterns**: Load balancing, caching, horizontal scaling strategies
+
+### 4. Database Architecture (700+ words)
+- **Schema Design**: Complete entity relationships, normalization decisions
+- **Performance Strategy**: Indexing, query optimization, connection pooling
+- **Data Access Patterns**: ORM usage, raw queries, stored procedures
+- **Migration Strategy**: Version control, rollback procedures, data integrity
+- **MANDATORY Database Diagram**:
+
+erDiagram
+[REQUIRED: Complete entity relationship diagram with all tables, foreign keys, and relationships]
+
+### 5. Data Flow Architecture (700+ words)
+- **User Journey Mapping**: Detailed request/response cycles for key user actions
+- **Background Processing**: Job queues, scheduled tasks, event-driven processes  
+- **Real-time Features**: WebSocket connections, push notifications, live updates
+- **Data Validation**: Input sanitization, business rule enforcement
+- **MANDATORY Sequence Diagram**:
+
+sequenceDiagram
+[REQUIRED: Key user interaction flows showing all system components]
+
+### 6. API Architecture (600+ words)
+- **Endpoint Documentation**: Complete REST/GraphQL API surface
+- **Authentication Flow**: Token generation, validation, refresh mechanisms
+- **Request/Response Patterns**: Pagination, filtering, sorting, error responses
+- **Rate Limiting**: Throttling strategies, quota management
+- **API Versioning**: Backward compatibility, deprecation strategies
+- **Documentation Strategy**: OpenAPI/Swagger integration, auto-generation
+
+### 7. Security Architecture (700+ words)
+- **Authentication Mechanisms**: Login flows, multi-factor authentication, social auth
+- **Authorization Patterns**: Role-based access control (RBAC), permissions model
+- **Data Protection**: Encryption at rest/transit, PII handling, GDPR compliance
+- **Security Headers**: CORS, CSP, HTTPS enforcement, security middleware
+- **Vulnerability Management**: Input validation, SQL injection prevention, XSS protection
+- **Audit Logging**: Security event tracking, compliance monitoring
+
+### 8. Infrastructure Architecture (600+ words)
+- **Deployment Strategy**: Container orchestration, CI/CD pipelines, environment management
+- **Cloud Architecture**: Service mesh, load balancers, auto-scaling policies
+- **Monitoring & Observability**: Logging aggregation, metrics collection, alerting rules
+- **Disaster Recovery**: Backup strategies, failover procedures, RTO/RPO requirements
+- **MANDATORY Infrastructure Diagram**:
+
+graph TB
+[REQUIRED: Complete deployment architecture with all environments, services, and infrastructure components]
+
+### 9. Development Architecture (500+ words)
+- **Code Organization**: Module structure, dependency management, monorepo vs multirepo
+- **Development Workflow**: Git flow, branch strategies, code review process
+- **Testing Strategy**: Unit/integration/e2e testing, coverage requirements, test automation
+- **Quality Gates**: Linting, formatting, security scanning, performance budgets
+- **Documentation Standards**: Code comments, API docs, architectural decision records
+
+### 10. Performance & Scalability (500+ words)
+- **Performance Metrics**: Core Web Vitals, API response times, database query performance
+- **Caching Strategy**: Browser cache, CDN, Redis/Memcached, application-level caching
+- **Database Optimization**: Query optimization, indexing strategy, read replicas
+- **Horizontal Scaling**: Load balancing, session management, stateless design
+- **Monitoring**: APM tools, custom metrics, alerting thresholds
+
+## CONTENT QUALITY REQUIREMENTS
+
+### Technical Depth
+- **Include code examples** for complex patterns and configurations
+- **Explain architectural decisions** with clear rationale and trade-offs considered
+- **Document integration patterns** between different system components
+- **Cover error handling strategies** and edge case management
+- **Include performance benchmarks** and optimization techniques
+
+### Documentation Standards  
+- **Use proper Markdown formatting** with consistent header hierarchy
+- **Include realistic examples** from the actual codebase being documented
+- **Provide configuration snippets** for key integrations and setups
+- **Reference specific files/modules** when explaining architectural components
+- **Include relevant URLs** for external services and documentation
+
+### Mermaid Diagram Requirements
+- **System Overview**: Complete flowchart showing all major components and data flow
+- **Database Design**: Entity relationship diagram with all tables and relationships  
+- **User Flow**: Sequence diagram showing critical user interactions
+- **Infrastructure**: Deployment diagram showing environments and services
+- **Additional diagrams** as needed for complex subsystems
+
+## ANALYSIS APPROACH
+- **Analyze the COMPLETE codebase**, not just PR changes
+- **Understand the business domain** and reflect it in architectural explanations  
+- **Identify architectural patterns** used throughout the system
+- **Document integration points** with external services and APIs
+- **Explain scalability and performance considerations**
+- **Cover security implementation details**
+
+## OUTPUT VALIDATION CHECKLIST
+Before generating final output, ensure:
+- ✅ Minimum 5000 words total content
+- ✅ At least 4 Mermaid diagrams included
+- ✅ No conversational or summary text
+- ✅ Starts immediately with "# System Architecture"  
+- ✅ Each major section has substantial technical detail
+- ✅ Includes specific code examples and configurations
+- ✅ References actual files and components from the codebase
+- ✅ Explains architectural decisions and trade-offs

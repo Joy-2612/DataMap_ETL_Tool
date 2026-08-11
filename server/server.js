@@ -3,6 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const errorHandler = require("./middleware/errorHandler");
 
 // Configurations
 dotenv.config();
@@ -26,6 +27,9 @@ mongoose
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/file", require("./routes/fileRoutes"));
 app.use("/api/ai", require("./routes/aiRoutes"));
+
+// Error handling middleware (must be last)
+app.use(errorHandler);
 
 // Start server
 app.listen(PORT, () =>

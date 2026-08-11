@@ -1,0 +1,179 @@
+---
+description: GitHub commit message generation and architecture documentation updates
+globs: **/*.py, **/*.js, **/*.ts, **/*.tsx, src/**, tests/**, docs/**
+alwaysApply: true
+---
+
+# Architecture Documentation Commit Rules
+
+## COMMIT MESSAGE REQUIREMENTS
+- **Format**: `docs: Update architecture.md for PR #<NUMBER>`
+- **Reference PR number** for traceability
+- **Use conventional commit** format (docs:)
+
+## ARCHITECTURE UPDATE STRATEGY
+- **Preserve existing content** - never completely replace
+- **Enhance sections** based on code changes
+- **Add new sections** only when genuinely new architecture components
+- **Update diagrams** when system structure significantly changes
+
+## FILE MODIFICATION APPROACH
+
+### When architecture.md EXISTS:
+1. **Read existing content** first
+2. **Identify sections** to update based on code changes
+3. **Enhance relevant sections** with new information
+4. **Preserve unchanged sections** exactly as they are
+5. **Update Mermaid diagrams** only if architecture has changed
+
+### When architecture.md is NEW:
+1. **Generate comprehensive** documentation from scratch
+2. **Follow complete structure** requirements
+3. **Include all mandatory** sections and diagrams
+4. **Base on current** repository state analysis
+
+## CONTENT PRESERVATION RULES
+- **Keep existing** Mermaid diagrams unless system structure changed
+- **Maintain section** order and hierarchy
+- **Preserve technical** details that remain accurate
+- **Update outdated** information only
+- **Expand sections** that need more detail
+
+## COMMIT WORKFLOW INTEGRATION
+- Example commit commands generated:
+
+```
+git add architecture.md
+git config user.name "github-actions[bot]"
+git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+git commit -m "docs: Update architecture.md for PR #123"
+git push origin HEAD
+```
+
+## ARCHITECTURE CHANGE DETECTION
+Monitor these changes for architecture updates:
+
+### New Components/Services
+- New Python modules in src/
+- New terraform components
+- New API endpoints
+- New database models
+- New configuration files
+
+### Modified System Interactions
+- Changes to API routes
+- Database schema modifications  
+- New external service integrations
+- Authentication flow changes
+- Data flow modifications
+
+### Infrastructure Changes
+- Docker configuration updates
+- Kubernetes manifest changes
+- Environment variable additions
+- Deployment script modifications
+- Monitoring configuration updates
+
+## COMMIT MESSAGE TEMPLATES
+
+### Architecture Updates:
+```
+docs: Update architecture.md for PR #<NUMBER>
+
+Enhanced <section_name> section with <specific_changes>
+
+Added Mermaid diagram for <system_component>
+
+Updated technology stack documentation
+
+Expanded <component> architecture details
+```
+
+### New Architecture Documentation:
+```
+docs: Add comprehensive architecture.md for PR #<NUMBER>
+
+Complete system architecture documentation
+
+Frontend and backend architecture details
+
+Database design and data flow diagrams
+
+Security model and infrastructure overview
+
+API contracts and integration patterns
+```
+
+### Minor Architecture Updates:
+```
+docs: Update architecture.md for PR #<NUMBER> [skip ci]
+
+Updated <component> implementation details
+
+Refreshed system overview for recent changes
+```
+
+## AUTOMATIC COMMIT TRIGGERS
+Trigger architecture commits when PR contains:
+
+### High-Impact Changes:
+- New service/module additions
+- Database schema changes
+- API endpoint modifications
+- Authentication system changes
+- External integration additions
+
+### Medium-Impact Changes:
+- Configuration updates
+- Deployment process changes
+- Performance optimizations
+- Security improvements
+
+### Low-Impact Changes:
+- Documentation updates
+- Code refactoring (no logic change)
+- Test additions
+- Dependency updates
+
+## COMMIT METADATA
+Include in commit body:
+```
+Co-authored-by: <original_author_name> <email>
+Architecture-Update: automated
+PR-Reference: #<number>
+Timestamp: <iso_timestamp>
+Changes-Detected: <component1>, <component2>
+```
+
+## BRANCH PROTECTION INTEGRATION
+- **Commits signed** by github-actions[bot]
+- **Maintains git history** with proper attribution
+
+## VALIDATION BEFORE COMMIT
+Before committing architecture.md:
+1. ✅ File is valid Markdown
+2. ✅ Contains required sections
+3. ✅ Mermaid diagrams are syntactically correct
+4. ✅ No conversational text present
+5. ✅ Minimum word count met
+6. ✅ Proper heading hierarchy
+
+## INTEGRATION WITH AUTO-COMMIT ACTION
+```
+name: Auto-commit architecture changes
+uses: stefanzweifel/git-auto-commit-action@v7
+with:
+commit_message: "docs: Update architecture.md for PR #${{ github.event.pull_request.number }} [skip ci]"
+file_pattern: "architecture.md"
+commit_user_name: github-actions[bot]
+commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
+commit_author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+skip_dirty_check: false
+skip_fetch: false
+```
+
+## COMMIT FREQUENCY LIMITS
+- **Maximum 1 commit** per PR for architecture updates
+- **Batch changes** if multiple files modified
+- **Skip commits** if no substantial architecture changes
+- **Use amend strategy** for rapid successive updates
